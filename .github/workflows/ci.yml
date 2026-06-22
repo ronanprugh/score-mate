@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test:ci
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Build-time placeholders so the build doesn't fail before Task 2/3 lands real values.
+          DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+          AUTH_SECRET: ci-placeholder-secret-not-used-at-build-time
+          NEXTAUTH_URL: http://localhost:3000
+          AUTH_GOOGLE_ID: ci-placeholder
+          AUTH_GOOGLE_SECRET: ci-placeholder
+          AUTH_RESEND_KEY: ci-placeholder
+          EMAIL_FROM: ci@example.com
