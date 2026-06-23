@@ -1,0 +1,46 @@
+{
+  "events": [
+    {
+      "idEvent": "2052901",
+      "idLeague": "4328",
+      "strLeague": "English Premier League",
+      "strSport": "Soccer",
+      "strEvent": "Arsenal vs Chelsea",
+      "strHomeTeam": "Arsenal",
+      "strAwayTeam": "Chelsea",
+      "idHomeTeam": "133604",
+      "idAwayTeam": "133610",
+      "intHomeScore": "2",
+      "intAwayScore": "1",
+      "dateEvent": "2026-06-22",
+      "strTime": "15:00:00",
+      "strTimestamp": "2026-06-22T15:00:00",
+      "strRound": "Matchweek 38",
+      "strVenue": "Emirates Stadium",
+      "strTVStation": "NBC Sports",
+      "strStatus": "Match Finished",
+      "strProgress": "FT"
+    },
+    {
+      "idEvent": "2052902",
+      "idLeague": "4328",
+      "strLeague": "English Premier League",
+      "strSport": "Soccer",
+      "strEvent": "Liverpool vs Manchester City",
+      "strHomeTeam": "Liverpool",
+      "strAwayTeam": "Manchester City",
+      "idHomeTeam": "133602",
+      "idAwayTeam": "133613",
+      "intHomeScore": "1",
+      "intAwayScore": "1",
+      "dateEvent": "2026-06-22",
+      "strTime": "17:30:00",
+      "strTimestamp": "2026-06-22T17:30:00",
+      "strRound": "Matchweek 38",
+      "strVenue": "Anfield",
+      "strTVStation": "Peacock",
+      "strStatus": "In Play",
+      "strProgress": "73'"
+    }
+  ]
+}

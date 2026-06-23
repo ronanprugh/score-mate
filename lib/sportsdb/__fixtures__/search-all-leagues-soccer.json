@@ -1,0 +1,24 @@
+{
+  "countries": [
+    {
+      "idLeague": "4328",
+      "strLeague": "English Premier League",
+      "strSport": "Soccer"
+    },
+    {
+      "idLeague": "4335",
+      "strLeague": "Spanish La Liga",
+      "strSport": "Soccer"
+    },
+    {
+      "idLeague": "4346",
+      "strLeague": "American Major League Soccer",
+      "strSport": "Soccer"
+    },
+    {
+      "idLeague": "4396",
+      "strLeague": "English League Championship",
+      "strSport": "Soccer"
+    }
+  ]
+}

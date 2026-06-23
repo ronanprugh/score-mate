@@ -1,0 +1,224 @@
+# 02-tasks-score-tracker.md
+
+> Task list for [02-spec-score-tracker.md](./02-spec-score-tracker.md). Builds on the auth + DB foundation from [01-spec-auth-foundation](../01-spec-auth-foundation/01-spec-auth-foundation.md) (live at `https://score-mate-chi.vercel.app`).
+
+## Relevant Files
+
+| File | Why It Is Relevant |
+| --- | --- |
+| `lib/sportsdb/types.ts` | Internal normalized types (`Match`, `Team`, `League`, `Event`, `MatchStatus`) consumed across the app. |
+| `lib/sportsdb/client.ts` | Typed wrapper around the TheSportsDB free-tier endpoints (`eventsday.php`, `eventsnext.php`, `eventslast.php`, `searchteams.php`, `search_all_leagues.php`). Server-side only. |
+| `lib/sportsdb/client.test.ts` | Unit tests: URL building + fixture parsing for each endpoint. |
+| `lib/sportsdb/__fixtures__/*.json` | Sample TheSportsDB JSON responses (≥1 per sport) used by tests so we never hit the network in CI. |
+| `lib/sport-allowlist.ts` | The spec's curated Sport-favorite allowlist (Soccer / American Football / Basketball / Tennis), plus `matchesSportAllowlist(sport, match)` helper. |
+| `lib/sport-allowlist.test.ts` | Asserts allowlist accepts/rejects per the spec. |
+| `lib/favorite-matcher.ts` | Pure function: given user favorites + matches → deduplicated matching set. Implements all four favorite-type semantics + Event silent-expire. |
+| `lib/favorite-matcher.test.ts` | Covers Team/Sport/League/Event semantics + dedup. |
+| `lib/date-window.ts` | Browser-timezone helper producing `[yesterday, today, tomorrow]` as `YYYY-MM-DD` strings. |
+| `lib/date-window.test.ts` | Timezone-boundary tests (e.g. US/Eastern at 23:30 local). |
+| `db/schema/favorites.ts` | Drizzle schema for the `favorites` table per the spec. |
+| `db/schema/index.ts` | Barrel — re-exports `favorites`. |
+| `db/migrations/000N_*.sql` | Auto-generated migration adding the `favorites` table (+ unique + index). |
+| `lib/favorites/validators.ts` | Zod schemas for favorite create/delete payloads. |
+| `lib/favorites/validators.test.ts` | Asserts only the four `type` values + four `sport` values are accepted. |
+| `lib/favorites/queries.ts` | Server-side data layer: `listFavoritesForUser`, `createFavorite`, `deleteFavorite`. All scope by `userId` server-side. |
+| `lib/rate-limit.ts` | In-memory per-user write-rate limiter. |
+| `lib/rate-limit.test.ts` | Asserts 60 writes/min cap. |
+| `app/api/favorites/route.ts` | `GET` (list current user's favorites) + `POST` (add one). Auth-gated, Zod-validated, rate-limited. |
+| `app/api/favorites/route.test.ts` | Covers 401, 200 list, 201 create, 409 duplicate, 400 bad payload, 429 rate-limit. |
+| `app/api/favorites/[id]/route.ts` | `DELETE` one favorite. Auth-gated; only removes rows owned by the calling user. |
+| `app/api/favorites/[id]/route.test.ts` | Covers 401, 204 happy path, 404 not-owned-by-user. |
+| `app/(app)/layout.tsx` | Shared layout for the three signed-in screens (Home, Favorites, My Favorites). Renders `<BottomNav />` and gates with `await auth()`. |
+| `app/(app)/home/page.tsx` | The score-tracker homepage. Replaces the spec-01 placeholder at `app/home/page.tsx`. |
+| `app/(app)/home/page.test.tsx` | Asserts the day groups, empty state, and error banner render correctly. |
+| `app/(app)/favorites/page.tsx` | Search/browse screen with typeahead. |
+| `app/(app)/favorites/page.test.tsx` | Asserts type-labeled results render, Add CTAs meet 44 px, click transitions row to "Added". |
+| `app/(app)/my-favorites/page.tsx` | List + remove screen. |
+| `app/(app)/my-favorites/page.test.tsx` | Asserts each persisted type renders with a Remove control; empty state when none. |
+| `middleware.ts` | Update matcher to cover `/(app)/...` (currently only `/home/*`). |
+| `components/bottom-nav.tsx` | Mobile bottom nav (Home / Favorites / My Favorites), 44 px targets, route-aware active state. |
+| `components/bottom-nav.test.tsx` | Asserts the three nav items render, satisfy 44 px, and highlight the current route. |
+| `components/favorites-search.tsx` | Client component: typeahead + result list (calls a search-only Route Handler under the hood — see `app/api/favorites/search`). |
+| `app/api/favorites/search/route.ts` | Server-side typeahead endpoint (calls `searchteams.php` + league/event search in parallel). |
+| `app/api/favorites/search/route.test.ts` | Asserts merged + type-labeled results. |
+| `components/favorite-add-button.tsx` | Optimistic Add/Added toggle. |
+| `components/favorite-remove-button.tsx` | Optimistic Remove. |
+| `components/match-card.tsx` | Renders Final / Live / Upcoming branches. |
+| `components/match-card.test.tsx` | Covers all three branches, long-name truncation, 44 px on interactives. |
+| `components/day-section.tsx` | Day header (Yesterday / Today / Tomorrow) + responsive grid of cards. |
+| `components/no-matches-empty-state.tsx` | "No matches in your window — check back tomorrow." |
+| `components/data-source-error-banner.tsx` | Non-blocking banner shown when `source.ok === false`. |
+| `components/home-client.tsx` | Client component that owns the date-window computation, `/api/home` fetch, polling, and visibility gating. |
+| `components/home-client.test.tsx` | Polling test using `vi.useFakeTimers()` covering the 4 polling FRs. |
+| `lib/home/aggregator.ts` | Orchestrates per-favorite TheSportsDB calls, merges via `favorite-matcher`, dedups, sorts by kickoff. |
+| `lib/home/aggregator.test.ts` | Fixture-driven test across all four sports. |
+| `lib/home/cache.ts` | `unstable_cache` wrappers with the 3 TTLs (30 s / 5 min / 10 min). |
+| `app/api/home/route.ts` | `GET /api/home?dates=YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD` returning the typed envelope. |
+| `app/api/home/route.test.ts` | Covers 401, empty-favorites, dedup, kickoff-sort, partial-failure envelope. |
+| `README.md` | Update Operations section with new env vars / endpoints (none expected, but verify). |
+
+### Notes
+
+- Tests are colocated with the code they test (e.g. `match-card.tsx` next to `match-card.test.tsx`). Route handler tests live at `route.test.ts` next to the `route.ts`.
+- Run tests with `pnpm test:ci`; run a single suite via `pnpm test:ci <path>`.
+- All TypeScript must pass `pnpm typecheck` with `strict` enabled — no `any`, no untracked `@ts-ignore`.
+- Tailwind: default classes target small screens; use `sm:`/`md:`/`lg:` only for upward adjustments. Touch targets ≥44×44 px via `min-h-11 min-w-11`. Full-height layouts use `min-h-dvh`. Safe-area insets respected.
+- Conventional Commits enforced via commitlint in CI (`feat:` for user-facing slices, `feat(api):` for endpoints, `feat(db):` for schema, `chore:`/`docs:`/`test:` as appropriate).
+- TheSportsDB calls live **only** in server-side code (under `app/api/` or `lib/sportsdb/`). The client never calls TheSportsDB directly — CORS-safe by design.
+- The placeholder `/home` from spec 01 (`app/home/page.tsx`) is **replaced** by `app/(app)/home/page.tsx`. Delete the old file in Task 5.0; do not leave duplicates.
+
+## Tasks
+
+### [x] 1.0 Build the TheSportsDB client, sport allowlist, and favorite-matching primitives (lib-only, fully unit-tested)
+
+#### 1.0 Proof Artifact(s)
+
+- Test: `lib/sportsdb/client.test.ts` passes — asserts the client builds correct URLs for each endpoint and parses sample TheSportsDB JSON fixtures into the internal `Match` type.
+- Test: `lib/sport-allowlist.test.ts` passes — asserts a sample match in each allowlisted league/tournament is accepted, and at least one out-of-list league is rejected, for every one of the four sports.
+- Test: `lib/favorite-matcher.test.ts` passes — covers all four favorite-type semantics (Team home/away, Sport via allowlist, League, Event in-tournament + Event silent-expire) and the dedup case where one match matches multiple favorites.
+- Test: `lib/date-window.test.ts` passes — asserts the window is computed correctly across timezone boundaries.
+- Test: `lib/favorite-matcher.test.ts` (additional case) — a Sport favorite for Soccer paired with an out-of-allowlist league (e.g. EFL Championship) returns zero matches, demonstrating Sport favorites stay bounded to the curated set (closes the non-goal-leakage risk on "all matches" Sport favorites).
+- CLI: `pnpm test:ci` shows all four new test files green; total test count strictly greater than 26.
+- File diff: `lib/sportsdb/`, `lib/sport-allowlist.ts`, `lib/favorite-matcher.ts`, `lib/date-window.ts` + colocated tests present in the commit.
+
+#### 1.0 Tasks
+
+- [x] 1.1 Authored `lib/sportsdb/types.ts` with `Sport`, `MatchStatus`, `Team`, `League`, `EventInstance`, `Match`, `Favorite`, plus `SUPPORTED_SPORTS` and `FAVORITE_TYPES` const arrays.
+- [x] 1.2 Added 6 fixtures under `lib/sportsdb/__fixtures__/`: one `eventsday-*` per sport (Soccer/American Football/Basketball/Tennis) plus `searchteams.json` and `search-all-leagues-soccer.json`. Each <2 KB, hand-curated to cover final/live/upcoming + scores.
+- [x] 1.3 Implemented `lib/sportsdb/client.ts` with `eventsDay`/`eventsNext`/`eventsLast`/`searchTeams`/`searchAllLeagues` plus pure URL builders and parsers (exported for tests). Status string mapping handles "Match Finished"/"In Play"/"Not Started" variants. SERVER-ONLY doc comment at top.
+- [x] 1.4 Authored `lib/sportsdb/client.test.ts`: URL-builder assertions for all 5 endpoints (incl. URL-encoding for "American Football" and "Team USA"); fixture-driven parser assertions for all four sports covering final/live/upcoming + score parsing + `events: null` empty case + non-OK status throws.
+- [x] 1.5 Authored `lib/sport-allowlist.ts` with the full spec allowlist (Soccer/American Football/Basketball/Tennis), using leagueId where stable and `leagueNameContains` substring fallback for NCAA + tennis cases. Exports `matchesSportAllowlist`.
+- [x] 1.6 Authored `lib/sport-allowlist.test.ts`: shape sanity (each sport has entries, every entry has id-or-name), plus accept/reject per sport.
+- [x] 1.7 Implemented `lib/favorite-matcher.ts` with `matchFavoritesAgainstMatches(favorites, matches)`. Team checks home OR away; Sport gates on `matchesSportAllowlist`; League checks `leagueId`; Event checks `eventInstanceId` AND `dateUtc ∈ [startDate, endDate]` (silent-expire when window missing or in the past). Dedup by `match.id` preserving order.
+- [x] 1.8 Authored `lib/favorite-matcher.test.ts`: per-type happy-path + dedup (a match claimed by Team + League + Sport favorites appears exactly once) + Event silent-expire (favorite with past `endDate` produces 0 matches) + null-metadata Event (also 0 matches by design).
+- [x] 1.9 Implemented `lib/date-window.ts` using `Intl.DateTimeFormat("en-CA", { timeZone, year, month, day })` to emit YYYY-MM-DD strings; offsets `now` ±24h in UTC ms to keep DST correct. Also exports `getBrowserTimezone()` helper.
+- [x] 1.10 Authored `lib/date-window.test.ts`: UTC noon, `America/New_York` at 23:30 local (UTC 03:30 next day), `Pacific/Kiritimati` +14 at 00:30 local, DST spring-forward day, leap-year boundary (2028-02-29), zero-padded format check.
+- [x] 1.11 Added "Sport favorite REJECTS EFL Championship" assertion (and a Soccer-vs-Basketball cross-sport rejection) inside `lib/favorite-matcher.test.ts`. **Closes audit finding F2.**
+
+---
+
+### [ ] 2.0 Add the `favorites` Drizzle schema and the favorites CRUD API (auth-gated, Zod-validated, rate-limited)
+
+#### 2.0 Proof Artifact(s)
+
+- File diff: `db/schema/favorites.ts`, new migration SQL under `db/migrations/`, `app/api/favorites/route.ts` (+ `[id]/route.ts`), `lib/favorites/*` all present and committed.
+- CLI: after `pnpm db:migrate` against dev Neon, `\dt favorites` lists the table and `\d favorites` shows the UNIQUE on (`userId`, `type`, `externalId`) and INDEX on (`userId`).
+- Test: `app/api/favorites/route.test.ts` (+ `[id]/route.test.ts`) pass — covering 401, scoped POST, duplicate handling, scoped DELETE, malformed payload (400), rate-limit (429).
+- Test: cross-user DELETE attempt in `app/api/favorites/[id]/route.test.ts` returns 404 and leaves the target row intact (closes the IDOR-regression risk on the DELETE endpoint).
+- Test: `lib/favorites/validators.test.ts` passes — Zod accepts only the four `type` values and four `sport` values.
+
+#### 2.0 Tasks
+
+- [ ] 2.1 Author `db/schema/favorites.ts`: columns per the spec (`id` UUID PK with `$defaultFn(crypto.randomUUID)`, `userId` text FK → `users.id` ON DELETE CASCADE, `type` text with check constraint or enum, `externalId` text, `displayName` text, `sport` text, `metadata` jsonb, `createdAt` timestamp default now). Add `unique().on(t.userId, t.type, t.externalId)` and `index().on(t.userId)`.
+- [ ] 2.2 Re-export from `db/schema/index.ts` so Drizzle Kit discovers the table.
+- [ ] 2.3 Run `pnpm db:generate` to produce the migration SQL; commit the new `db/migrations/000N_*.sql`.
+- [ ] 2.4 Run `pnpm db:migrate` against the dev Neon branch; verify with `\dt favorites` and `\d favorites`.
+- [ ] 2.5 Author `lib/favorites/validators.ts`: a Zod `createFavoriteSchema` (`type` enum, `externalId` non-empty string, `displayName` non-empty string, `sport` enum, optional `metadata` object), and a `deleteFavoriteParamsSchema` for the route's `[id]` param.
+- [ ] 2.6 Implement `lib/favorites/queries.ts` exporting `listFavoritesForUser(userId)`, `createFavorite(userId, input)`, `deleteFavorite(userId, favoriteId)`. All scope by `userId` server-side; `createFavorite` uses `ON CONFLICT DO NOTHING RETURNING *` (or equivalent) so a duplicate POST returns the existing row.
+- [ ] 2.7 Implement `lib/rate-limit.ts`: in-memory `Map<string, number[]>` keyed by user id, sliding 60 s window, default cap 60 writes/min. Export `checkRateLimit(userId, scope): { ok: boolean; resetAt: number }`. Document the in-memory caveat (per-instance only — fine for v1 single-instance Vercel deploys).
+- [ ] 2.8 Implement `app/api/favorites/route.ts`: `GET` returns the user's favorites; `POST` runs `checkRateLimit → validators.createFavoriteSchema.parse → queries.createFavorite`. Return 401 on no session, 400 on Zod failure, 429 on rate-limit hit, 200 with the created row otherwise.
+- [ ] 2.9 Implement `app/api/favorites/[id]/route.ts`: `DELETE` runs `queries.deleteFavorite(session.user.id, params.id)`. Return 401 on no session, 204 on success, 404 when the row doesn't exist or isn't owned by the caller.
+- [ ] 2.10 Author `lib/favorites/validators.test.ts` covering the four valid `type` values, four valid `sport` values, and at least three rejected inputs.
+- [ ] 2.11 Author `app/api/favorites/route.test.ts` covering all six branches listed in the proof.
+- [ ] 2.12 Author `app/api/favorites/[id]/route.test.ts` covering 401, 204, and 404-when-not-owned.
+- [ ] 2.13 Apply the new migration to the **prod** Neon branch (`DATABASE_URL="<prod>" pnpm db:migrate`). Verify with the prod inspect script.
+- [ ] 2.14 Add a cross-user DELETE test case to `app/api/favorites/[id]/route.test.ts`: authenticated as user A, attempt to DELETE a favorite owned by user B → assert HTTP 404 (not 204) AND the target row remains present in the DB after the request. **Closes audit finding F1** (prevents future IDOR-regression if the `WHERE userId = ?` scoping is ever dropped).
+
+---
+
+### [ ] 3.0 Build the mobile-first Favorites UI: typeahead search/browse + "My Favorites" screen + bottom navigation
+
+#### 3.0 Proof Artifact(s)
+
+- Screenshot: `/favorites` at 375 px with typeahead showing one result of each type with Add CTAs.
+- Screenshot: `/my-favorites` at 375 px listing one of each of the four favorite types.
+- Screenshot: `/my-favorites` empty state at 375 px.
+- Test: `app/(app)/favorites/page.test.tsx` — asserts type-labeled results, 44 px Add CTAs, optimistic Add transition.
+- Test: `app/(app)/my-favorites/page.test.tsx` — asserts persisted-type rendering + Remove + empty state.
+- Test: `components/bottom-nav.test.tsx` — asserts 3 items, 44 px each, active-route highlighting.
+- Live URL walkthrough (mobile → desktop): add favorites on one device → sign out → sign in on second device → see the same favorites.
+
+#### 3.0 Tasks
+
+- [ ] 3.1 Create the `(app)` route group: `app/(app)/layout.tsx` is a server component that calls `await auth()`, redirects to `/signin` on null session, renders `{children}` plus the shared `<BottomNav />`. Mobile-first single column; `min-h-dvh` + safe-area-bottom padding (so nav doesn't overlap content).
+- [ ] 3.2 Implement `components/bottom-nav.tsx` (server component reading `usePathname` via a small client wrapper, or fully client): three items (Home, Favorites, My Favorites) with 44×44 touch targets and an active-state class. Switches to a top nav at `md:`+ if desired.
+- [ ] 3.3 Move `app/home/page.tsx` and `app/home/page.test.tsx` into `app/(app)/home/`. Drop the local `await auth()` (moved to layout); keep the existing assertion tests passing.
+- [ ] 3.4 Update `middleware.ts` matcher from `/home/:path*` to also cover `/favorites/:path*` and `/my-favorites/:path*` (or use a broader pattern like `/(home|favorites|my-favorites)/:path*`).
+- [ ] 3.5 Implement `app/api/favorites/search/route.ts`: takes `?q=...&sport=...` (optional sport filter), calls `searchTeams` + `searchAllLeagues` (and a hand-curated event list — small set per sport for v1) in parallel, returns a merged array typed `{ type, externalId, displayName, sport }[]`. Auth-gated.
+- [ ] 3.6 Implement `app/(app)/favorites/page.tsx` (server component shell — header, instructions) and `components/favorites-search.tsx` (client component — debounced input, fetches `/api/favorites/search`, renders type-labeled results with `<FavoriteAddButton />` for each).
+- [ ] 3.7 Implement `components/favorite-add-button.tsx`: client component that owns a single `Added | NotAdded | Pending` state, POSTs to `/api/favorites` on click, transitions optimistically, rolls back + shows a toast on failure. 44×44 target. Receives an `initialAdded` prop the parent computes by intersecting search results with current favorites.
+- [ ] 3.8 Implement `app/(app)/my-favorites/page.tsx` (server component): reads `listFavoritesForUser(session.user.id)`, groups by type, renders each with a `<FavoriteRemoveButton />`. Empty state when zero.
+- [ ] 3.9 Implement `components/favorite-remove-button.tsx`: client component, DELETEs to `/api/favorites/[id]`, optimistic removal, rollback + toast on failure. 44×44 target.
+- [ ] 3.10 Author `components/bottom-nav.test.tsx`: render at three different `usePathname` mocks; assert active highlight; assert each item carries `min-h-11 min-w-11`.
+- [ ] 3.11 Author `app/(app)/favorites/page.test.tsx`: mock the search route to return one result of each type; assert each renders type-labeled with an Add CTA; click Add and assert the row transitions to "Added".
+- [ ] 3.12 Author `app/(app)/my-favorites/page.test.tsx`: mock `listFavoritesForUser` to return one of each type; assert each row + Remove control renders; separately assert the empty state when zero favorites.
+
+---
+
+### [ ] 4.0 Build the server-side homepage data flow: window query, favorite-driven match fetch, dedup, and per-source caching
+
+#### 4.0 Proof Artifact(s)
+
+- File diff: `app/api/home/route.ts`, `lib/home/aggregator.ts`, `lib/home/cache.ts` present.
+- Test: `app/api/home/route.test.ts` — 401, empty-favorites returns empty envelope, mixed favorites returns kickoff-sorted results, dedup, partial-failure envelope.
+- Test: `lib/home/aggregator.test.ts` — fixture-driven across all four sports.
+- CLI: live `curl -b 'session=...'` against the dev server returns the typed JSON envelope; `curl` without a cookie returns 401.
+
+#### 4.0 Tasks
+
+- [ ] 4.1 Implement `lib/home/aggregator.ts` exporting `aggregateMatchesForUser(userId, dates): Promise<{ yesterday: Match[], today: Match[], tomorrow: Match[], source: { ok: boolean; errors: string[] } }>`. Reads favorites, plans the minimum set of TheSportsDB queries needed (e.g. one `eventsDay(date, sport)` per (date × sport) covered by any favorite), runs them in parallel via `Promise.allSettled`, feeds the results plus the user's favorites through `matchFavoritesAgainstMatches`, partitions by date, sorts each partition by `kickoffAt`. Accumulates a `source.errors` array from any rejected settles.
+- [ ] 4.2 Implement `lib/home/cache.ts`: `unstable_cache` wrappers around each TheSportsDB call with the spec's TTLs (30 s for any window containing live matches, 5 min for today-not-started, 10 min for yesterday + tomorrow). Cache keys include `(endpoint, date, sport)`.
+- [ ] 4.3 Implement `app/api/home/route.ts`: `GET` reads `?dates=yyyy-mm-dd,yyyy-mm-dd,yyyy-mm-dd` (three exact strings, client-computed in the user's TZ — server must NOT compute its own). Auth-gated. Calls `aggregateMatchesForUser`. Returns 401 on no session, 400 on malformed `dates`, 200 with the envelope otherwise (even on `source.ok === false` — partial failure is still 200).
+- [ ] 4.4 Author `lib/home/aggregator.test.ts`: mock `lib/sportsdb/client.ts` with fixture-backed implementations; drive `aggregateMatchesForUser` with favorites from all four sports; assert the merged/deduped/sorted output and the `source.errors` accumulation when one mocked call rejects.
+- [ ] 4.5 Author `app/api/home/route.test.ts`: mock `auth()` and the aggregator; assert all five branches in the proof.
+
+---
+
+### [ ] 5.0 Build the mobile-first homepage UI: day groups, match cards (Final / Live / Upcoming), and empty/error states
+
+#### 5.0 Proof Artifact(s)
+
+- Screenshot: `/home` at 375 px with ≥1 card under Yesterday / Today / Tomorrow.
+- Screenshot: `/home` at 1280 px with the multi-column grid.
+- Screenshot: a card in the **Live** state with score + minute/period/set.
+- Screenshot: an **Upcoming** card with kickoff time, competition, round, venue, broadcast.
+- Screenshot: "No matches in your window" empty state at 375 px.
+- Screenshot: partial-error banner state at 375 px.
+- Test: `app/(app)/home/page.test.tsx` — all three day groups, empty state, error banner.
+- Test: `components/match-card.test.tsx` — Final/Live/Upcoming branches, long-name truncation, 44 px on interactives.
+
+#### 5.0 Tasks
+
+- [ ] 5.1 Rewrite `app/(app)/home/page.tsx` as a thin server-component shell (header copy, page metadata) that embeds `<HomeClient />`. Delete the spec-01 placeholder copy.
+- [ ] 5.2 Implement `components/home-client.tsx` (client component) responsible for: (a) computing the date window via `lib/date-window.ts` with the browser's TZ; (b) fetching `/api/home?dates=...` on mount; (c) rendering `<DataSourceErrorBanner />` when `source.ok === false`; (d) rendering three `<DaySection />`s in order; (e) rendering `<NoMatchesEmptyState />` when all three days are empty AND the user has favorites. (Polling is added in Task 6.0.)
+- [ ] 5.3 Implement `components/day-section.tsx`: sticky-readable header ("Yesterday" / "Today" / "Tomorrow") + a responsive grid (single column on mobile, multi-column at `md:`+) of `<MatchCard />`.
+- [ ] 5.4 Implement `components/match-card.tsx` with three branches keyed off `match.status`: **Final** (muted "Final" label + final score), **Live** (subtle-pulse "LIVE" pill + live score + minute/period/set), **Upcoming** (clock icon + local kickoff time + broadcast/streaming when present). Long names use `truncate` with `title` attribute. Card itself has `min-h-...` enough that all three states have uniform height.
+- [ ] 5.5 Implement `components/no-matches-empty-state.tsx` and `components/data-source-error-banner.tsx` as small presentational components.
+- [ ] 5.6 Author `components/match-card.test.tsx` covering all three branches (separate `it`s), a long-name truncation case, and a 44 px assertion on any interactive elements present.
+- [ ] 5.7 Replace `app/home/page.test.tsx` (now moved to `app/(app)/home/page.test.tsx` per Task 3.3) with assertions that the server-component shell renders and embeds `<HomeClient />`. Most rendering tests live in `components/home-client.test.tsx` (next task) and `match-card.test.tsx`.
+- [ ] 5.8 Author `components/home-client.test.tsx` covering the static cases: mock `/api/home` to return (a) one match per day → three day groups render; (b) all-empty arrays with favorites present → empty state renders; (c) `source.ok === false` → error banner renders. (Polling tests live in Task 6.0.)
+
+---
+
+### [ ] 6.0 Live auto-refresh + Page Visibility gating + deploy + cross-device end-to-end proof
+
+#### 6.0 Proof Artifact(s)
+
+- Test: `components/home-client.test.tsx` (extended) passes — uses `vi.useFakeTimers()` to assert: (a) 60 s polling fires while ≥1 in-progress card is present; (b) polling stops when none; (c) polling pauses on `visibilitychange → hidden` and resumes on `→ visible`; (d) an in-flight fetch is aborted on unmount.
+- Live URL: production `https://score-mate-chi.vercel.app/home` returns 200 for a signed-in user; `/api/home?dates=...` returns the typed envelope.
+- Live URL walkthrough: on a real mobile device during a real in-progress match (or a temporarily-injected live fixture), leaving the page open for 60+ seconds shows the live score update without a page reload.
+- Screenshot: production `/home` at 375 px with ≥1 card under each day.
+- DB evidence (sanitized): `SELECT type, count(*) FROM favorites WHERE user_id = '<id>' GROUP BY type` against prod Neon shows ≥1 favorite of each of the four types.
+
+#### 6.0 Tasks
+
+- [ ] 6.1 Extend `components/home-client.tsx` with `setInterval`-based 60 s polling that's gated on "the current rendered response contains at least one match with `status === 'live'`."
+- [ ] 6.2 Add a `visibilitychange` listener: pause polling and abort any in-flight fetch when `document.visibilityState !== 'visible'`; resume when it returns to `'visible'`.
+- [ ] 6.3 Cancel in-flight fetches via `AbortController` on unmount (`useEffect` cleanup) and on visibility-hidden transitions.
+- [ ] 6.4 Extend `components/home-client.test.tsx` with the four polling assertions in the proof; use `vi.useFakeTimers()` and `dispatchEvent(new Event('visibilitychange'))` to drive the conditions.
+- [ ] 6.5 Local manual end-to-end: sign in, favorite one of each type via `/favorites`, see them on `/my-favorites`, see real matches (or fixture-injected) on `/home`.
+- [ ] 6.6 Commit per parent task throughout (or one final commit if you've been batching); push to `main`; verify the CI run goes green.
+- [ ] 6.7 Verify Vercel auto-deploys; check the production URL responds 200 / the gated routes 307 the right way.
+- [ ] 6.8 Real-device test on a phone: sign in, favorite a team, observe matches on `/home`. Capture the production-mobile screenshot for the proof.
+- [ ] 6.9 Run the sanitized prod DB query and capture the per-type favorites count.
+- [ ] 6.10 Update `README.md` if any new env vars were introduced (none expected by the spec).

@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "idEvent": "2500001",
+      "idLeague": "4464",
+      "strLeague": "ATP Wimbledon",
+      "strSport": "Tennis",
+      "strEvent": "Carlos Alcaraz vs Jannik Sinner",
+      "strHomeTeam": "Carlos Alcaraz",
+      "strAwayTeam": "Jannik Sinner",
+      "idHomeTeam": "139000",
+      "idAwayTeam": "139001",
+      "intHomeScore": "1",
+      "intAwayScore": "2",
+      "dateEvent": "2026-06-22",
+      "strTime": "13:00:00",
+      "strTimestamp": "2026-06-22T13:00:00",
+      "strRound": "Final",
+      "strVenue": "Centre Court, Wimbledon",
+      "strTVStation": "ESPN",
+      "strStatus": "In Play",
+      "strProgress": "Set 4"
+    }
+  ]
+}

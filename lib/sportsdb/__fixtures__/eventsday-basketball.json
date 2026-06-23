@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "idEvent": "1900001",
+      "idLeague": "4387",
+      "strLeague": "NBA",
+      "strSport": "Basketball",
+      "strEvent": "Boston Celtics vs Los Angeles Lakers",
+      "strHomeTeam": "Boston Celtics",
+      "strAwayTeam": "Los Angeles Lakers",
+      "idHomeTeam": "134860",
+      "idAwayTeam": "134861",
+      "intHomeScore": "118",
+      "intAwayScore": "112",
+      "dateEvent": "2026-06-21",
+      "strTime": "19:30:00",
+      "strTimestamp": "2026-06-21T19:30:00",
+      "strRound": "Regular Season",
+      "strVenue": "TD Garden",
+      "strTVStation": "ESPN",
+      "strStatus": "Match Finished",
+      "strProgress": "FT"
+    }
+  ]
+}
