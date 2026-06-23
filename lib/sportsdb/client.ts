@@ -160,6 +160,7 @@ export function parseTeam(raw: RawTeam): Team {
   return {
     id: raw.idTeam,
     name: raw.strTeam,
+    sport: normalizeSport(raw.strSport) ?? undefined,
     badgeUrl: raw.strTeamBadge ?? undefined,
   };
 }

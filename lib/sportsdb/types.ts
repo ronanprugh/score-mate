@@ -30,6 +30,8 @@ export interface Team {
   /** TheSportsDB team id (`idTeam`). Stable across requests. */
   id: string;
   name: string;
+  /** Normalized sport (when TheSportsDB returns one of our four). */
+  sport?: Sport;
   /** Optional crest image URL when provided by the source. */
   badgeUrl?: string;
 }

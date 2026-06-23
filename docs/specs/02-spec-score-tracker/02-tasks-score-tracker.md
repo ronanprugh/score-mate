@@ -126,7 +126,7 @@
 
 ---
 
-### [ ] 3.0 Build the mobile-first Favorites UI: typeahead search/browse + "My Favorites" screen + bottom navigation
+### [x] 3.0 Build the mobile-first Favorites UI: typeahead search/browse + "My Favorites" screen + bottom navigation
 
 #### 3.0 Proof Artifact(s)
 
@@ -140,18 +140,18 @@
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Create the `(app)` route group: `app/(app)/layout.tsx` is a server component that calls `await auth()`, redirects to `/signin` on null session, renders `{children}` plus the shared `<BottomNav />`. Mobile-first single column; `min-h-dvh` + safe-area-bottom padding (so nav doesn't overlap content).
-- [ ] 3.2 Implement `components/bottom-nav.tsx` (server component reading `usePathname` via a small client wrapper, or fully client): three items (Home, Favorites, My Favorites) with 44×44 touch targets and an active-state class. Switches to a top nav at `md:`+ if desired.
-- [ ] 3.3 Move `app/home/page.tsx` and `app/home/page.test.tsx` into `app/(app)/home/`. Drop the local `await auth()` (moved to layout); keep the existing assertion tests passing.
-- [ ] 3.4 Update `middleware.ts` matcher from `/home/:path*` to also cover `/favorites/:path*` and `/my-favorites/:path*` (or use a broader pattern like `/(home|favorites|my-favorites)/:path*`).
-- [ ] 3.5 Implement `app/api/favorites/search/route.ts`: takes `?q=...&sport=...` (optional sport filter), calls `searchTeams` + `searchAllLeagues` (and a hand-curated event list — small set per sport for v1) in parallel, returns a merged array typed `{ type, externalId, displayName, sport }[]`. Auth-gated.
-- [ ] 3.6 Implement `app/(app)/favorites/page.tsx` (server component shell — header, instructions) and `components/favorites-search.tsx` (client component — debounced input, fetches `/api/favorites/search`, renders type-labeled results with `<FavoriteAddButton />` for each).
-- [ ] 3.7 Implement `components/favorite-add-button.tsx`: client component that owns a single `Added | NotAdded | Pending` state, POSTs to `/api/favorites` on click, transitions optimistically, rolls back + shows a toast on failure. 44×44 target. Receives an `initialAdded` prop the parent computes by intersecting search results with current favorites.
-- [ ] 3.8 Implement `app/(app)/my-favorites/page.tsx` (server component): reads `listFavoritesForUser(session.user.id)`, groups by type, renders each with a `<FavoriteRemoveButton />`. Empty state when zero.
-- [ ] 3.9 Implement `components/favorite-remove-button.tsx`: client component, DELETEs to `/api/favorites/[id]`, optimistic removal, rollback + toast on failure. 44×44 target.
-- [ ] 3.10 Author `components/bottom-nav.test.tsx`: render at three different `usePathname` mocks; assert active highlight; assert each item carries `min-h-11 min-w-11`.
-- [ ] 3.11 Author `app/(app)/favorites/page.test.tsx`: mock the search route to return one result of each type; assert each renders type-labeled with an Add CTA; click Add and assert the row transitions to "Added".
-- [ ] 3.12 Author `app/(app)/my-favorites/page.test.tsx`: mock `listFavoritesForUser` to return one of each type; assert each row + Remove control renders; separately assert the empty state when zero favorites.
+- [x] 3.1 `app/(app)/layout.tsx`: server component, calls `await auth()`, redirects to `/signin` on null, renders children + `<BottomNav />`. `pb-20` reserves space for the fixed nav.
+- [x] 3.2 `components/bottom-nav.tsx`: client component (uses `usePathname`). Three items (Home / Favorites / My Favorites), each `min-h-11 min-w-11`, active state via `aria-current="page"` + bg-foreground/text-background class. Fixed at bottom with safe-area-inset padding.
+- [x] 3.3 Moved `app/home/page.tsx` + test into `app/(app)/home/` via `git mv` (rename tracked). Left local `auth()` gate in place as defense-in-depth (existing tests still pass — 5/5).
+- [x] 3.4 Middleware matcher now: `["/home/:path*", "/favorites/:path*", "/my-favorites/:path*"]`. Live verified — all three gated routes return 307 to `/signin?callbackUrl=...`.
+- [x] 3.5 `app/api/favorites/search/route.ts`: GET `?q=&sport=`, auth-gated, `Promise.allSettled` against `searchTeams` + `searchAllLeagues` across all 4 sports (or just the filter), plus event-catalog search + sport-name match. Type-labeled results capped at 10 per section. Added `lib/events-catalog.ts` with 6 v1 tournament instances.
+- [x] 3.6 `app/(app)/favorites/page.tsx` (server component shell) + `components/favorites-search.tsx` (client typeahead, 300 ms debounce, AbortController on every keystroke, min-h-11 input, "keep typing" hint under 2 chars). Passes the user's existing favorite keys so each result row's Add button starts in the right state.
+- [x] 3.7 `components/favorite-add-button.tsx`: optimistic Add/Added with `aria-pressed`. POST to `/api/favorites`. Rolls back + shows non-technical inline alert on failure (special-case copy for 429). 44×44 target. Note: kept "Added" as a disabled state with descriptive aria-label rather than auto-toggling to Remove (the spec puts removal on the My Favorites screen).
+- [x] 3.8 `app/(app)/my-favorites/page.tsx`: server component reading `listFavoritesForUser(session.user.id)`. Groups by `type` (Teams / Leagues / Sports / Tournaments) in fixed order. Empty state links back to `/favorites`.
+- [x] 3.9 `components/favorite-remove-button.tsx`: DELETE to `/api/favorites/[id]`, calls `router.refresh()` on success so the server-component list updates. Non-technical inline alert on failure.
+- [x] 3.10 `components/bottom-nav.test.tsx`: 5 tests — render order/hrefs, 44 px on all items, active route via `aria-current="page"`, sub-path matching (`/favorites/abc`), active-class visual treatment.
+- [x] 3.11 Authored `app/(app)/favorites/page.test.tsx` (4 tests for the page shell — passes existing-favorites keys correctly, scopes by session.user.id, null-session returns null) plus `components/favorites-search.test.tsx` (3 tests — no-fetch under 2 chars, type-labeled results render with 44 px Add CTAs, initialFavorites pre-marks rows as Added) plus `components/favorite-add-button.test.tsx` (5 tests — initial state, POST behavior, 429 error mapping, touch target).
+- [x] 3.12 `app/(app)/my-favorites/page.test.tsx`: 4 tests — empty state with `/favorites` link, all 4 type sections render when populated, scoped query, returns null on missing session.
 
 ---
 
