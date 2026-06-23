@@ -97,7 +97,7 @@
 
 ---
 
-### [ ] 2.0 Add the `favorites` Drizzle schema and the favorites CRUD API (auth-gated, Zod-validated, rate-limited)
+### [x] 2.0 Add the `favorites` Drizzle schema and the favorites CRUD API (auth-gated, Zod-validated, rate-limited)
 
 #### 2.0 Proof Artifact(s)
 
@@ -109,20 +109,20 @@
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Author `db/schema/favorites.ts`: columns per the spec (`id` UUID PK with `$defaultFn(crypto.randomUUID)`, `userId` text FK → `users.id` ON DELETE CASCADE, `type` text with check constraint or enum, `externalId` text, `displayName` text, `sport` text, `metadata` jsonb, `createdAt` timestamp default now). Add `unique().on(t.userId, t.type, t.externalId)` and `index().on(t.userId)`.
-- [ ] 2.2 Re-export from `db/schema/index.ts` so Drizzle Kit discovers the table.
-- [ ] 2.3 Run `pnpm db:generate` to produce the migration SQL; commit the new `db/migrations/000N_*.sql`.
-- [ ] 2.4 Run `pnpm db:migrate` against the dev Neon branch; verify with `\dt favorites` and `\d favorites`.
-- [ ] 2.5 Author `lib/favorites/validators.ts`: a Zod `createFavoriteSchema` (`type` enum, `externalId` non-empty string, `displayName` non-empty string, `sport` enum, optional `metadata` object), and a `deleteFavoriteParamsSchema` for the route's `[id]` param.
-- [ ] 2.6 Implement `lib/favorites/queries.ts` exporting `listFavoritesForUser(userId)`, `createFavorite(userId, input)`, `deleteFavorite(userId, favoriteId)`. All scope by `userId` server-side; `createFavorite` uses `ON CONFLICT DO NOTHING RETURNING *` (or equivalent) so a duplicate POST returns the existing row.
-- [ ] 2.7 Implement `lib/rate-limit.ts`: in-memory `Map<string, number[]>` keyed by user id, sliding 60 s window, default cap 60 writes/min. Export `checkRateLimit(userId, scope): { ok: boolean; resetAt: number }`. Document the in-memory caveat (per-instance only — fine for v1 single-instance Vercel deploys).
-- [ ] 2.8 Implement `app/api/favorites/route.ts`: `GET` returns the user's favorites; `POST` runs `checkRateLimit → validators.createFavoriteSchema.parse → queries.createFavorite`. Return 401 on no session, 400 on Zod failure, 429 on rate-limit hit, 200 with the created row otherwise.
-- [ ] 2.9 Implement `app/api/favorites/[id]/route.ts`: `DELETE` runs `queries.deleteFavorite(session.user.id, params.id)`. Return 401 on no session, 204 on success, 404 when the row doesn't exist or isn't owned by the caller.
-- [ ] 2.10 Author `lib/favorites/validators.test.ts` covering the four valid `type` values, four valid `sport` values, and at least three rejected inputs.
-- [ ] 2.11 Author `app/api/favorites/route.test.ts` covering all six branches listed in the proof.
-- [ ] 2.12 Author `app/api/favorites/[id]/route.test.ts` covering 401, 204, and 404-when-not-owned.
-- [ ] 2.13 Apply the new migration to the **prod** Neon branch (`DATABASE_URL="<prod>" pnpm db:migrate`). Verify with the prod inspect script.
-- [ ] 2.14 Add a cross-user DELETE test case to `app/api/favorites/[id]/route.test.ts`: authenticated as user A, attempt to DELETE a favorite owned by user B → assert HTTP 404 (not 204) AND the target row remains present in the DB after the request. **Closes audit finding F1** (prevents future IDOR-regression if the `WHERE userId = ?` scoping is ever dropped).
+- [x] 2.1 Authored `db/schema/favorites.ts` per the spec: text id (`crypto.randomUUID()`), `pgEnum("favorite_type", [...])`, FK to users.id ON DELETE CASCADE, jsonb metadata typed as `{ startDate?, endDate? }`, uniqueIndex(userId,type,externalId), index(userId).
+- [x] 2.2 Re-exported `favorites` from `db/schema/index.ts`.
+- [x] 2.3 `pnpm db:generate` produced `db/migrations/0002_freezing_norrin_radd.sql`. Migration creates the enum + table + FK + 2 indexes.
+- [x] 2.4 `pnpm db:migrate` applied successfully to dev Neon; verified via inspect script: table + 8 columns + 3 indexes (pkey + unique-3col + user_id idx) all present.
+- [x] 2.5 `lib/favorites/validators.ts`: strict Zod schemas. `favoriteTypeSchema` (enum of FAVORITE_TYPES), `sportSchema` (enum of SUPPORTED_SPORTS), `createFavoriteSchema` (.strict()) including optional metadata window with YYYY-MM-DD regex, `deleteFavoriteParamsSchema` (.strict()).
+- [x] 2.6 `lib/favorites/queries.ts`: `listFavoritesForUser` (ORDER BY createdAt DESC), `createFavorite` using onConflictDoNothing then scoped re-select (returns `{ row, existed }`), `deleteFavorite` with `WHERE id = ? AND user_id = ?` returning bool.
+- [x] 2.7 `lib/rate-limit.ts`: sliding-window in-memory limiter (`Map<key, number[]>`) with configurable window/max, default 60/min. Denied attempts do NOT push out earlier allowed ones. In-memory caveat documented at top of file.
+- [x] 2.8 `app/api/favorites/route.ts`: GET (auth → list) and POST (auth → rate-limit → JSON parse → Zod parse → create). Returns 201 for new, 200 for duplicate (existed=true), 400 for malformed JSON or Zod failure, 401 unauth, 429 with Retry-After header on rate limit.
+- [x] 2.9 `app/api/favorites/[id]/route.ts`: DELETE awaits Next.js 16 async params, validates, calls `deleteFavorite(session.user.id, params.id)`. 401 / 400 / 204 / 404 per the proof.
+- [x] 2.10 `lib/favorites/validators.test.ts`: 17 tests via `it.each` — accepts/rejects per `type` and `sport`, strict mode rejects extras, malformed metadata dates rejected, empty externalId/displayName rejected.
+- [x] 2.11 `app/api/favorites/route.test.ts`: 8 tests covering GET (401, scoped list), POST (401, scoped 201, duplicate 200, bad type 400, bad sport 400, invalid JSON 400, 429 after 60 writes in fake-timer 60s window). `auth()` and queries module mocked via `vi.mock`.
+- [x] 2.12 `app/api/favorites/[id]/route.test.ts`: 401, 204 happy path, 404 not-found.
+- [x] 2.13 Migration applied to prod Neon. Verified: `favorites` table present alongside the 4 Auth.js tables; all 8 columns present; all 3 indexes present (pkey + unique-3col + user_id idx).
+- [x] 2.14 Cross-user DELETE test case in `[id]/route.test.ts`: user A trying to DELETE a row owned by user B → 404; the same id deleted as user B → 204. Mock asserts the queries call was scoped to the calling user's id. **Closes audit finding F1.**
 
 ---
 
