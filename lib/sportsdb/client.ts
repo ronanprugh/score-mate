@@ -133,6 +133,20 @@ function parseStatus(strStatus: string | null): MatchStatus {
   return "upcoming";
 }
 
+/**
+ * TheSportsDB returns `strTimestamp` in UTC but typically without a `Z`
+ * suffix or timezone offset. `new Date("2026-06-22T19:30:00")` would parse
+ * that as the LOCAL time, then any subsequent `Intl.DateTimeFormat` call
+ * would shift it by the local offset — surfacing UTC noon as 12pm Eastern,
+ * etc. We append `Z` when no timezone is present so the timestamp round
+ * trips correctly.
+ */
+export function normalizeKickoffUtc(raw: string | null): string | null {
+  if (!raw) return null;
+  if (/Z$|[+-]\d{2}:?\d{2}$/.test(raw)) return raw;
+  return `${raw}Z`;
+}
+
 function parseScore(raw: string | null): number | undefined {
   if (raw == null) return undefined;
   const n = Number(raw);
@@ -154,7 +168,7 @@ export function parseEvent(raw: RawEvent): Match | null {
     leagueId: raw.idLeague,
     leagueName: raw.strLeague,
     dateUtc: raw.dateEvent,
-    kickoffUtc: raw.strTimestamp ?? null,
+    kickoffUtc: normalizeKickoffUtc(raw.strTimestamp ?? null),
     round: raw.strRound ?? undefined,
     venue: raw.strVenue ?? undefined,
     broadcast: raw.strTVStation ?? undefined,

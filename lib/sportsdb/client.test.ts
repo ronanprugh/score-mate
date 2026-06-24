@@ -17,6 +17,7 @@ import {
   eventsDay,
   eventsNextLeague,
   eventsPastLeague,
+  normalizeKickoffUtc,
   searchAllLeagues,
   searchTeams,
 } from "./client";
@@ -120,7 +121,9 @@ describe("eventsDay parser", () => {
     expect(m.status).toBe("upcoming");
     expect(m.homeScore).toBeUndefined();
     expect(m.awayScore).toBeUndefined();
-    expect(m.kickoffUtc).toBe("2026-06-23T20:20:00");
+    // Parser now appends `Z` to UTC timestamps that lack a timezone marker
+    // so JS Date() doesn't reinterpret them as local time.
+    expect(m.kickoffUtc).toBe("2026-06-23T20:20:00Z");
   });
 
   it("parses Basketball fixture: 'final' with both scores", async () => {
@@ -161,6 +164,30 @@ describe("eventsDay parser", () => {
     await expect(
       eventsDay("2026-06-22", "Soccer", { fetchFn: failingFetch }),
     ).rejects.toThrow(/503/);
+  });
+});
+
+describe("normalizeKickoffUtc", () => {
+  it("appends Z when the timestamp has no timezone marker", () => {
+    expect(normalizeKickoffUtc("2026-06-23T20:20:00")).toBe(
+      "2026-06-23T20:20:00Z",
+    );
+  });
+
+  it("preserves an existing Z suffix", () => {
+    expect(normalizeKickoffUtc("2026-06-23T20:20:00Z")).toBe(
+      "2026-06-23T20:20:00Z",
+    );
+  });
+
+  it("preserves an explicit +HH:MM offset", () => {
+    expect(normalizeKickoffUtc("2026-06-23T20:20:00+02:00")).toBe(
+      "2026-06-23T20:20:00+02:00",
+    );
+  });
+
+  it("returns null for null input", () => {
+    expect(normalizeKickoffUtc(null)).toBeNull();
   });
 });
 
