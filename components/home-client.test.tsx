@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import type { Match } from "@/lib/sportsdb/types";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
 
@@ -56,7 +62,7 @@ describe("HomeClient (static cases)", () => {
     fetchMock.mockReset();
   });
 
-  it("renders three day sections when matches exist", async () => {
+  it("renders all three day tabs and defaults to Today (only today's matches in the panel)", async () => {
     mockJson(
       envelope({
         yesterday: [makeMatch({ id: "y", homeTeamName: "Y-home" })],
@@ -68,11 +74,52 @@ describe("HomeClient (static cases)", () => {
     render(<HomeClient hasFavorites={true} />);
 
     await waitFor(() =>
-      expect(screen.getByTestId("day-section-yesterday")).toBeInTheDocument(),
+      expect(screen.getByTestId("day-tab-today")).toBeInTheDocument(),
     );
-    expect(screen.getByTestId("day-section-today")).toBeInTheDocument();
-    expect(screen.getByTestId("day-section-tomorrow")).toBeInTheDocument();
+    // All three tabs rendered.
+    expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument();
+    expect(screen.getByTestId("day-tab-tomorrow")).toBeInTheDocument();
+    // Today is the default active tab.
+    expect(screen.getByTestId("day-tab-today")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    // Only the today panel + today's match is in the DOM by default.
+    expect(screen.getByTestId("day-panel-today")).toBeInTheDocument();
+    expect(screen.getByText("T-home")).toBeInTheDocument();
+    expect(screen.queryByText("Y-home")).not.toBeInTheDocument();
+    expect(screen.queryByText("M-home")).not.toBeInTheDocument();
+  });
+
+  it("clicking a tab swaps the rendered panel", async () => {
+    mockJson(
+      envelope({
+        yesterday: [makeMatch({ id: "y", homeTeamName: "Y-home" })],
+        today: [makeMatch({ id: "t", homeTeamName: "T-home" })],
+        tomorrow: [makeMatch({ id: "m", homeTeamName: "M-home" })],
+      }),
+    );
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() => expect(screen.getByText("T-home")).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId("day-tab-yesterday"));
+    expect(screen.getByTestId("day-tab-yesterday")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(screen.getByText("Y-home")).toBeInTheDocument();
+    expect(screen.queryByText("T-home")).not.toBeInTheDocument();
+  });
+
+  it("each tab is a 44 px tap target", async () => {
+    mockJson(envelope({ today: [makeMatch({ id: "t" })] }));
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-tab-today")).toBeInTheDocument(),
+    );
+    for (const key of ["yesterday", "today", "tomorrow"]) {
+      const btn = screen.getByTestId(`day-tab-${key}`);
+      expect(btn.className).toMatch(/\bmin-h-11\b/);
+    }
   });
 
   it("shows the no-matches empty state when user has favorites but no matches", async () => {

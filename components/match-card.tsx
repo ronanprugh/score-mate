@@ -36,11 +36,11 @@ export function MatchCard({ match }: Props) {
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-32 flex-col justify-between gap-3 rounded-lg border border-zinc-200 bg-background p-4 shadow-sm dark:border-zinc-800"
+      className="flex min-h-20 flex-col justify-between gap-1.5 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
     >
       <header className="flex items-center justify-between gap-2">
         <span
-          className="truncate text-xs font-medium text-zinc-500"
+          className="truncate text-[10px] font-medium uppercase tracking-wide text-zinc-500"
           title={leagueName}
         >
           {leagueName}
@@ -49,7 +49,7 @@ export function MatchCard({ match }: Props) {
         {status === "live" && (
           <span
             data-testid="live-pill"
-            className="inline-flex animate-pulse items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+            className="inline-flex animate-pulse items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
           >
             Live
           </span>
@@ -57,7 +57,7 @@ export function MatchCard({ match }: Props) {
         {status === "final" && (
           <span
             data-testid="final-label"
-            className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500"
+            className="text-[9px] font-semibold uppercase tracking-wide text-zinc-500"
           >
             Final
           </span>
@@ -65,13 +65,13 @@ export function MatchCard({ match }: Props) {
         {status === "upcoming" && (
           <span
             data-testid="upcoming-time"
-            className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300"
             aria-label={`Kickoff at ${formatKickoffLocal(kickoffUtc)}`}
           >
             <svg
               aria-hidden="true"
               viewBox="0 0 16 16"
-              className="h-3 w-3"
+              className="h-2.5 w-2.5"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
@@ -84,10 +84,10 @@ export function MatchCard({ match }: Props) {
         )}
       </header>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center justify-between gap-2">
           <span
-            className="min-w-0 flex-1 truncate text-base font-semibold"
+            className="min-w-0 flex-1 truncate text-sm font-semibold leading-tight"
             title={homeTeamName}
           >
             {homeTeamName}
@@ -96,15 +96,15 @@ export function MatchCard({ match }: Props) {
             typeof homeScore === "number" && (
               <span
                 data-testid="home-score"
-                className="text-base font-semibold tabular-nums"
+                className="text-sm font-semibold tabular-nums"
               >
                 {homeScore}
               </span>
             )}
         </div>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <span
-            className="min-w-0 flex-1 truncate text-base font-semibold"
+            className="min-w-0 flex-1 truncate text-sm font-semibold leading-tight"
             title={awayTeamName}
           >
             {awayTeamName}
@@ -113,7 +113,7 @@ export function MatchCard({ match }: Props) {
             typeof awayScore === "number" && (
               <span
                 data-testid="away-score"
-                className="text-base font-semibold tabular-nums"
+                className="text-sm font-semibold tabular-nums"
               >
                 {awayScore}
               </span>
@@ -121,26 +121,32 @@ export function MatchCard({ match }: Props) {
         </div>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
-        {status === "live" && liveProgress && (
-          <span
-            data-testid="live-progress"
-            className="font-medium text-red-600 dark:text-red-400"
-          >
-            {liveProgress}
-          </span>
-        )}
-        {venue && (
-          <span className="truncate" title={venue}>
-            {venue}
-          </span>
-        )}
-        {status === "upcoming" && broadcast && (
-          <span data-testid="broadcast" className="truncate" title={broadcast}>
-            {broadcast}
-          </span>
-        )}
-      </footer>
+      {(liveProgress || venue || (status === "upcoming" && broadcast)) && (
+        <footer className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-zinc-500">
+          {status === "live" && liveProgress && (
+            <span
+              data-testid="live-progress"
+              className="font-medium text-red-600 dark:text-red-400"
+            >
+              {liveProgress}
+            </span>
+          )}
+          {venue && (
+            <span className="truncate" title={venue}>
+              {venue}
+            </span>
+          )}
+          {status === "upcoming" && broadcast && (
+            <span
+              data-testid="broadcast"
+              className="truncate"
+              title={broadcast}
+            >
+              {broadcast}
+            </span>
+          )}
+        </footer>
+      )}
     </article>
   );
 }
