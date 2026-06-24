@@ -199,8 +199,8 @@ export function MatchCard({ match }: Props) {
             // Fixed width so the outer flex-1 team blocks always reserve the
             // same space — logos stay pinned to the score regardless of
             // whether the center reads "0 – 0", "100 – 99", or "7:30 PM".
-            // Width tightened so logos sit ~8px closer to the score.
-            "w-16 shrink-0 text-center tabular-nums",
+            // Width tightened so logos sit close to the score.
+            "w-[60px] shrink-0 text-center tabular-nums",
             hasScores
               ? "text-lg font-semibold"
               : "text-sm font-medium text-zinc-600 dark:text-zinc-300",
