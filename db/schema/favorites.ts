@@ -28,7 +28,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./auth";
-import type { Sport } from "@/lib/sportsdb/types";
+import type { Sport } from "@/lib/sports/types";
 
 export const favoriteTypeEnum = pgEnum("favorite_type", [
   "team",

@@ -1,4 +1,4 @@
-import type { Match } from "@/lib/sportsdb/types";
+import type { Match } from "@/lib/sports/types";
 
 interface Props {
   match: Match;

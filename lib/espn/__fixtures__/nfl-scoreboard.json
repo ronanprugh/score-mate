@@ -1,0 +1,97 @@
+{
+  "leagues": [
+    {
+      "id": "28",
+      "name": "National Football League",
+      "abbreviation": "NFL",
+      "slug": "nfl"
+    }
+  ],
+  "events": [
+    {
+      "id": "401547544",
+      "date": "2026-01-15T20:00Z",
+      "shortName": "IND @ KC",
+      "name": "Indianapolis Colts at Kansas City Chiefs",
+      "week": { "number": 19, "text": "Divisional Round" },
+      "competitions": [
+        {
+          "date": "2026-01-15T20:00Z",
+          "venue": { "fullName": "Arrowhead Stadium" },
+          "broadcasts": [{ "names": ["CBS"] }],
+          "competitors": [
+            {
+              "homeAway": "home",
+              "score": "27",
+              "team": {
+                "id": "12",
+                "displayName": "Kansas City Chiefs",
+                "shortDisplayName": "Chiefs",
+                "logos": [{ "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" }]
+              }
+            },
+            {
+              "homeAway": "away",
+              "score": "20",
+              "team": {
+                "id": "11",
+                "displayName": "Indianapolis Colts",
+                "shortDisplayName": "Colts",
+                "logos": [{ "href": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" }]
+              }
+            }
+          ],
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "Final",
+              "description": "Final"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "401547545",
+      "date": "2026-01-15T23:30Z",
+      "shortName": "BUF @ BAL",
+      "name": "Buffalo Bills at Baltimore Ravens",
+      "competitions": [
+        {
+          "date": "2026-01-15T23:30Z",
+          "venue": { "fullName": "M&T Bank Stadium" },
+          "broadcasts": [{ "names": ["NBC"] }],
+          "competitors": [
+            {
+              "homeAway": "home",
+              "score": "14",
+              "team": {
+                "id": "33",
+                "displayName": "Baltimore Ravens",
+                "shortDisplayName": "Ravens"
+              }
+            },
+            {
+              "homeAway": "away",
+              "score": "10",
+              "team": {
+                "id": "2",
+                "displayName": "Buffalo Bills",
+                "shortDisplayName": "Bills"
+              }
+            }
+          ],
+          "status": {
+            "type": {
+              "state": "in",
+              "completed": false,
+              "shortDetail": "Q3 8:21",
+              "description": "In Progress"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "leagues": [
+    {
+      "id": "23",
+      "name": "English Premier League",
+      "abbreviation": "PL",
+      "slug": "eng.1"
+    }
+  ],
+  "events": [
+    {
+      "id": "704512",
+      "date": "2026-03-08T16:30Z",
+      "shortName": "MUN @ ARS",
+      "competitions": [
+        {
+          "venue": { "fullName": "Emirates Stadium" },
+          "broadcasts": [{ "names": ["USA Network", "Peacock"] }],
+          "competitors": [
+            {
+              "homeAway": "home",
+              "score": "2",
+              "team": {
+                "id": "359",
+                "displayName": "Arsenal",
+                "shortDisplayName": "Arsenal"
+              }
+            },
+            {
+              "homeAway": "away",
+              "score": "1",
+              "team": {
+                "id": "360",
+                "displayName": "Manchester United",
+                "shortDisplayName": "Man United"
+              }
+            }
+          ],
+          "status": {
+            "type": {
+              "state": "in",
+              "completed": false,
+              "shortDetail": "73'",
+              "description": "In Progress"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

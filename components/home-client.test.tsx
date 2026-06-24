@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { Match } from "@/lib/sportsdb/types";
+import type { Match } from "@/lib/sports/types";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
 
 const fetchMock = vi.fn();

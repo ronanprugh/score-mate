@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteAddButton, type FavoritePayload } from "./favorite-add-button";
-import type { FavoriteType } from "@/lib/sportsdb/types";
+import type { FavoriteType } from "@/lib/sports/types";
 
 interface InitialFavoriteKey {
   type: FavoriteType;

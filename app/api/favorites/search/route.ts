@@ -22,7 +22,7 @@ import {
   SUPPORTED_SPORTS,
   type FavoriteType,
   type Sport,
-} from "@/lib/sportsdb/types";
+} from "@/lib/sports/types";
 
 interface SearchResult {
   type: FavoriteType;

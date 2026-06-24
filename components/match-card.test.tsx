@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MatchCard } from "./match-card";
-import type { Match } from "@/lib/sportsdb/types";
+import type { Match } from "@/lib/sports/types";
 
 const base: Match = {
   id: "evt1",

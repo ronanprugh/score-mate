@@ -3,7 +3,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import type { FavoriteRow } from "@/db/schema/favorites";
-import type { FavoriteType } from "@/lib/sportsdb/types";
+import type { FavoriteType } from "@/lib/sports/types";
 import { FavoriteRemoveButton } from "@/components/favorite-remove-button";
 
 export const metadata: Metadata = {

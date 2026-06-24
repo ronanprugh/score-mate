@@ -1,0 +1,51 @@
+{
+  "leagues": [
+    {
+      "id": "46",
+      "name": "National Basketball Association",
+      "abbreviation": "NBA",
+      "slug": "nba"
+    }
+  ],
+  "events": [
+    {
+      "id": "401585123",
+      "date": "2026-02-12T00:30Z",
+      "shortName": "BOS @ LAL",
+      "competitions": [
+        {
+          "venue": { "fullName": "Crypto.com Arena" },
+          "broadcasts": [{ "names": ["TNT"] }],
+          "competitors": [
+            {
+              "homeAway": "home",
+              "score": "0",
+              "team": {
+                "id": "13",
+                "displayName": "Los Angeles Lakers",
+                "shortDisplayName": "Lakers"
+              }
+            },
+            {
+              "homeAway": "away",
+              "score": "0",
+              "team": {
+                "id": "2",
+                "displayName": "Boston Celtics",
+                "shortDisplayName": "Celtics"
+              }
+            }
+          ],
+          "status": {
+            "type": {
+              "state": "pre",
+              "completed": false,
+              "shortDetail": "7:30 PM PT",
+              "description": "Scheduled"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

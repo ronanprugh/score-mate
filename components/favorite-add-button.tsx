@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { FavoriteType, Sport } from "@/lib/sportsdb/types";
+import type { FavoriteType, Sport } from "@/lib/sports/types";
 
 export interface FavoritePayload {
   type: FavoriteType;

@@ -7,7 +7,7 @@ import {
   type DateWindow,
 } from "@/lib/date-window";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
-import type { Match } from "@/lib/sportsdb/types";
+import type { Match } from "@/lib/sports/types";
 import { DataSourceErrorBanner } from "./data-source-error-banner";
 import { MatchCard } from "./match-card";
 import { NoMatchesEmptyState } from "./no-matches-empty-state";

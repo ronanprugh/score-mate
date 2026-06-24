@@ -1,0 +1,38 @@
+{
+  "sports": [
+    {
+      "id": "20",
+      "name": "Football",
+      "slug": "football",
+      "leagues": [
+        {
+          "id": "28",
+          "name": "National Football League",
+          "abbreviation": "NFL",
+          "slug": "nfl",
+          "teams": [
+            {
+              "team": {
+                "id": "12",
+                "displayName": "Kansas City Chiefs",
+                "shortDisplayName": "Chiefs",
+                "abbreviation": "KC",
+                "logos": [
+                  { "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" }
+                ]
+              }
+            },
+            {
+              "team": {
+                "id": "11",
+                "displayName": "Indianapolis Colts",
+                "shortDisplayName": "Colts",
+                "abbreviation": "IND"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
