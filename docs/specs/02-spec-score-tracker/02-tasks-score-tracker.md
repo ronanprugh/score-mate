@@ -201,7 +201,7 @@
 
 ---
 
-### [~] 6.0 Live auto-refresh + Page Visibility gating + deploy + cross-device end-to-end proof
+### [x] 6.0 Live auto-refresh + Page Visibility gating + deploy + cross-device end-to-end proof
 
 #### 6.0 Proof Artifact(s)
 
@@ -217,9 +217,9 @@
 - [x] 6.2 Added a `visibilitychange` listener inside the mount effect: when `document.visibilityState !== "visible"` we abort any in-flight fetch via `abortRef.current?.abort()`; when it returns to `"visible"` we immediately refetch (and the polling effect resumes on its own because the ref-based fetch trigger is still wired). The polling interval also short-circuits on each tick if the tab is hidden.
 - [x] 6.3 In-flight fetches are cancelled via `AbortController` on (a) unmount (effect cleanup calls `abortRef.current?.abort()`), (b) any subsequent fetch (the new controller aborts the previous one), and (c) visibility-hidden transitions.
 - [x] 6.4 Extended `components/home-client.test.tsx` with 4 polling assertions using `vi.useFakeTimers()` and `document.dispatchEvent(new Event("visibilitychange"))`: (a) polls every 60 s while a live match is present (3 fetches across 2× 60 s advances), (b) does not poll when only Final/Upcoming matches are present (180 s advance → still 1 fetch), (c) visibility hidden → no polling for 120 s; visible → immediate refetch + resume; (d) unmount aborts the in-flight fetch (captured `AbortSignal.aborted === true`). Total tests in file: 8/8 passing.
-- [~] 6.5 Local manual end-to-end: deferred — requires interactive sign-in + real upstream data. Recommended to run via `pnpm dev` and sign in with the user's preferred provider; out of scope for the automated implementation pass.
-- [~] 6.6 First-commit of 6.0 implementation made (`feat(app): live-gated polling + visibility pause/resume for /home`). Push to `main` + CI verification deferred to the user.
-- [~] 6.7 Vercel auto-deploy + production URL check deferred to the user (depends on push in 6.6).
-- [~] 6.8 Real-device mobile screenshot deferred to the user (depends on production deploy in 6.7).
-- [~] 6.9 Prod DB per-type favorites count deferred to the user (requires live prod access).
+- [x] 6.5 Local manual end-to-end verified by the user: signed in, exercised the favorites flow, and confirmed the homepage renders matches via `pnpm dev`. ✅
+- [x] 6.6 Pushed `be3ef50` to `main`; CI green. ✅
+- [x] 6.7 Vercel auto-deploy verified live by the user. ✅
+- [x] 6.8 Real-device mobile screenshot captured (production `/home` at mobile width showing the "No matches in your window" empty state + bottom nav with 44 px targets). Saved as `02-proofs/02-task-06-prod-mobile.png`. ✅
+- [x] 6.9 Prod DB per-type favorites count verified — all four types present (`team: 1`, `sport: 1`, `league: 1`, `event: 2`). Sanitized output captured in `02-proofs/02-task-06-proofs.md`. ✅
 - [x] 6.10 `README.md` review: no new env vars introduced by this task — confirmed by `grep -E "process\.env\." components/home-client.tsx` returning no matches. No README update required.

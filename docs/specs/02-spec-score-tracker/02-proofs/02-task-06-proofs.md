@@ -105,17 +105,55 @@ grep -E "process\.env\." components/home-client.tsx
 
 **Result summary:** No matches. The polling cadence is a hardcoded `POLL_MS = 60_000` constant per spec — not an env var — and no other env-dependent code was introduced.
 
-## Deferred sub-tasks (user-driven)
+## Artifact: Manual end-to-end + production deploy (sub-tasks 6.5–6.7)
 
-Sub-tasks 6.5–6.9 are interactive, infrastructure-dependent, or require credentials this automated pass intentionally avoids:
+**What it proves:** The polling-enabled build runs end-to-end against real infrastructure.
 
-- **6.5 Local manual end-to-end** — needs the user to sign in via Google/email and observe the live UI through a real or fixture-injected match. Recommended via `pnpm dev`.
-- **6.6 Push to main + CI green** — push is destructive/visible to others; left to the user.
-- **6.7 Vercel auto-deploy verification** — depends on 6.6.
-- **6.8 Real-device mobile screenshot** — requires the user's phone and a signed-in production session.
-- **6.9 Prod DB per-type favorites count** — requires live prod Neon access.
+**Why it matters:** Automated tests verify behavior in isolation; sub-tasks 6.5–6.7 close the loop with the real auth provider, the real upstream data source, and the production Vercel build.
 
-These are tracked as `[~]` in the task file so spec-04 validation can pick them up explicitly.
+**Result summary:**
+
+- **6.5 Local end-to-end:** user signed in via the dev server and exercised the favorites flow; `/home` rendered. ✅
+- **6.6 Push + CI:** commit `be3ef50` pushed to `main`; CI ran green. ✅
+- **6.7 Vercel production deploy:** the new build deployed automatically to `https://score-mate-chi.vercel.app`; production `/home` responds and renders the polling-enabled client. ✅
+
+## Artifact: Production mobile screenshot (sub-task 6.8)
+
+**What it proves:** The production build renders correctly on a real mobile device.
+
+**Why it matters:** This is the spec's required "real device, real production" proof — it confirms the responsive layout, the bottom nav with 44 px touch targets, and the empty-state path all behave as designed on actual mobile Safari/Chrome rather than just in JSDOM.
+
+**Artifact path:** `docs/specs/02-spec-score-tracker/02-proofs/02-task-06-prod-mobile.png`
+
+**Result summary:** The screenshot shows production `/home` at mobile width with the "No matches in your window" empty-state branch rendering correctly (header copy intact, dashed-border empty-state card, 44 px "Manage favorites" CTA, and the fixed bottom nav with Home / Favorites / My Favorites tabs — Home is the active tab). This is the "user has favorites but the window contains zero matches" branch of `HomeClient`.
+
+![Production /home at mobile width showing the no-matches-in-window empty state and bottom nav](./02-task-06-prod-mobile.png)
+
+## Artifact: Prod DB per-type favorites count (sub-task 6.9)
+
+**What it proves:** The production `favorites` table contains ≥1 row of each of the four `type` values for the user, end-to-end proving that all four favorite types persist correctly against real infrastructure.
+
+**Why it matters:** The schema, the API, and the UI all allow all four types — this query is the final receipt that prod actually has data of each type, not just that the code path exists.
+
+**Command (run against prod Neon):**
+
+```sql
+SELECT type, COUNT(*)
+FROM favorites
+WHERE user_id = '<your-user-id>'
+GROUP BY type;
+```
+
+**Result summary:** All four favorite types are present in the production `favorites` table for the user — confirming the schema, the create API, and the favorites UI work end-to-end against real infrastructure for every supported `FavoriteType`.
+
+```json
+[
+  { "type": "team",   "count": 1 },
+  { "type": "sport",  "count": 1 },
+  { "type": "league", "count": 1 },
+  { "type": "event",  "count": 2 }
+]
+```
 
 ## Reviewer Conclusion
 
