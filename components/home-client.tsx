@@ -96,7 +96,7 @@ export function HomeClient({ hasFavorites }: Props) {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
-      const url = `/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}`;
+      const url = `/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}&tz=${encodeURIComponent(tz)}`;
       fetch(url, { signal: controller.signal })
         .then(async (res) => {
           if (!res.ok) throw new Error(`Home fetch failed (${res.status})`);

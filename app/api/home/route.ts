@@ -29,6 +29,22 @@ import type { DateWindow } from "@/lib/date-window";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * Returns the client-supplied IANA timezone if it's a valid one Intl can
+ * resolve, otherwise falls back to "UTC". We must not trust an arbitrary
+ * string in `Intl.DateTimeFormat({ timeZone })` because invalid values
+ * throw at format time.
+ */
+function parseTimezone(raw: string | null): string {
+  if (!raw) return "UTC";
+  try {
+    new Intl.DateTimeFormat("en-CA", { timeZone: raw });
+    return raw;
+  } catch {
+    return "UTC";
+  }
+}
+
 function parseDates(raw: string | null): DateWindow | null {
   if (!raw) return null;
   const parts = raw.split(",").map((s) => s.trim());
@@ -65,10 +81,13 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const tz = parseTimezone(searchParams.get("tz"));
+
   const envelope = await aggregateMatchesForUser(
     session.user.id,
     dates,
     makeCachedFetchers(dates),
+    tz,
   );
 
   return NextResponse.json(envelope, { status: 200 });

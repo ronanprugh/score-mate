@@ -98,6 +98,7 @@ describe("GET /api/home", () => {
         eventsTeam: expect.any(Function),
         eventsLeague: expect.any(Function),
       }),
+      expect.any(String),
     );
   });
 

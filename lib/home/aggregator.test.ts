@@ -58,7 +58,7 @@ function match(overrides: Partial<Match> & Pick<Match, "id">): Match {
     leagueId: "0000",
     leagueName: "Some League",
     dateUtc: DATES.today,
-    kickoffUtc: `${DATES.today}T15:00:00`,
+    kickoffUtc: `${DATES.today}T15:00:00Z`,
     status: "upcoming",
     ...overrides,
   };
@@ -137,8 +137,9 @@ describe("aggregateMatchesForUser", () => {
       eventsTeam: teamFetcher,
       eventsLeague: leagueFetcher,
     });
-    // 2 sports × 3 dates = 6 day calls; no extras for sports not in favorites.
-    expect(dayFetcher).toHaveBeenCalledTimes(6);
+    // 2 sports × 5 dates (widened ±1 UTC day) = 10 day calls;
+    // no extras for sports not in favorites.
+    expect(dayFetcher).toHaveBeenCalledTimes(10);
     // 1 team favorite → 1 team call; 1 league favorite → 1 league call.
     expect(teamFetcher).toHaveBeenCalledWith("team-usa");
     expect(teamFetcher).toHaveBeenCalledTimes(1);
@@ -182,7 +183,7 @@ describe("aggregateMatchesForUser", () => {
             sport: "Basketball",
             leagueId: "4387",
             dateUtc: DATES.yesterday,
-            kickoffUtc: `${DATES.yesterday}T22:00:00`,
+            kickoffUtc: `${DATES.yesterday}T22:00:00Z`,
             status: "final",
             homeScore: 100,
             awayScore: 98,
@@ -192,7 +193,7 @@ describe("aggregateMatchesForUser", () => {
             sport: "Basketball",
             leagueId: "4387",
             dateUtc: DATES.yesterday,
-            kickoffUtc: `${DATES.yesterday}T19:00:00`,
+            kickoffUtc: `${DATES.yesterday}T19:00:00Z`,
             status: "final",
             homeScore: 88,
             awayScore: 91,
@@ -209,7 +210,7 @@ describe("aggregateMatchesForUser", () => {
             homeTeamId: "team-usa",
             leagueId: "9999",
             dateUtc: DATES.today,
-            kickoffUtc: `${DATES.today}T15:00:00`,
+            kickoffUtc: `${DATES.today}T15:00:00Z`,
             status: "live",
           }),
         ],
@@ -226,7 +227,7 @@ describe("aggregateMatchesForUser", () => {
             sport: "American Football",
             leagueId: "4391",
             dateUtc: DATES.tomorrow,
-            kickoffUtc: `${DATES.tomorrow}T20:20:00`,
+            kickoffUtc: `${DATES.tomorrow}T20:20:00Z`,
             status: "upcoming",
           }),
         ],
@@ -353,6 +354,7 @@ describe("aggregateMatchesForUser", () => {
             sport: "Soccer",
             homeTeamId: "team-usa",
             dateUtc: "2026-06-30", // 8 days from today
+            kickoffUtc: "2026-06-30T15:00:00Z",
           }),
         ],
         Basketball: [],
@@ -392,7 +394,7 @@ describe("aggregateMatchesForUser", () => {
       homeTeamId: "other-team",
       leagueId: "9999",
       dateUtc: DATES.tomorrow,
-      kickoffUtc: `${DATES.tomorrow}T20:00:00`,
+      kickoffUtc: `${DATES.tomorrow}T20:00:00Z`,
     });
     const fetchers = fetchersFrom(
       {
@@ -431,6 +433,77 @@ describe("aggregateMatchesForUser", () => {
     expect(env.today.map((m) => m.id)).toEqual(["team-only"]);
     expect(env.tomorrow.map((m) => m.id)).toEqual(["league-only"]);
     expect(env.source.ok).toBe(true);
+  });
+
+  it("buckets matches by LOCAL date (tz) — a UTC-tomorrow match that's locally today goes to `today`", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
+    ]);
+    // Match's UTC date is 2026-06-23 (one day after the local "today"
+    // of 2026-06-22) but kicks off at 2026-06-23T01:00:00Z which is
+    // 21:00 on 2026-06-22 in America/New_York (UTC-4).
+    const lateNightMatch = match({
+      id: "late-et",
+      sport: "Soccer",
+      homeTeamId: "team-usa",
+      dateUtc: "2026-06-23",
+      kickoffUtc: "2026-06-23T01:00:00Z",
+    });
+    const fetchers = fetchersFrom({
+      [DATES.yesterday]: {
+        Soccer: [],
+        Basketball: [],
+        "American Football": [],
+        Tennis: [],
+      },
+      [DATES.today]: {
+        Soccer: [],
+        Basketball: [],
+        "American Football": [],
+        Tennis: [],
+      },
+      [DATES.tomorrow]: {
+        Soccer: [lateNightMatch],
+        Basketball: [],
+        "American Football": [],
+        Tennis: [],
+      },
+    });
+    const env = await aggregateMatchesForUser(
+      "user-a",
+      DATES,
+      fetchers,
+      "America/New_York",
+    );
+    expect(env.today.map((m) => m.id)).toEqual(["late-et"]);
+    expect(env.tomorrow.map((m) => m.id)).toEqual([]);
+  });
+
+  it("widens the UTC fetch window by ±1 day so edge matches are reachable", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
+    ]);
+    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
+    await aggregateMatchesForUser(
+      "user-a",
+      DATES,
+      {
+        eventsDay: dayFetcher,
+        eventsTeam: noopTeamFetcher,
+        eventsLeague: noopLeagueFetcher,
+      },
+      "America/New_York",
+    );
+    // 1 sport × 5 UTC dates = 5 day calls (was 3 before the tz fix).
+    expect(dayFetcher).toHaveBeenCalledTimes(5);
+    const dates = dayFetcher.mock.calls.map((c) => c[0]).sort();
+    expect(dates).toEqual([
+      "2026-06-20", // yesterday - 1
+      DATES.yesterday,
+      DATES.today,
+      DATES.tomorrow,
+      "2026-06-24", // tomorrow + 1
+    ]);
   });
 
   it("expands an Event favorite to its catalog leagueId when one exists (FIFA World Cup 2026 → 4429)", async () => {
@@ -475,10 +548,10 @@ describe("buildHomeEnvelope (pure)", () => {
   it("sorts matches lacking kickoffUtc to the end of the day", () => {
     const m1 = match({
       id: "with-time",
-      kickoffUtc: `${DATES.today}T20:00:00`,
+      kickoffUtc: `${DATES.today}T20:00:00Z`,
     });
     const m2 = match({ id: "no-time", kickoffUtc: null });
-    const m3 = match({ id: "early", kickoffUtc: `${DATES.today}T08:00:00` });
+    const m3 = match({ id: "early", kickoffUtc: `${DATES.today}T08:00:00Z` });
     const fav1 = fav({ type: "team", externalId: "h", sport: "Soccer" });
     const env = buildHomeEnvelope([fav1], [m1, m2, m3], DATES);
     expect(env.today.map((m) => m.id)).toEqual([
