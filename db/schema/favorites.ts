@@ -42,6 +42,14 @@ export interface FavoriteMetadata {
   startDate?: string;
   /** YYYY-MM-DD inclusive. */
   endDate?: string;
+  /**
+   * Case-insensitive substring matched against `match.leagueName` when the
+   * exact `leagueId` check misses. Set automatically by the search route
+   * for "container" leagues (e.g. "ATP World Tour" → "ATP") whose own
+   * `idLeague` is empty of actual matches because the data sits under
+   * per-tournament child league rows.
+   */
+  leagueNameContains?: string;
 }
 
 export const favorites = pgTable(

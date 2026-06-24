@@ -29,8 +29,23 @@ interface SearchResult {
   externalId: string;
   displayName: string;
   sport: Sport;
-  metadata?: { startDate?: string; endDate?: string };
+  metadata?: {
+    startDate?: string;
+    endDate?: string;
+    leagueNameContains?: string;
+  };
 }
+
+/**
+ * "Container" leagues whose own `idLeague` returns no matches because the
+ * actual events sit under per-tournament child league rows. We tag the
+ * search result with `metadata.leagueNameContains` so the favorite saves
+ * with a fuzzy fallback the matcher honors.
+ */
+const CONTAINER_LEAGUE_NAME_CONTAINS: Readonly<Record<string, string>> = {
+  "ATP World Tour": "ATP",
+  "WTA World Tour": "WTA",
+};
 
 function isSupportedSport(s: string | null): s is Sport {
   return SUPPORTED_SPORTS.includes(s as Sport);
@@ -81,11 +96,15 @@ export async function GET(req: NextRequest) {
     if (settled.status !== "fulfilled") continue;
     for (const lg of settled.value) {
       if (!lg.name.toLowerCase().includes(q.toLowerCase())) continue;
+      const containerSubstring = CONTAINER_LEAGUE_NAME_CONTAINS[lg.name];
       leagueResults.push({
         type: "league",
         externalId: lg.id,
         displayName: lg.name,
         sport: lg.sport,
+        ...(containerSubstring
+          ? { metadata: { leagueNameContains: containerSubstring } }
+          : {}),
       });
     }
   }

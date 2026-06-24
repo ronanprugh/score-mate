@@ -118,5 +118,9 @@ export interface Favorite {
   displayName: string;
   sport: Sport;
   /** For type='event': `{ startDate: 'YYYY-MM-DD', endDate: 'YYYY-MM-DD' }`. */
-  metadata?: { startDate?: string; endDate?: string } | null;
+  metadata?: {
+    startDate?: string;
+    endDate?: string;
+    leagueNameContains?: string;
+  } | null;
 }

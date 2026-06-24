@@ -22,6 +22,31 @@
 import { matchesSportAllowlist } from "./sport-allowlist";
 import type { Favorite, Match } from "./sportsdb/types";
 
+/**
+ * "Container" leagues in TheSportsDB (e.g. ATP World Tour, WTA World Tour)
+ * have their own `idLeague` but no actual matches at that id — matches sit
+ * under the per-tournament child league rows. This map lets a user's
+ * existing favorite for those leagues match by leagueName substring even
+ * if the favorite was stored before we started auto-attaching
+ * `metadata.leagueNameContains` at the search layer.
+ *
+ * Keyed by `Favorite.displayName` because that's what the user actually
+ * clicked on in the search results.
+ */
+const KNOWN_CONTAINER_LEAGUE_NAME_CONTAINS: Readonly<Record<string, string>> = {
+  "ATP World Tour": "ATP",
+  "WTA World Tour": "WTA",
+};
+
+function leagueClaimsMatch(fav: Favorite, match: Match): boolean {
+  if (match.leagueId === fav.externalId) return true;
+  const contains =
+    fav.metadata?.leagueNameContains ??
+    KNOWN_CONTAINER_LEAGUE_NAME_CONTAINS[fav.displayName];
+  if (!contains) return false;
+  return match.leagueName.toLowerCase().includes(contains.toLowerCase());
+}
+
 function withinEventWindow(match: Match, fav: Favorite): boolean {
   const start = fav.metadata?.startDate;
   const end = fav.metadata?.endDate;
@@ -41,7 +66,7 @@ function favoriteClaimsMatch(fav: Favorite, match: Match): boolean {
     case "sport":
       return matchesSportAllowlist(fav.sport, match);
     case "league":
-      return match.leagueId === fav.externalId;
+      return leagueClaimsMatch(fav, match);
     case "event":
       return (
         match.eventInstanceId === fav.externalId &&

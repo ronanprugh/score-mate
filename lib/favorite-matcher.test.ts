@@ -206,4 +206,74 @@ describe("favorite-matcher: dedup", () => {
     );
     expect(out).toEqual([]);
   });
+
+  it("league favorite with metadata.leagueNameContains matches by substring (case-insensitive)", () => {
+    const matches = [
+      makeMatch({
+        id: "wimbledon-m1",
+        sport: "Tennis",
+        leagueId: "child-tournament-id",
+        leagueName: "ATP Wimbledon — Men's Singles",
+      }),
+      makeMatch({
+        id: "wta-m1",
+        sport: "Tennis",
+        leagueId: "wta-child",
+        leagueName: "WTA Eastbourne",
+      }),
+      makeMatch({
+        id: "soccer-m1",
+        sport: "Soccer",
+        leagueId: "999",
+        leagueName: "Some random league",
+      }),
+    ];
+    const atpFav = fav({
+      id: "atp-tour-fav",
+      type: "league",
+      sport: "Tennis",
+      externalId: "atp-tour-id",
+      displayName: "ATP World Tour",
+      metadata: { leagueNameContains: "ATP" },
+    });
+    const out = matchFavoritesAgainstMatches([atpFav], matches);
+    expect(out.map((m) => m.id)).toEqual(["wimbledon-m1"]);
+  });
+
+  it("known container league displayName falls back to its built-in substring when metadata is null (back-compat for already-saved favorites)", () => {
+    const matches = [
+      makeMatch({
+        id: "wta-grass",
+        sport: "Tennis",
+        leagueId: "child-wta-bad-homburg",
+        leagueName: "WTA Bad Homburg Open",
+      }),
+    ];
+    const wtaFavWithoutMetadata = fav({
+      id: "wta-tour-fav",
+      type: "league",
+      sport: "Tennis",
+      externalId: "wta-tour-id",
+      displayName: "WTA World Tour",
+      metadata: null,
+    });
+    const out = matchFavoritesAgainstMatches([wtaFavWithoutMetadata], matches);
+    expect(out.map((m) => m.id)).toEqual(["wta-grass"]);
+  });
+
+  it("league favorite still prefers exact leagueId when both could match", () => {
+    const m = makeMatch({
+      id: "exact",
+      sport: "Soccer",
+      leagueId: "4328",
+      leagueName: "English Premier League",
+    });
+    const fav1 = fav({
+      type: "league",
+      externalId: "4328",
+      displayName: "English Premier League",
+    });
+    const out = matchFavoritesAgainstMatches([fav1], [m]);
+    expect(out.map((x) => x.id)).toEqual(["exact"]);
+  });
 });
