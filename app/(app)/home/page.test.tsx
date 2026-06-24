@@ -49,15 +49,17 @@ describe("Home page (server shell)", () => {
     await expect(HomePage()).rejects.toThrow(/__REDIRECT__:\/signin/);
   });
 
-  it("renders the header and embeds HomeClient when signed in", async () => {
+  it("embeds HomeClient when signed in (no page-level heading)", async () => {
     authMock.mockResolvedValue({ user: { id: "u1", email: "a@b" } });
     listFavoritesMock.mockResolvedValue([]);
     const ui = await HomePage();
     render(ui);
 
+    // The page-level "Your matches" heading was removed; the day-tab UI
+    // owns the visual hierarchy now.
     expect(
-      screen.getByRole("heading", { name: /your matches/i, level: 1 }),
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", { name: /your matches/i, level: 1 }),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("home-client")).toHaveAttribute(
       "data-has-favorites",
       "false",
