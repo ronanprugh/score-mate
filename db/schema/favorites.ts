@@ -28,6 +28,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./auth";
+import type { Sport } from "@/lib/sportsdb/types";
 
 export const favoriteTypeEnum = pgEnum("favorite_type", [
   "team",
@@ -55,7 +56,7 @@ export const favorites = pgTable(
     type: favoriteTypeEnum("type").notNull(),
     externalId: text("external_id").notNull(),
     displayName: text("display_name").notNull(),
-    sport: text("sport").notNull(),
+    sport: text("sport").$type<Sport>().notNull(),
     metadata: jsonb("metadata").$type<FavoriteMetadata>(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },

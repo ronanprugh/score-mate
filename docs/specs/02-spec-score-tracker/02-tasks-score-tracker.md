@@ -155,7 +155,7 @@
 
 ---
 
-### [ ] 4.0 Build the server-side homepage data flow: window query, favorite-driven match fetch, dedup, and per-source caching
+### [x] 4.0 Build the server-side homepage data flow: window query, favorite-driven match fetch, dedup, and per-source caching
 
 #### 4.0 Proof Artifact(s)
 
@@ -166,11 +166,12 @@
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Implement `lib/home/aggregator.ts` exporting `aggregateMatchesForUser(userId, dates): Promise<{ yesterday: Match[], today: Match[], tomorrow: Match[], source: { ok: boolean; errors: string[] } }>`. Reads favorites, plans the minimum set of TheSportsDB queries needed (e.g. one `eventsDay(date, sport)` per (date × sport) covered by any favorite), runs them in parallel via `Promise.allSettled`, feeds the results plus the user's favorites through `matchFavoritesAgainstMatches`, partitions by date, sorts each partition by `kickoffAt`. Accumulates a `source.errors` array from any rejected settles.
-- [ ] 4.2 Implement `lib/home/cache.ts`: `unstable_cache` wrappers around each TheSportsDB call with the spec's TTLs (30 s for any window containing live matches, 5 min for today-not-started, 10 min for yesterday + tomorrow). Cache keys include `(endpoint, date, sport)`.
-- [ ] 4.3 Implement `app/api/home/route.ts`: `GET` reads `?dates=yyyy-mm-dd,yyyy-mm-dd,yyyy-mm-dd` (three exact strings, client-computed in the user's TZ — server must NOT compute its own). Auth-gated. Calls `aggregateMatchesForUser`. Returns 401 on no session, 400 on malformed `dates`, 200 with the envelope otherwise (even on `source.ok === false` — partial failure is still 200).
-- [ ] 4.4 Author `lib/home/aggregator.test.ts`: mock `lib/sportsdb/client.ts` with fixture-backed implementations; drive `aggregateMatchesForUser` with favorites from all four sports; assert the merged/deduped/sorted output and the `source.errors` accumulation when one mocked call rejects.
-- [ ] 4.5 Author `app/api/home/route.test.ts`: mock `auth()` and the aggregator; assert all five branches in the proof.
+- [x] 4.1 `lib/home/aggregator.ts`: `aggregateMatchesForUser(userId, dates, fetcher)` plans unique (sport × date) calls, runs them with `Promise.allSettled`, dedups via `matchFavoritesAgainstMatches`, partitions by `dateUtc`, sorts each day by `kickoffUtc`. Also exports a pure `buildHomeEnvelope` for tests. `fetcher` is dependency-injected so tests don't touch the network.
+- [x] 4.2 `lib/home/cache.ts`: two `unstable_cache` wrappers — 30 s for "today" (matches the 60 s client poll cadence) and 600 s for "yesterday"/"tomorrow". `makeCachedEventsDayFetcher(dates)` returns the right one per date.
+- [x] 4.3 `app/api/home/route.ts`: GET, auth-gated, parses `?dates=yyyy-mm-dd,yyyy-mm-dd,yyyy-mm-dd` (strict regex), invokes the aggregator with the cached fetcher. 401 / 400 / 200 (even on `source.ok === false`).
+- [x] 4.4 `lib/home/aggregator.test.ts`: 7 tests — zero-favorites short-circuit, minimum-query-set planning, partition/sort across all 4 sports, dedup (Team + League → 1), partial-failure envelope with `source.errors`, outside-window matches ignored, `buildHomeEnvelope` no-kickoff sort.
+- [x] 4.5 `app/api/home/route.test.ts`: 6 tests — 401 no session, 400 missing dates, 400 malformed dates, 400 wrong number of parts, 200 + empty envelope for zero favorites, 200 + `source.ok=false` partial-failure passthrough. Asserts `aggregateMock` called with `(session.user.id, dates, fn)`.
+- Also: added `.$type<Sport>()` to `favorites.sport` so the schema's column type narrows from `string` to `Sport`, matching the matcher's `Favorite` interface (no migration needed — it's a TS-side narrowing of the existing `text` column).
 
 ---
 
