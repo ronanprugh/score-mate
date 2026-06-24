@@ -66,8 +66,12 @@ describe("MatchCard", () => {
     const longName =
       "Borussia Mönchengladbach Reserves and Academy Selection XI";
     render(<MatchCard match={{ ...base, homeTeamName: longName }} />);
-    const homeNode = screen.getByTitle(longName);
-    expect(homeNode.className).toMatch(/truncate/);
+    // The team block wraps an optional prefix line + the main name line;
+    // both inner spans carry `truncate`, and the wrapper carries the
+    // full name in its `title` attribute for hover discoverability.
+    const wrapper = screen.getByTitle(longName);
+    const truncatedSpans = wrapper.querySelectorAll(".truncate");
+    expect(truncatedSpans.length).toBeGreaterThan(0);
   });
 
   it("uses a uniform min-h on the card for consistent height across states", () => {

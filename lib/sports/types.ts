@@ -78,10 +78,14 @@ export interface Match {
 
   homeTeamId: string;
   homeTeamName: string;
+  /** Short name / mascot (e.g. "Chiefs" for "Kansas City Chiefs"). */
+  homeTeamShortName?: string;
   /** Optional crest/logo URL for the home team when the provider returns one. */
   homeTeamLogo?: string;
   awayTeamId: string;
   awayTeamName: string;
+  /** Short name / mascot (e.g. "Lakers" for "Los Angeles Lakers"). */
+  awayTeamShortName?: string;
   /** Optional crest/logo URL for the away team when the provider returns one. */
   awayTeamLogo?: string;
 

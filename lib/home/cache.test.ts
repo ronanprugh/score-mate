@@ -67,7 +67,7 @@ describe("chooseRevalidate", () => {
 });
 
 describe("CACHE_KEY_PREFIX", () => {
-  it("is v4-espn-logos (invalidates the prior v3-espn keyspace so cached Match objects get re-parsed with team logos)", () => {
-    expect(CACHE_KEY_PREFIX).toBe("v4-espn-logos");
+  it("is v5-espn-shortname (bumped so cached Match objects get re-parsed with team short names)", () => {
+    expect(CACHE_KEY_PREFIX).toBe("v5-espn-shortname");
   });
 });

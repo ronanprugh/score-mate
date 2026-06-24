@@ -18,8 +18,8 @@ function formatKickoffLocal(iso: string | null): string {
 
 interface TeamSideProps {
   name: string;
+  shortName?: string;
   logo?: string;
-  score?: number;
   align: "right" | "left";
   /**
    * "winner" → keep default emphasis;
@@ -29,13 +29,40 @@ interface TeamSideProps {
   outcome: "winner" | "loser" | "neutral";
 }
 
-function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
+/**
+ * Splits `displayName` into `[prefix, mascot]` when the mascot is a
+ * trailing suffix of the display name. Rule: if `displayName` ends with
+ * `shortName` and there is a non-empty prefix, return [prefix, shortName].
+ * Otherwise return [null, displayName] (one-line render).
+ *
+ * Handles:
+ *   "Kansas City Chiefs"      + "Chiefs"     → ["Kansas City", "Chiefs"]
+ *   "Los Angeles Lakers"      + "Lakers"     → ["Los Angeles", "Lakers"]
+ *   "AFC Bournemouth"         + "Bournemouth"→ ["AFC", "Bournemouth"]
+ *   "Arsenal"                 + "Arsenal"    → [null, "Arsenal"]
+ *   "Atlético Madrid"         + "Atlético"   → [null, "Atlético Madrid"]
+ *   "Brighton & Hove Albion"  + "Brighton"   → [null, "Brighton & Hove Albion"]
+ */
+function splitTeamName(
+  name: string,
+  shortName?: string,
+): [string | null, string] {
+  if (!shortName) return [null, name];
+  if (shortName === name) return [null, name];
+  if (!name.endsWith(shortName)) return [null, name];
+  const prefix = name.slice(0, -shortName.length).trim();
+  if (!prefix) return [null, name];
+  return [prefix, shortName];
+}
+
+function TeamSide({ name, shortName, logo, align, outcome }: TeamSideProps) {
   const isRight = align === "right";
   const dim = outcome === "loser";
+  const [prefix, mascot] = splitTeamName(name, shortName);
   return (
     <div
       className={[
-        "flex min-w-0 flex-1 items-center gap-1.5",
+        "flex min-w-0 flex-1 items-center gap-2",
         isRight ? "flex-row-reverse" : "flex-row",
       ].join(" ")}
     >
@@ -46,7 +73,7 @@ function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
           alt=""
           loading="lazy"
           className={[
-            "h-6 w-6 shrink-0 object-contain transition-opacity",
+            "mx-1 h-7 w-7 shrink-0 object-contain transition-opacity",
             dim ? "opacity-50" : "",
           ].join(" ")}
         />
@@ -54,23 +81,40 @@ function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
         <div
           aria-hidden="true"
           className={[
-            "h-6 w-6 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
+            "mx-1 h-7 w-7 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
             dim ? "opacity-50" : "",
           ].join(" ")}
         />
       )}
-      <span
+      <div
         className={[
-          "min-w-0 flex-1 truncate text-base leading-tight transition-colors",
-          isRight ? "text-right" : "text-left",
-          dim
-            ? "font-normal text-zinc-400 dark:text-zinc-500"
-            : "font-semibold",
+          "flex min-w-0 flex-1 flex-col leading-tight transition-colors",
+          isRight ? "items-end text-right" : "items-start text-left",
+          dim ? "text-zinc-400 dark:text-zinc-500" : "",
         ].join(" ")}
         title={name}
       >
-        {name}
-      </span>
+        {prefix && (
+          <span
+            className={[
+              "max-w-full truncate text-xs",
+              dim
+                ? "font-normal"
+                : "font-normal text-zinc-500 dark:text-zinc-400",
+            ].join(" ")}
+          >
+            {prefix}
+          </span>
+        )}
+        <span
+          className={[
+            "max-w-full truncate text-base",
+            dim ? "font-normal" : "font-semibold",
+          ].join(" ")}
+        >
+          {mascot}
+        </span>
+      </div>
     </div>
   );
 }
@@ -79,7 +123,9 @@ export function MatchCard({ match }: Props) {
   const {
     status,
     homeTeamName,
+    homeTeamShortName,
     awayTeamName,
+    awayTeamShortName,
     homeTeamLogo,
     awayTeamLogo,
     homeScore,
@@ -128,6 +174,7 @@ export function MatchCard({ match }: Props) {
       <div className="flex items-center gap-2">
         <TeamSide
           name={homeTeamName}
+          shortName={homeTeamShortName}
           logo={homeTeamLogo}
           align="right"
           outcome={homeOutcome}
@@ -185,6 +232,7 @@ export function MatchCard({ match }: Props) {
         </span>
         <TeamSide
           name={awayTeamName}
+          shortName={awayTeamShortName}
           logo={awayTeamLogo}
           align="left"
           outcome={awayOutcome}

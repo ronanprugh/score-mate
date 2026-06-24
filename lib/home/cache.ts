@@ -55,7 +55,7 @@ export function chooseRevalidate(callDate: string, dates: DateWindow): number {
   return REVALIDATE_DEFAULT_SECONDS;
 }
 
-export const CACHE_KEY_PREFIX = "v4-espn-logos";
+export const CACHE_KEY_PREFIX = "v5-espn-shortname";
 
 /**
  * Wraps `scoreboardForLeague` in `unstable_cache` with a per-(leagueKey,

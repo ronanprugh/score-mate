@@ -269,10 +269,12 @@ export function parseEvent(
     homeTeamId: home.team.id,
     homeTeamName:
       home.team.displayName ?? home.team.shortDisplayName ?? home.team.id,
+    homeTeamShortName: home.team.shortDisplayName,
     homeTeamLogo: homeLogo,
     awayTeamId: away.team.id,
     awayTeamName:
       away.team.displayName ?? away.team.shortDisplayName ?? away.team.id,
+    awayTeamShortName: away.team.shortDisplayName,
     awayTeamLogo: awayLogo,
     leagueId,
     leagueName,
