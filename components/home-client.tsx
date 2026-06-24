@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   computeDateWindow,
   getBrowserTimezone,
@@ -21,37 +21,99 @@ type FetchState =
   | { status: "error"; message: string }
   | { status: "ready"; envelope: HomeEnvelope; window: DateWindow };
 
+/** Poll interval while ≥1 live match is on screen. */
+const POLL_MS = 60_000;
+
+function envelopeHasLive(env: HomeEnvelope): boolean {
+  return (
+    env.yesterday.some((m) => m.status === "live") ||
+    env.today.some((m) => m.status === "live") ||
+    env.tomorrow.some((m) => m.status === "live")
+  );
+}
+
 /**
- * Owns the date-window computation and the /api/home fetch. Polling is
- * added in Task 6.0 — this task only covers the static render path.
+ * Owns the date-window computation, the /api/home fetch, and live-gated
+ * polling. Polling fires every 60s while the current response contains at
+ * least one live match. It pauses when the tab is hidden and resumes when
+ * the tab returns to visible. Any in-flight fetch is aborted on unmount
+ * and on visibility-hidden.
  */
 export function HomeClient({ hasFavorites }: Props) {
   const [state, setState] = useState<FetchState>({ status: "loading" });
+  const abortRef = useRef<AbortController | null>(null);
+  const fetchTriggerRef = useRef<(() => void) | null>(null);
 
+  // Initial mount: compute the date window, kick off the first fetch, and
+  // wire the visibility listener. The polling timer is owned by a separate
+  // effect that watches `state` (below).
   useEffect(() => {
     const tz = getBrowserTimezone();
     const window = computeDateWindow(new Date(), tz);
-    const controller = new AbortController();
-    const url = `/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}`;
 
-    fetch(url, { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Home fetch failed (${res.status})`);
-        }
-        const envelope = (await res.json()) as HomeEnvelope;
-        setState({ status: "ready", envelope, window });
-      })
-      .catch((e: unknown) => {
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        setState({
-          status: "error",
-          message: "Couldn't load matches. Please try again.",
+    const runFetch = () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const url = `/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}`;
+      fetch(url, { signal: controller.signal })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`Home fetch failed (${res.status})`);
+          const envelope = (await res.json()) as HomeEnvelope;
+          setState({ status: "ready", envelope, window });
+        })
+        .catch((e: unknown) => {
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          setState((prev) =>
+            prev.status === "ready"
+              ? prev
+              : {
+                  status: "error",
+                  message: "Couldn't load matches. Please try again.",
+                },
+          );
         });
-      });
+    };
 
-    return () => controller.abort();
+    runFetch();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        runFetch();
+      } else {
+        abortRef.current?.abort();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Expose the per-mount fetch trigger via ref so the polling effect can
+    // invoke it without recreating the listener on every state change.
+    fetchTriggerRef.current = runFetch;
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      abortRef.current?.abort();
+      fetchTriggerRef.current = null;
+    };
   }, []);
+
+  // Polling: while we have a `ready` response containing at least one live
+  // match, refetch every POLL_MS. The interval is rebuilt whenever `state`
+  // changes; clearing on cleanup handles the "no live → stop polling" case.
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    if (!envelopeHasLive(state.envelope)) return;
+    const id = setInterval(() => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState !== "visible"
+      ) {
+        return;
+      }
+      fetchTriggerRef.current?.();
+    }, POLL_MS);
+    return () => clearInterval(id);
+  }, [state]);
 
   if (state.status === "loading") {
     return (

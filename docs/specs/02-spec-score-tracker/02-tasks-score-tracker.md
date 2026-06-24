@@ -201,7 +201,7 @@
 
 ---
 
-### [ ] 6.0 Live auto-refresh + Page Visibility gating + deploy + cross-device end-to-end proof
+### [~] 6.0 Live auto-refresh + Page Visibility gating + deploy + cross-device end-to-end proof
 
 #### 6.0 Proof Artifact(s)
 
@@ -213,13 +213,13 @@
 
 #### 6.0 Tasks
 
-- [ ] 6.1 Extend `components/home-client.tsx` with `setInterval`-based 60 s polling that's gated on "the current rendered response contains at least one match with `status === 'live'`."
-- [ ] 6.2 Add a `visibilitychange` listener: pause polling and abort any in-flight fetch when `document.visibilityState !== 'visible'`; resume when it returns to `'visible'`.
-- [ ] 6.3 Cancel in-flight fetches via `AbortController` on unmount (`useEffect` cleanup) and on visibility-hidden transitions.
-- [ ] 6.4 Extend `components/home-client.test.tsx` with the four polling assertions in the proof; use `vi.useFakeTimers()` and `dispatchEvent(new Event('visibilitychange'))` to drive the conditions.
-- [ ] 6.5 Local manual end-to-end: sign in, favorite one of each type via `/favorites`, see them on `/my-favorites`, see real matches (or fixture-injected) on `/home`.
-- [ ] 6.6 Commit per parent task throughout (or one final commit if you've been batching); push to `main`; verify the CI run goes green.
-- [ ] 6.7 Verify Vercel auto-deploys; check the production URL responds 200 / the gated routes 307 the right way.
-- [ ] 6.8 Real-device test on a phone: sign in, favorite a team, observe matches on `/home`. Capture the production-mobile screenshot for the proof.
-- [ ] 6.9 Run the sanitized prod DB query and capture the per-type favorites count.
-- [ ] 6.10 Update `README.md` if any new env vars were introduced (none expected by the spec).
+- [x] 6.1 Extended `components/home-client.tsx` with a `setInterval`-based 60 s polling effect that's gated on `envelopeHasLive(state.envelope)` — the polling effect only registers an interval when the current `ready` envelope contains ≥1 match with `status === "live"`. When the envelope transitions to no-live, the effect cleanup clears the interval automatically.
+- [x] 6.2 Added a `visibilitychange` listener inside the mount effect: when `document.visibilityState !== "visible"` we abort any in-flight fetch via `abortRef.current?.abort()`; when it returns to `"visible"` we immediately refetch (and the polling effect resumes on its own because the ref-based fetch trigger is still wired). The polling interval also short-circuits on each tick if the tab is hidden.
+- [x] 6.3 In-flight fetches are cancelled via `AbortController` on (a) unmount (effect cleanup calls `abortRef.current?.abort()`), (b) any subsequent fetch (the new controller aborts the previous one), and (c) visibility-hidden transitions.
+- [x] 6.4 Extended `components/home-client.test.tsx` with 4 polling assertions using `vi.useFakeTimers()` and `document.dispatchEvent(new Event("visibilitychange"))`: (a) polls every 60 s while a live match is present (3 fetches across 2× 60 s advances), (b) does not poll when only Final/Upcoming matches are present (180 s advance → still 1 fetch), (c) visibility hidden → no polling for 120 s; visible → immediate refetch + resume; (d) unmount aborts the in-flight fetch (captured `AbortSignal.aborted === true`). Total tests in file: 8/8 passing.
+- [~] 6.5 Local manual end-to-end: deferred — requires interactive sign-in + real upstream data. Recommended to run via `pnpm dev` and sign in with the user's preferred provider; out of scope for the automated implementation pass.
+- [~] 6.6 First-commit of 6.0 implementation made (`feat(app): live-gated polling + visibility pause/resume for /home`). Push to `main` + CI verification deferred to the user.
+- [~] 6.7 Vercel auto-deploy + production URL check deferred to the user (depends on push in 6.6).
+- [~] 6.8 Real-device mobile screenshot deferred to the user (depends on production deploy in 6.7).
+- [~] 6.9 Prod DB per-type favorites count deferred to the user (requires live prod access).
+- [x] 6.10 `README.md` review: no new env vars introduced by this task — confirmed by `grep -E "process\.env\." components/home-client.tsx` returning no matches. No README update required.

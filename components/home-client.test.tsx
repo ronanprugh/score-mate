@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import type { Match } from "@/lib/sportsdb/types";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
 
@@ -107,5 +107,136 @@ describe("HomeClient (static cases)", () => {
     expect(screen.getByTestId("data-source-error-banner")).toHaveTextContent(
       /2 requests failed/i,
     );
+  });
+});
+
+describe("HomeClient (polling + visibility)", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    fetchMock.mockReset();
+  });
+
+  function liveEnvelope(): HomeEnvelope {
+    return envelope({
+      today: [
+        makeMatch({
+          id: "live1",
+          status: "live",
+          homeScore: 1,
+          awayScore: 0,
+          liveProgress: "32'",
+        }),
+      ],
+    });
+  }
+
+  function finalEnvelope(): HomeEnvelope {
+    return envelope({
+      today: [
+        makeMatch({
+          id: "f1",
+          status: "final",
+          homeScore: 2,
+          awayScore: 1,
+        }),
+      ],
+    });
+  }
+
+  it("polls /api/home every 60s while ≥1 live match is on screen", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => liveEnvelope(),
+    } as Response);
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    vi.useFakeTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not poll when no live matches are present", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => finalEnvelope(),
+    } as Response);
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    vi.useFakeTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(180_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("pauses polling when the tab becomes hidden and resumes on visible", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => liveEnvelope(),
+    } as Response);
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    vi.useFakeTimers();
+    // Tab hidden — no polling, even past 60s.
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "hidden",
+    });
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(120_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Tab visible — refetch immediately, then resume 60s polling.
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("aborts in-flight fetches on unmount", async () => {
+    let capturedSignal: AbortSignal | null = null;
+    fetchMock.mockImplementation((_url: string, init?: RequestInit) => {
+      capturedSignal = init?.signal ?? null;
+      return new Promise(() => {
+        /* never resolves */
+      });
+    });
+
+    const { unmount } = render(<HomeClient hasFavorites={true} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(capturedSignal).not.toBeNull();
+    expect(capturedSignal!.aborted).toBe(false);
+
+    unmount();
+    expect(capturedSignal!.aborted).toBe(true);
   });
 });
