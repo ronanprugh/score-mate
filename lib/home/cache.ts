@@ -1,114 +1,89 @@
 /**
- * Server-side cache wrappers around TheSportsDB endpoints used by the
- * homepage aggregator.
+ * Server-side cache wrapper around ESPN's per-league scoreboard endpoint
+ * used by the homepage aggregator.
  *
- * Spec § Technical Considerations § Server-side caching maps to two TTLs
- * for the day-level fetch:
+ * Spec § Technical Considerations § Tiered cache maps to three TTLs based
+ * on which bucket the requested date falls in relative to the user's
+ * `today`:
  *
- *   - TODAY  — 30s. Short enough that the homepage's 60s client poll
- *              (Task 6.0) sees fresh live data; long enough to coalesce
- *              concurrent renders.
- *   - YESTERDAY / TOMORROW — 600s (10 min). Yesterday's results are
- *              settled; tomorrow's schedule rarely changes intraday.
+ *   - TODAY (and the request's exact `today`) — 30s. Short enough that
+ *     the homepage's 60s client poll sees fresh live data; long enough
+ *     to coalesce concurrent renders.
+ *   - TOMORROW (and the widened `tomorrow+1`) — 300s (5 min). Schedules
+ *     shift rarely intraday.
+ *   - YESTERDAY (and the widened `yesterday-1`) — 3600s (1 hour). Past
+ *     results are settled.
+ *   - Default fallback — 300s.
  *
- * The per-team and per-league fetches use a single 5-minute TTL — they're
- * not the live-score path (the per-sport day fetch is), so they don't
- * need to be aggressively short.
+ * Cache-key prefix is `v3-espn` so the deploy invalidates the prior
+ * `v2-utc` (TheSportsDB) keyspace.
  */
 
 import { unstable_cache } from "next/cache";
-import {
-  eventsDay,
-  eventsLast,
-  eventsNext,
-  eventsNextLeague,
-  eventsPastLeague,
-} from "@/lib/sportsdb/client";
+import { scoreboardForLeague } from "@/lib/espn/client";
 import type { DateWindow } from "@/lib/date-window";
-import type { Fetchers } from "./aggregator";
-import type { Match, Sport } from "@/lib/sportsdb/types";
+import type { EventsLeagueDayFetcher, Fetchers } from "./aggregator";
+import type { Match } from "@/lib/sports/types";
 
-const REVALIDATE_TODAY_SECONDS = 30;
-const REVALIDATE_ADJACENT_SECONDS = 600;
-const REVALIDATE_TEAM_LEAGUE_SECONDS = 300;
+export const REVALIDATE_TODAY_SECONDS = 30;
+export const REVALIDATE_YESTERDAY_SECONDS = 3600;
+export const REVALIDATE_TOMORROW_SECONDS = 300;
+export const REVALIDATE_DEFAULT_SECONDS = 300;
 
-const eventsDayCachedShort = unstable_cache(
-  async (date: string, sport: Sport): Promise<Match[]> =>
-    eventsDay(date, sport),
-  ["sportsdb", "eventsDay", "short", "v3-tz"],
-  { revalidate: REVALIDATE_TODAY_SECONDS },
-);
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const eventsDayCachedLong = unstable_cache(
-  async (date: string, sport: Sport): Promise<Match[]> =>
-    eventsDay(date, sport),
-  ["sportsdb", "eventsDay", "long", "v3-tz"],
-  { revalidate: REVALIDATE_ADJACENT_SECONDS },
-);
-
-const eventsNextTeamCached = unstable_cache(
-  async (teamId: string): Promise<Match[]> => eventsNext(teamId),
-  ["sportsdb", "eventsNext", "v3-tz"],
-  { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
-);
-
-const eventsLastTeamCached = unstable_cache(
-  async (teamId: string): Promise<Match[]> => eventsLast(teamId),
-  ["sportsdb", "eventsLast", "v3-tz"],
-  { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
-);
-
-const eventsNextLeagueCached = unstable_cache(
-  async (leagueId: string): Promise<Match[]> => eventsNextLeague(leagueId),
-  ["sportsdb", "eventsNextLeague", "v3-tz"],
-  { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
-);
-
-const eventsPastLeagueCached = unstable_cache(
-  async (leagueId: string): Promise<Match[]> => eventsPastLeague(leagueId),
-  ["sportsdb", "eventsPastLeague", "v3-tz"],
-  { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
-);
+function addDays(yyyyMmDd: string, delta: number): string {
+  const t = Date.parse(`${yyyyMmDd}T00:00:00Z`);
+  const d = new Date(t + delta * MS_PER_DAY);
+  return d.toISOString().slice(0, 10);
+}
 
 /**
- * Returns the cache-wrapped fetchers bundle the aggregator expects.
+ * Returns the cache `revalidate` TTL (in seconds) for a given UTC fetch
+ * date relative to the user-supplied window. The widened ±1 neighbors
+ * inherit the TTL of the bucket they neighbor (yesterday-1 → 1h,
+ * tomorrow+1 → 5m).
  *
- * - eventsDay routes "today" through the 30 s cache, y/tomorrow through
- *   the 10 min cache.
- * - eventsTeam internally fans out to `eventsNext` + `eventsLast` in
- *   parallel and unions the results so a single upstream slowness can't
- *   block the other.
- * - eventsLeague internally fans out to `eventsNextLeague` +
- *   `eventsPastLeague` the same way.
+ * Pure — exported for testing.
+ */
+export function chooseRevalidate(callDate: string, dates: DateWindow): number {
+  if (callDate === dates.today) return REVALIDATE_TODAY_SECONDS;
+  if (callDate === dates.yesterday || callDate === addDays(dates.yesterday, -1))
+    return REVALIDATE_YESTERDAY_SECONDS;
+  if (callDate === dates.tomorrow || callDate === addDays(dates.tomorrow, 1))
+    return REVALIDATE_TOMORROW_SECONDS;
+  return REVALIDATE_DEFAULT_SECONDS;
+}
+
+export const CACHE_KEY_PREFIX = "v3-espn";
+
+/**
+ * Wraps `scoreboardForLeague` in `unstable_cache` with a per-(leagueKey,
+ * date) key and a TTL chosen by `chooseRevalidate`. The cache key bumps
+ * to `v3-espn` so the deploy invalidates the prior `v2-utc` keyspace.
+ */
+function cachedScoreboard(
+  leagueKey: string,
+  date: string,
+  dates: DateWindow,
+): Promise<Match[]> {
+  const wrapped = unstable_cache(
+    async (lk: string, d: string): Promise<Match[]> =>
+      scoreboardForLeague(lk, d),
+    [CACHE_KEY_PREFIX, "scoreboard", leagueKey, date],
+    { revalidate: chooseRevalidate(date, dates) },
+  );
+  return wrapped(leagueKey, date);
+}
+
+/**
+ * Returns the cache-wrapped fetcher the aggregator expects. The `dates`
+ * argument lets the cache choose the right TTL per call without the
+ * aggregator having to know about bucket semantics.
  */
 export function makeCachedFetchers(dates: DateWindow): Fetchers {
   return {
-    eventsDay: (date, sport) => {
-      if (date === dates.today) return eventsDayCachedShort(date, sport);
-      return eventsDayCachedLong(date, sport);
-    },
-    eventsTeam: async (teamId) => {
-      const settled = await Promise.allSettled([
-        eventsNextTeamCached(teamId),
-        eventsLastTeamCached(teamId),
-      ]);
-      const out: Match[] = [];
-      for (const s of settled) {
-        if (s.status === "fulfilled") out.push(...s.value);
-      }
-      return out;
-    },
-    eventsLeague: async (leagueId) => {
-      const settled = await Promise.allSettled([
-        eventsNextLeagueCached(leagueId),
-        eventsPastLeagueCached(leagueId),
-      ]);
-      const out: Match[] = [];
-      for (const s of settled) {
-        if (s.status === "fulfilled") out.push(...s.value);
-      }
-      return out;
-    },
+    eventsLeagueDay: (leagueKey, date) => cachedScoreboard(leagueKey, date, dates),
   };
 }
 
@@ -117,8 +92,8 @@ export function makeCachedFetchers(dates: DateWindow): Fetchers {
  * Kept so existing tests/mocks don't break; new code should use
  * `makeCachedFetchers`.
  */
-export function makeCachedEventsDayFetcher(
+export function makeCachedEventsLeagueDayFetcher(
   dates: DateWindow,
-): Fetchers["eventsDay"] {
-  return makeCachedFetchers(dates).eventsDay;
+): EventsLeagueDayFetcher {
+  return makeCachedFetchers(dates).eventsLeagueDay;
 }

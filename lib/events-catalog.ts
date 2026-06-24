@@ -1,19 +1,24 @@
 /**
  * Hand-curated catalog of tournament/event instances that v1 users can
- * favorite. TheSportsDB doesn't expose a clean "list of current events"
- * endpoint, so we keep a small set here covering the marquee instances for
- * each supported sport. Extend as new tournaments come into view.
+ * favorite. ESPN doesn't expose a clean "list of current events" endpoint,
+ * so we keep a small set here covering the marquee instances for each
+ * supported sport. Extend as new tournaments come into view.
  *
  * The favorite-matcher uses each entry's `id` as `favorites.externalId` and
  * the `startDate`/`endDate` as the metadata window enforcing silent-expire.
  *
- * Each entry should also carry `leagueId` (TheSportsDB's `idLeague`) or a
- * `leagueNameContains` fallback so the aggregator can tag incoming matches
- * with `eventInstanceId` — without that link, type='event' favorites would
- * never match anything in the live data.
+ * Each entry should also carry `leagueId` (the ESPN `{sport}/{league}` key)
+ * or a `leagueNameContains` fallback so the aggregator can tag incoming
+ * matches with `eventInstanceId` — without that link, type='event'
+ * favorites would never match anything in the live data.
+ *
+ * Tournament-instances that sit *inside* a parent league (e.g. the Super
+ * Bowl inside `football/nfl`) use both `leagueId` (for routing the fetch)
+ * and `leagueNameContains` (to disambiguate the instance within the
+ * parent league's match stream).
  */
 
-import type { EventInstance, Match, Sport } from "@/lib/sportsdb/types";
+import type { EventInstance, Match, Sport } from "@/lib/sports/types";
 
 export type CatalogEvent = EventInstance;
 
@@ -24,7 +29,7 @@ export const EVENTS_CATALOG: readonly CatalogEvent[] = [
     sport: "Soccer",
     startDate: "2026-06-11",
     endDate: "2026-07-19",
-    leagueId: "4429",
+    leagueId: "soccer/fifa.world",
   },
   {
     id: "uefa-euro-2028",
@@ -32,6 +37,8 @@ export const EVENTS_CATALOG: readonly CatalogEvent[] = [
     sport: "Soccer",
     startDate: "2028-06-09",
     endDate: "2028-07-09",
+    // No dedicated ESPN league key for the Euros in SUPPORTED_LEAGUES yet;
+    // matches surface via name fallback when they land.
     leagueNameContains: "UEFA Euro",
   },
   {
@@ -40,6 +47,7 @@ export const EVENTS_CATALOG: readonly CatalogEvent[] = [
     sport: "American Football",
     startDate: "2026-02-08",
     endDate: "2026-02-08",
+    leagueId: "football/nfl",
     leagueNameContains: "Super Bowl",
   },
   {
@@ -48,23 +56,8 @@ export const EVENTS_CATALOG: readonly CatalogEvent[] = [
     sport: "Basketball",
     startDate: "2027-03-16",
     endDate: "2027-04-05",
+    leagueId: "basketball/mens-college-basketball",
     leagueNameContains: "NCAA Tournament",
-  },
-  {
-    id: "wimbledon-2026",
-    name: "Wimbledon 2026",
-    sport: "Tennis",
-    startDate: "2026-06-29",
-    endDate: "2026-07-12",
-    leagueNameContains: "Wimbledon",
-  },
-  {
-    id: "us-open-tennis-2026",
-    name: "US Open (Tennis) 2026",
-    sport: "Tennis",
-    startDate: "2026-08-31",
-    endDate: "2026-09-13",
-    leagueNameContains: "US Open",
   },
 ] as const;
 
@@ -86,16 +79,27 @@ export function searchEventsCatalog(query: string, sportFilter?: Sport) {
  * window all claim the given match — or `null` if none do. The match's
  * `dateUtc` must fall within `[startDate, endDate]` inclusive; the sport
  * must match exactly; and either `leagueId` must equal `match.leagueId`
- * OR `leagueNameContains` must be a case-insensitive substring of
- * `match.leagueName`.
+ * AND (if `leagueNameContains` is present) the league name must contain
+ * that substring, OR `leagueNameContains` alone must match when no
+ * `leagueId` is set on the catalog entry.
  */
 export function findEventInstanceForMatch(match: Match): CatalogEvent | null {
   const leagueNameLower = match.leagueName.toLowerCase();
   for (const e of EVENTS_CATALOG) {
     if (e.sport !== match.sport) continue;
     if (match.dateUtc < e.startDate || match.dateUtc > e.endDate) continue;
-    if (e.leagueId && e.leagueId === match.leagueId) return e;
+    if (e.leagueId && e.leagueId === match.leagueId) {
+      // If a name filter is set too, require it (Super-Bowl-in-NFL case).
+      if (
+        e.leagueNameContains &&
+        !leagueNameLower.includes(e.leagueNameContains.toLowerCase())
+      ) {
+        continue;
+      }
+      return e;
+    }
     if (
+      !e.leagueId &&
       e.leagueNameContains &&
       leagueNameLower.includes(e.leagueNameContains.toLowerCase())
     ) {

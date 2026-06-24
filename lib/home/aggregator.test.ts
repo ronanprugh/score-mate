@@ -15,12 +15,12 @@ vi.mock("@/lib/favorites/queries", () => ({
 import {
   aggregateMatchesForUser,
   buildHomeEnvelope,
-  type EventsDayFetcher,
-  type EventsLeagueFetcher,
-  type EventsTeamFetcher,
+  planLeagueKeys,
+  type EventsLeagueDayFetcher,
   type Fetchers,
 } from "./aggregator";
-import type { Match, Sport } from "@/lib/sportsdb/types";
+import { leagueKeysForSport } from "@/lib/espn/leagues";
+import type { Match } from "@/lib/sports/types";
 import type { FavoriteRow } from "@/db/schema/favorites";
 
 /* -------------------------------------------------------------------------- */
@@ -55,8 +55,8 @@ function match(overrides: Partial<Match> & Pick<Match, "id">): Match {
     homeTeamName: "Home",
     awayTeamId: "a",
     awayTeamName: "Away",
-    leagueId: "0000",
-    leagueName: "Some League",
+    leagueId: "soccer/eng.1",
+    leagueName: "English Premier League",
     dateUtc: DATES.today,
     kickoffUtc: `${DATES.today}T15:00:00Z`,
     status: "upcoming",
@@ -64,51 +64,73 @@ function match(overrides: Partial<Match> & Pick<Match, "id">): Match {
   };
 }
 
-/** Build an EventsDayFetcher that returns a fixed lookup table. */
-function dayFetcherFrom(
-  table: Record<string, Record<Sport, Match[] | Error>>,
-): EventsDayFetcher {
-  return async (date, sport) => {
-    const dayMap = table[date];
-    if (!dayMap) return [];
-    const slot = dayMap[sport];
+/**
+ * Build a fetcher whose lookup table is keyed by `${leagueKey}|${date}`.
+ * A value of `Error` is rethrown so we can test partial-failure.
+ */
+function fetcherFrom(
+  table: Record<string, Match[] | Error>,
+): EventsLeagueDayFetcher {
+  return async (leagueKey, date) => {
+    const slot = table[`${leagueKey}|${date}`];
     if (slot instanceof Error) throw slot;
     return slot ?? [];
   };
 }
 
-const noopTeamFetcher: EventsTeamFetcher = async () => [];
-const noopLeagueFetcher: EventsLeagueFetcher = async () => [];
-
-/** Build a Fetchers bundle with the given day fetcher and optional overrides. */
-function fetchersFrom(
-  table: Record<string, Record<Sport, Match[] | Error>>,
-  overrides: Partial<Fetchers> = {},
-): Fetchers {
-  return {
-    eventsDay: dayFetcherFrom(table),
-    eventsTeam: noopTeamFetcher,
-    eventsLeague: noopLeagueFetcher,
-    ...overrides,
-  };
+function fetchersFrom(table: Record<string, Match[] | Error>): Fetchers {
+  return { eventsLeagueDay: fetcherFrom(table) };
 }
 
 /* -------------------------------------------------------------------------- */
 /* Tests                                                                       */
 /* -------------------------------------------------------------------------- */
 
+describe("planLeagueKeys", () => {
+  it("returns [] for a user with no favorites", () => {
+    expect(planLeagueKeys([])).toEqual([]);
+  });
+
+  it("a single Sport favorite expands to every supported league in that sport", () => {
+    const favs: FavoriteRow[] = [
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
+    ];
+    const keys = planLeagueKeys(favs);
+    expect(new Set(keys)).toEqual(new Set(leagueKeysForSport("Basketball")));
+  });
+
+  it("a Team favorite (Soccer) expands to all 14 Soccer leagues", () => {
+    const favs: FavoriteRow[] = [
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+    ];
+    expect(planLeagueKeys(favs)).toHaveLength(14);
+  });
+
+  it("an Event favorite contributes its catalog leagueId (subsumed if same sport's leagues already present)", () => {
+    const favs: FavoriteRow[] = [
+      fav({
+        type: "event",
+        sport: "Soccer",
+        externalId: "fifa-world-cup-2026",
+      }),
+    ];
+    const keys = planLeagueKeys(favs);
+    expect(keys).toContain("soccer/fifa.world");
+    // Still 14 (the World Cup key is one of the 14 Soccer leagues).
+    expect(keys).toHaveLength(14);
+  });
+});
+
 describe("aggregateMatchesForUser", () => {
   beforeEach(() => {
     listMock.mockReset();
   });
 
-  it("returns an empty envelope (ok=true, no errors) for a user with zero favorites", async () => {
+  it("returns an empty envelope for a user with zero favorites (no fetcher calls)", async () => {
     listMock.mockResolvedValue([]);
-    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
+    const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     const env = await aggregateMatchesForUser("user-a", DATES, {
-      eventsDay: dayFetcher,
-      eventsTeam: noopTeamFetcher,
-      eventsLeague: noopLeagueFetcher,
+      eventsLeagueDay: fetcher,
     });
     expect(env).toEqual({
       yesterday: [],
@@ -116,257 +138,124 @@ describe("aggregateMatchesForUser", () => {
       tomorrow: [],
       source: { ok: true, errors: [] },
     });
-    expect(dayFetcher).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("plans the minimum query set: one call per (date × sport) covered by any favorite", async () => {
+  it("fans out exactly (leagueKeys × 5 dates) calls — one Basketball Team favorite → 15 calls", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-      fav({
-        id: "f-2",
-        type: "league",
-        sport: "Basketball",
-        externalId: "4387",
-      }),
+      fav({ type: "team", sport: "Basketball", externalId: "13" }),
     ]);
-    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
-    const teamFetcher = vi.fn<EventsTeamFetcher>(async () => []);
-    const leagueFetcher = vi.fn<EventsLeagueFetcher>(async () => []);
+    const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
-      eventsDay: dayFetcher,
-      eventsTeam: teamFetcher,
-      eventsLeague: leagueFetcher,
+      eventsLeagueDay: fetcher,
     });
-    // 2 sports × 5 dates (widened ±1 UTC day) = 10 day calls;
-    // no extras for sports not in favorites.
-    expect(dayFetcher).toHaveBeenCalledTimes(10);
-    // 1 team favorite → 1 team call; 1 league favorite → 1 league call.
-    expect(teamFetcher).toHaveBeenCalledWith("team-usa");
-    expect(teamFetcher).toHaveBeenCalledTimes(1);
-    expect(leagueFetcher).toHaveBeenCalledWith("4387");
-    expect(leagueFetcher).toHaveBeenCalledTimes(1);
-    const callSports = new Set<Sport>(dayFetcher.mock.calls.map((c) => c[1]));
-    expect(callSports).toEqual(new Set<Sport>(["Soccer", "Basketball"]));
-    // No American Football / Tennis calls.
-    expect(callSports.has("American Football")).toBe(false);
-    expect(callSports.has("Tennis")).toBe(false);
+    // 3 Basketball leagues × 5 widened dates = 15 calls.
+    expect(fetcher).toHaveBeenCalledTimes(15);
+    const calledKeys = new Set(fetcher.mock.calls.map((c) => c[0]));
+    expect(calledKeys).toEqual(
+      new Set([
+        "basketball/nba",
+        "basketball/wnba",
+        "basketball/mens-college-basketball",
+      ]),
+    );
   });
 
-  it("partitions matches by date, sorts each day by kickoff, and respects all four sports across the union", async () => {
+  it("widens the UTC fetch window by ±1 day (5 dates per league)", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-      fav({
-        id: "f-2",
-        type: "league",
-        sport: "Basketball",
-        externalId: "4387",
-      }),
-      fav({
-        id: "f-3",
-        type: "league",
-        sport: "American Football",
-        externalId: "4391",
-      }),
-      fav({
-        id: "f-4",
-        type: "league",
-        sport: "Tennis",
-        externalId: "4464",
-      }),
+      fav({ type: "team", sport: "Basketball", externalId: "13" }),
     ]);
+    const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
+    await aggregateMatchesForUser("user-a", DATES, {
+      eventsLeagueDay: fetcher,
+    });
+    const dates = new Set(fetcher.mock.calls.map((c) => c[1]));
+    expect(dates).toEqual(
+      new Set([
+        "2026-06-20", // yesterday - 1
+        DATES.yesterday,
+        DATES.today,
+        DATES.tomorrow,
+        "2026-06-24", // tomorrow + 1
+      ]),
+    );
+  });
+
+  it("partitions matches by local date, sorts by kickoff, dedupes by id", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Basketball", externalId: "13" }),
+    ]);
+    const yesterdayLate = match({
+      id: "y-late",
+      sport: "Basketball",
+      leagueId: "basketball/nba",
+      leagueName: "NBA",
+      dateUtc: DATES.yesterday,
+      kickoffUtc: `${DATES.yesterday}T22:00:00Z`,
+      status: "final",
+      homeScore: 100,
+      awayScore: 98,
+      homeTeamId: "13",
+    });
+    const yesterdayEarly = match({
+      id: "y-early",
+      sport: "Basketball",
+      leagueId: "basketball/nba",
+      leagueName: "NBA",
+      dateUtc: DATES.yesterday,
+      kickoffUtc: `${DATES.yesterday}T19:00:00Z`,
+      status: "final",
+      homeScore: 88,
+      awayScore: 91,
+      homeTeamId: "13",
+    });
     const fetchers = fetchersFrom({
-      [DATES.yesterday]: {
-        Soccer: [],
-        Basketball: [
-          match({
-            id: "y-bball-late",
-            sport: "Basketball",
-            leagueId: "4387",
-            dateUtc: DATES.yesterday,
-            kickoffUtc: `${DATES.yesterday}T22:00:00Z`,
-            status: "final",
-            homeScore: 100,
-            awayScore: 98,
-          }),
-          match({
-            id: "y-bball-early",
-            sport: "Basketball",
-            leagueId: "4387",
-            dateUtc: DATES.yesterday,
-            kickoffUtc: `${DATES.yesterday}T19:00:00Z`,
-            status: "final",
-            homeScore: 88,
-            awayScore: 91,
-          }),
-        ],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.today]: {
-        Soccer: [
-          match({
-            id: "t-soccer",
-            sport: "Soccer",
-            homeTeamId: "team-usa",
-            leagueId: "9999",
-            dateUtc: DATES.today,
-            kickoffUtc: `${DATES.today}T15:00:00Z`,
-            status: "live",
-          }),
-        ],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.tomorrow]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [
-          match({
-            id: "tm-nfl",
-            sport: "American Football",
-            leagueId: "4391",
-            dateUtc: DATES.tomorrow,
-            kickoffUtc: `${DATES.tomorrow}T20:20:00Z`,
-            status: "upcoming",
-          }),
-        ],
-        Tennis: [],
-      },
+      [`basketball/nba|${DATES.yesterday}`]: [yesterdayLate, yesterdayEarly],
     });
 
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.source.ok).toBe(true);
-    expect(env.source.errors).toEqual([]);
-
-    // Yesterday's two basketball matches sorted by kickoff (19:00, 22:00).
-    expect(env.yesterday.map((m) => m.id)).toEqual([
-      "y-bball-early",
-      "y-bball-late",
-    ]);
-    // Today: the live soccer match for team-usa.
-    expect(env.today.map((m) => m.id)).toEqual(["t-soccer"]);
-    // Tomorrow: the NFL game.
-    expect(env.tomorrow.map((m) => m.id)).toEqual(["tm-nfl"]);
+    expect(env.yesterday.map((m) => m.id)).toEqual(["y-early", "y-late"]);
   });
 
-  it("deduplicates a match claimed by two favorites (Team + League) — appears exactly once", async () => {
+  it("partial-failure: a rejected upstream yields source.ok=false plus successful data", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-      fav({ id: "f-2", type: "league", sport: "Soccer", externalId: "9999" }),
+      fav({ type: "team", sport: "Basketball", externalId: "13" }),
     ]);
-    const claimedMatch = match({
-      id: "dup",
-      sport: "Soccer",
-      homeTeamId: "team-usa",
-      leagueId: "9999",
+    const liveMatch = match({
+      id: "t-bball",
+      sport: "Basketball",
+      leagueId: "basketball/nba",
+      leagueName: "NBA",
       dateUtc: DATES.today,
+      kickoffUtc: `${DATES.today}T18:00:00Z`,
+      homeTeamId: "13",
     });
-    // The same match comes back from the single Soccer-today call (de-duped at
-    // the matcher level even though only one fetcher returns it).
     const fetchers = fetchersFrom({
-      [DATES.yesterday]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.today]: {
-        Soccer: [claimedMatch],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.tomorrow]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
+      [`basketball/nba|${DATES.today}`]: [liveMatch],
+      [`basketball/wnba|${DATES.today}`]: new Error("ESPN 503 Service Unavailable"),
     });
-    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
-    expect(env.today.map((m) => m.id)).toEqual(["dup"]);
-  });
-
-  it("partial-failure envelope: a single rejected upstream call yields source.ok=false plus successful results", async () => {
-    listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-      fav({
-        id: "f-2",
-        type: "league",
-        sport: "Basketball",
-        externalId: "4387",
-      }),
-    ]);
-    const fetchers = fetchersFrom({
-      [DATES.yesterday]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.today]: {
-        Soccer: [
-          match({
-            id: "t-soccer",
-            sport: "Soccer",
-            homeTeamId: "team-usa",
-            dateUtc: DATES.today,
-          }),
-        ],
-        Basketball: new Error(
-          "TheSportsDB 503 Service Unavailable for Basketball",
-        ),
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.tomorrow]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-    });
-
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.source.ok).toBe(false);
     expect(env.source.errors).toHaveLength(1);
     expect(env.source.errors[0]).toMatch(/503/);
-    // Successfully-fetched data still renders.
-    expect(env.today.map((m) => m.id)).toEqual(["t-soccer"]);
+    expect(env.today.map((m) => m.id)).toEqual(["t-bball"]);
   });
 
-  it("ignores matches whose dateUtc falls outside the [y/t/t] window", async () => {
+  it("ignores matches whose local date falls outside the [y/t/t] window", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
     ]);
+    const outOfWindow = match({
+      id: "out-of-window",
+      sport: "Soccer",
+      homeTeamId: "359",
+      leagueId: "soccer/eng.1",
+      dateUtc: "2026-06-30",
+      kickoffUtc: "2026-06-30T15:00:00Z",
+    });
     const fetchers = fetchersFrom({
-      [DATES.yesterday]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.today]: {
-        Soccer: [
-          match({
-            id: "out-of-window",
-            sport: "Soccer",
-            homeTeamId: "team-usa",
-            dateUtc: "2026-06-30", // 8 days from today
-            kickoffUtc: "2026-06-30T15:00:00Z",
-          }),
-        ],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.tomorrow]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
+      [`soccer/eng.1|${DATES.today}`]: [outOfWindow],
     });
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.yesterday).toEqual([]);
@@ -374,100 +263,21 @@ describe("aggregateMatchesForUser", () => {
     expect(env.tomorrow).toEqual([]);
   });
 
-  it("unions per-team and per-league fetcher results with per-day results before matching", async () => {
+  it("buckets by LOCAL date — a UTC-tomorrow match that's locally today goes to `today`", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-      fav({ id: "f-2", type: "league", sport: "Soccer", externalId: "9999" }),
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
     ]);
-    // Per-day returns nothing; the match is ONLY in the per-team fetch.
-    // This is the exact scenario the league/team fanout was added to fix.
-    const teamOnlyMatch = match({
-      id: "team-only",
-      sport: "Soccer",
-      homeTeamId: "team-usa",
-      leagueId: "9999",
-      dateUtc: DATES.today,
-    });
-    const leagueOnlyMatch = match({
-      id: "league-only",
-      sport: "Soccer",
-      homeTeamId: "other-team",
-      leagueId: "9999",
-      dateUtc: DATES.tomorrow,
-      kickoffUtc: `${DATES.tomorrow}T20:00:00Z`,
-    });
-    const fetchers = fetchersFrom(
-      {
-        [DATES.yesterday]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-        [DATES.today]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-        [DATES.tomorrow]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-      },
-      {
-        eventsTeam: async (teamId) => {
-          if (teamId === "team-usa") return [teamOnlyMatch];
-          return [];
-        },
-        eventsLeague: async (leagueId) => {
-          if (leagueId === "9999") return [leagueOnlyMatch];
-          return [];
-        },
-      },
-    );
-
-    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
-    expect(env.today.map((m) => m.id)).toEqual(["team-only"]);
-    expect(env.tomorrow.map((m) => m.id)).toEqual(["league-only"]);
-    expect(env.source.ok).toBe(true);
-  });
-
-  it("buckets matches by LOCAL date (tz) — a UTC-tomorrow match that's locally today goes to `today`", async () => {
-    listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-    ]);
-    // Match's UTC date is 2026-06-23 (one day after the local "today"
-    // of 2026-06-22) but kicks off at 2026-06-23T01:00:00Z which is
-    // 21:00 on 2026-06-22 in America/New_York (UTC-4).
-    const lateNightMatch = match({
+    // Kicks off 01:00 UTC on 2026-06-23 → 21:00 ET on 2026-06-22.
+    const lateNight = match({
       id: "late-et",
       sport: "Soccer",
-      homeTeamId: "team-usa",
+      homeTeamId: "359",
+      leagueId: "soccer/eng.1",
       dateUtc: "2026-06-23",
       kickoffUtc: "2026-06-23T01:00:00Z",
     });
     const fetchers = fetchersFrom({
-      [DATES.yesterday]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.today]: {
-        Soccer: [],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
-      [DATES.tomorrow]: {
-        Soccer: [lateNightMatch],
-        Basketball: [],
-        "American Football": [],
-        Tennis: [],
-      },
+      [`soccer/eng.1|${DATES.tomorrow}`]: [lateNight],
     });
     const env = await aggregateMatchesForUser(
       "user-a",
@@ -479,34 +289,7 @@ describe("aggregateMatchesForUser", () => {
     expect(env.tomorrow.map((m) => m.id)).toEqual([]);
   });
 
-  it("widens the UTC fetch window by ±1 day so edge matches are reachable", async () => {
-    listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
-    ]);
-    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
-    await aggregateMatchesForUser(
-      "user-a",
-      DATES,
-      {
-        eventsDay: dayFetcher,
-        eventsTeam: noopTeamFetcher,
-        eventsLeague: noopLeagueFetcher,
-      },
-      "America/New_York",
-    );
-    // 1 sport × 5 UTC dates = 5 day calls (was 3 before the tz fix).
-    expect(dayFetcher).toHaveBeenCalledTimes(5);
-    const dates = dayFetcher.mock.calls.map((c) => c[0]).sort();
-    expect(dates).toEqual([
-      "2026-06-20", // yesterday - 1
-      DATES.yesterday,
-      DATES.today,
-      DATES.tomorrow,
-      "2026-06-24", // tomorrow + 1
-    ]);
-  });
-
-  it("expands an Event favorite to its catalog leagueId when one exists (FIFA World Cup 2026 → 4429)", async () => {
+  it("expands an Event favorite to its catalog leagueId (FIFA World Cup 2026 → soccer/fifa.world)", async () => {
     listMock.mockResolvedValue([
       fav({
         type: "event",
@@ -515,32 +298,36 @@ describe("aggregateMatchesForUser", () => {
         metadata: { startDate: "2026-06-11", endDate: "2026-07-19" },
       }),
     ]);
-    const leagueFetcher = vi.fn<EventsLeagueFetcher>(async () => []);
-    const fetchers = fetchersFrom(
-      {
-        [DATES.yesterday]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-        [DATES.today]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-        [DATES.tomorrow]: {
-          Soccer: [],
-          Basketball: [],
-          "American Football": [],
-          Tennis: [],
-        },
-      },
-      { eventsLeague: leagueFetcher },
-    );
-    await aggregateMatchesForUser("user-a", DATES, fetchers);
-    expect(leagueFetcher).toHaveBeenCalledWith("4429");
+    const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
+    await aggregateMatchesForUser("user-a", DATES, {
+      eventsLeagueDay: fetcher,
+    });
+    const keys = new Set(fetcher.mock.calls.map((c) => c[0]));
+    expect(keys).toContain("soccer/fifa.world");
+  });
+
+  it("dedupes a match claimed by two favorites (Team + League) — appears exactly once", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({
+        id: "f-2",
+        type: "league",
+        sport: "Soccer",
+        externalId: "soccer/eng.1",
+      }),
+    ]);
+    const claimed = match({
+      id: "dup",
+      sport: "Soccer",
+      homeTeamId: "359",
+      leagueId: "soccer/eng.1",
+      dateUtc: DATES.today,
+    });
+    const fetchers = fetchersFrom({
+      [`soccer/eng.1|${DATES.today}`]: [claimed],
+    });
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
+    expect(env.today.map((m) => m.id)).toEqual(["dup"]);
   });
 });
 

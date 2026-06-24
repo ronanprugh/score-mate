@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { FAVORITE_TYPES, SUPPORTED_SPORTS } from "@/lib/sportsdb/types";
+import { FAVORITE_TYPES, SUPPORTED_SPORTS } from "@/lib/sports/types";
 
 export const favoriteTypeSchema = z.enum(FAVORITE_TYPES);
 export const sportSchema = z.enum(SUPPORTED_SPORTS);

@@ -4,7 +4,7 @@ import {
   enrichMatchWithEventInstance,
   findEventInstanceForMatch,
 } from "./events-catalog";
-import type { Match } from "@/lib/sportsdb/types";
+import type { Match } from "@/lib/sports/types";
 
 function makeMatch(over: Partial<Match>): Match {
   return {
@@ -14,8 +14,8 @@ function makeMatch(over: Partial<Match>): Match {
     homeTeamName: "Home",
     awayTeamId: "a",
     awayTeamName: "Away",
-    leagueId: "9999",
-    leagueName: "Some League",
+    leagueId: "soccer/eng.1",
+    leagueName: "English Premier League",
     dateUtc: "2026-06-24",
     kickoffUtc: null,
     status: "upcoming",
@@ -24,10 +24,10 @@ function makeMatch(over: Partial<Match>): Match {
 }
 
 describe("events catalog enrichment", () => {
-  it("tags a soccer match in league 4429 within the World Cup 2026 window", () => {
+  it("tags a soccer match in soccer/fifa.world within the World Cup 2026 window", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: "2026-06-24",
     });
@@ -35,31 +35,52 @@ describe("events catalog enrichment", () => {
     expect(e?.id).toBe("fifa-world-cup-2026");
   });
 
-  it("does not tag a soccer match in league 4429 OUTSIDE the World Cup window", () => {
+  it("does not tag a soccer match in soccer/fifa.world OUTSIDE the World Cup window", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: "2025-12-01",
     });
     expect(findEventInstanceForMatch(m)).toBeNull();
   });
 
-  it("tags a Wimbledon match by leagueNameContains fallback", () => {
+  it("tags the Super Bowl by leagueId + leagueNameContains (NFL parent league + name disambiguation)", () => {
     const m = makeMatch({
-      sport: "Tennis",
-      leagueId: "irrelevant",
-      leagueName: "Wimbledon 2026 — Men's Singles",
-      dateUtc: "2026-07-01",
+      sport: "American Football",
+      leagueId: "football/nfl",
+      leagueName: "NFL Super Bowl LX",
+      dateUtc: "2026-02-08",
     });
     const e = findEventInstanceForMatch(m);
-    expect(e?.id).toBe("wimbledon-2026");
+    expect(e?.id).toBe("nfl-super-bowl-lx");
+  });
+
+  it("does NOT tag a regular-season NFL game as Super Bowl (no name match)", () => {
+    const m = makeMatch({
+      sport: "American Football",
+      leagueId: "football/nfl",
+      leagueName: "National Football League",
+      dateUtc: "2026-02-08",
+    });
+    expect(findEventInstanceForMatch(m)).toBeNull();
+  });
+
+  it("tags a UEFA Euro 2028 match by leagueNameContains fallback (no league key set)", () => {
+    const m = makeMatch({
+      sport: "Soccer",
+      leagueId: "soccer/whatever",
+      leagueName: "UEFA Euro 2028 — Group A",
+      dateUtc: "2028-06-15",
+    });
+    const e = findEventInstanceForMatch(m);
+    expect(e?.id).toBe("uefa-euro-2028");
   });
 
   it("does not cross sports (a basketball match in a soccer-tagged window stays null)", () => {
     const m = makeMatch({
       sport: "Basketball",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: "2026-06-24",
     });
@@ -69,7 +90,7 @@ describe("events catalog enrichment", () => {
   it("enrichMatchWithEventInstance populates eventInstanceId when claimed", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: "2026-06-24",
     });
@@ -80,7 +101,7 @@ describe("events catalog enrichment", () => {
   it("enrichMatchWithEventInstance preserves a pre-set eventInstanceId", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: "2026-06-24",
       eventInstanceId: "already-set",
@@ -92,7 +113,7 @@ describe("events catalog enrichment", () => {
   it("returns the unmodified match when no catalog entry claims it", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4328",
+      leagueId: "soccer/eng.1",
       leagueName: "English Premier League",
       dateUtc: "2026-06-24",
     });
@@ -102,6 +123,12 @@ describe("events catalog enrichment", () => {
   it("every catalog entry has either a leagueId or a leagueNameContains", () => {
     for (const e of EVENTS_CATALOG) {
       expect(Boolean(e.leagueId) || Boolean(e.leagueNameContains)).toBe(true);
+    }
+  });
+
+  it("no catalog entries reference Tennis", () => {
+    for (const e of EVENTS_CATALOG) {
+      expect((e.sport as string) === "Tennis").toBe(false);
     }
   });
 });

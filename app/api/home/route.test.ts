@@ -20,9 +20,7 @@ vi.mock("@/lib/home/aggregator", () => ({
 // fetchers bundle so the route test stays a pure unit test.
 vi.mock("@/lib/home/cache", () => ({
   makeCachedFetchers: () => ({
-    eventsDay: async () => [],
-    eventsTeam: async () => [],
-    eventsLeague: async () => [],
+    eventsLeagueDay: async () => [],
   }),
 }));
 
@@ -94,9 +92,7 @@ describe("GET /api/home", () => {
       "user-a",
       { yesterday: "2026-06-21", today: "2026-06-22", tomorrow: "2026-06-23" },
       expect.objectContaining({
-        eventsDay: expect.any(Function),
-        eventsTeam: expect.any(Function),
-        eventsLeague: expect.any(Function),
+        eventsLeagueDay: expect.any(Function),
       }),
       expect.any(String),
     );
