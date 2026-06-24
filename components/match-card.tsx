@@ -123,7 +123,7 @@ export function MatchCard({ match }: Props) {
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-20 flex-col justify-between gap-2 rounded-md border border-zinc-200 bg-background p-3 shadow-sm dark:border-zinc-800"
+      className="flex min-h-20 flex-col justify-between gap-1 rounded-md border border-zinc-200 bg-background p-3 shadow-sm dark:border-zinc-800"
     >
       <div className="flex items-center gap-2">
         <TeamSide
@@ -135,7 +135,10 @@ export function MatchCard({ match }: Props) {
         <span
           data-testid="match-center"
           className={[
-            "shrink-0 tabular-nums",
+            // Fixed width so the outer flex-1 team blocks always reserve the
+            // same space — logos stay pinned to the card edges regardless of
+            // whether the center reads "0 – 0", "100 – 99", or "7:30 PM".
+            "w-20 shrink-0 text-center tabular-nums",
             hasScores
               ? "text-base font-semibold"
               : "text-sm font-medium text-zinc-600 dark:text-zinc-300",
@@ -189,12 +192,12 @@ export function MatchCard({ match }: Props) {
       </div>
 
       {showFooter && (
-        <footer className="flex items-center gap-2 text-[10px] text-zinc-500">
+        <footer className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
             {status === "final" && (
               <span
                 data-testid="final-label"
-                className="font-semibold uppercase tracking-wide"
+                className="font-semibold uppercase tracking-wide text-zinc-700 dark:text-zinc-200"
               >
                 Final
               </span>
@@ -202,7 +205,7 @@ export function MatchCard({ match }: Props) {
             {status === "live" && liveProgress && (
               <span
                 data-testid="live-progress"
-                className="font-medium text-red-600 dark:text-red-400"
+                className="font-semibold text-red-600 dark:text-red-400"
               >
                 {liveProgress}
               </span>
@@ -230,7 +233,7 @@ export function MatchCard({ match }: Props) {
           {status === "live" && (
             <span
               data-testid="live-pill"
-              className="inline-flex shrink-0 animate-pulse items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+              className="inline-flex shrink-0 animate-pulse items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
             >
               Live
             </span>

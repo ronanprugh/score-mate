@@ -67,7 +67,7 @@ describe("chooseRevalidate", () => {
 });
 
 describe("CACHE_KEY_PREFIX", () => {
-  it("is v3-espn (invalidates the prior v2-utc TheSportsDB keyspace)", () => {
-    expect(CACHE_KEY_PREFIX).toBe("v3-espn");
+  it("is v4-espn-logos (invalidates the prior v3-espn keyspace so cached Match objects get re-parsed with team logos)", () => {
+    expect(CACHE_KEY_PREFIX).toBe("v4-espn-logos");
   });
 });
