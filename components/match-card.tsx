@@ -169,7 +169,7 @@ export function MatchCard({ match }: Props) {
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-20 flex-col justify-between gap-1 rounded-md border border-zinc-200 bg-background p-3 shadow-sm dark:border-zinc-800"
+      className="flex min-h-20 flex-col justify-between gap-1 rounded-md border border-zinc-200 bg-background px-6 py-3 shadow-sm dark:border-zinc-800"
     >
       <div className="flex items-center gap-2">
         <TeamSide
