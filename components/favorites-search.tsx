@@ -138,13 +138,29 @@ export function FavoritesSearch({ initialFavorites }: Props) {
                 key={`${r.type}:${r.externalId}`}
                 className="flex items-center justify-between gap-3 py-3"
               >
-                <div className="flex min-w-0 flex-col">
-                  <span className="truncate text-base font-medium">
-                    {r.displayName}
-                  </span>
-                  <span className="text-xs text-zinc-500">
-                    {TYPE_LABEL[r.type]} · {r.sport}
-                  </span>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  {r.type === "team" && r.badgeUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={r.badgeUrl}
+                      alt=""
+                      loading="lazy"
+                      className="h-7 w-7 shrink-0 rounded-sm object-contain"
+                    />
+                  ) : (
+                    <div
+                      aria-hidden="true"
+                      className="h-7 w-7 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800"
+                    />
+                  )}
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-base font-medium">
+                      {r.displayName}
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      {TYPE_LABEL[r.type]} · {r.sport}
+                    </span>
+                  </div>
                 </div>
                 <FavoriteAddButton payload={r} initialAdded={isAdded} />
               </li>

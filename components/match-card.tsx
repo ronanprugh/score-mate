@@ -16,11 +16,72 @@ function formatKickoffLocal(iso: string | null): string {
   }
 }
 
+interface TeamSideProps {
+  name: string;
+  logo?: string;
+  score?: number;
+  align: "right" | "left";
+  /**
+   * "winner" → keep default emphasis;
+   * "loser"  → dim (text-zinc-400, font-normal) to make the result obvious;
+   * "neutral" → no result distinction (live / upcoming / tie).
+   */
+  outcome: "winner" | "loser" | "neutral";
+}
+
+function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
+  const isRight = align === "right";
+  const dim = outcome === "loser";
+  return (
+    <div
+      className={[
+        "flex min-w-0 flex-1 items-center gap-1.5",
+        isRight ? "flex-row-reverse" : "flex-row",
+      ].join(" ")}
+    >
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logo}
+          alt=""
+          loading="lazy"
+          className={[
+            "h-5 w-5 shrink-0 object-contain transition-opacity",
+            dim ? "opacity-50" : "",
+          ].join(" ")}
+        />
+      ) : (
+        <div
+          aria-hidden="true"
+          className={[
+            "h-5 w-5 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
+            dim ? "opacity-50" : "",
+          ].join(" ")}
+        />
+      )}
+      <span
+        className={[
+          "min-w-0 flex-1 truncate text-sm leading-tight transition-colors",
+          isRight ? "text-right" : "text-left",
+          dim
+            ? "font-normal text-zinc-400 dark:text-zinc-500"
+            : "font-semibold",
+        ].join(" ")}
+        title={name}
+      >
+        {name}
+      </span>
+    </div>
+  );
+}
+
 export function MatchCard({ match }: Props) {
   const {
     status,
     homeTeamName,
     awayTeamName,
+    homeTeamLogo,
+    awayTeamLogo,
     homeScore,
     awayScore,
     round,
@@ -35,13 +96,20 @@ export function MatchCard({ match }: Props) {
     typeof homeScore === "number" &&
     typeof awayScore === "number";
 
-  // The centerpiece between the two team names. Scores when we have them,
-  // kickoff time for upcoming, em-dash otherwise.
-  const centerLabel = hasScores
-    ? `${homeScore} – ${awayScore}`
-    : status === "upcoming"
-      ? formatKickoffLocal(kickoffUtc)
-      : "–";
+  // Only highlight the winner on a settled (final) match — live scores can
+  // flip, and a draw shouldn't visually favor either side.
+  const homeOutcome: TeamSideProps["outcome"] =
+    status === "final" && hasScores && homeScore !== awayScore
+      ? homeScore! > awayScore!
+        ? "winner"
+        : "loser"
+      : "neutral";
+  const awayOutcome: TeamSideProps["outcome"] =
+    status === "final" && hasScores && homeScore !== awayScore
+      ? awayScore! > homeScore!
+        ? "winner"
+        : "loser"
+      : "neutral";
 
   const showFooter =
     status === "final" ||
@@ -58,12 +126,12 @@ export function MatchCard({ match }: Props) {
       className="flex min-h-16 flex-col justify-between gap-1.5 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
     >
       <div className="flex items-center gap-2">
-        <span
-          className="min-w-0 flex-1 truncate text-right text-sm font-semibold leading-tight"
-          title={homeTeamName}
-        >
-          {homeTeamName}
-        </span>
+        <TeamSide
+          name={homeTeamName}
+          logo={homeTeamLogo}
+          align="right"
+          outcome={homeOutcome}
+        />
         <span
           data-testid="match-center"
           className={[
@@ -80,26 +148,44 @@ export function MatchCard({ match }: Props) {
         >
           {hasScores ? (
             <>
-              <span data-testid="home-score">{homeScore}</span>
+              <span
+                data-testid="home-score"
+                className={
+                  homeOutcome === "loser"
+                    ? "text-zinc-400 dark:text-zinc-500"
+                    : ""
+                }
+              >
+                {homeScore}
+              </span>
               <span aria-hidden="true" className="px-1 text-zinc-400">
                 –
               </span>
-              <span data-testid="away-score">{awayScore}</span>
+              <span
+                data-testid="away-score"
+                className={
+                  awayOutcome === "loser"
+                    ? "text-zinc-400 dark:text-zinc-500"
+                    : ""
+                }
+              >
+                {awayScore}
+              </span>
             </>
           ) : (
             <span
               data-testid={status === "upcoming" ? "upcoming-time" : undefined}
             >
-              {centerLabel}
+              {status === "upcoming" ? formatKickoffLocal(kickoffUtc) : "–"}
             </span>
           )}
         </span>
-        <span
-          className="min-w-0 flex-1 truncate text-left text-sm font-semibold leading-tight"
-          title={awayTeamName}
-        >
-          {awayTeamName}
-        </span>
+        <TeamSide
+          name={awayTeamName}
+          logo={awayTeamLogo}
+          align="left"
+          outcome={awayOutcome}
+        />
       </div>
 
       {showFooter && (

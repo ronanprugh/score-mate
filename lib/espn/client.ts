@@ -260,15 +260,20 @@ export function parseEvent(
     fallbackLeagueName,
   );
 
+  const homeLogo = home.team.logo ?? home.team.logos?.[0]?.href;
+  const awayLogo = away.team.logo ?? away.team.logos?.[0]?.href;
+
   return {
     id: raw.id,
     sport,
     homeTeamId: home.team.id,
     homeTeamName:
       home.team.displayName ?? home.team.shortDisplayName ?? home.team.id,
+    homeTeamLogo: homeLogo,
     awayTeamId: away.team.id,
     awayTeamName:
       away.team.displayName ?? away.team.shortDisplayName ?? away.team.id,
+    awayTeamLogo: awayLogo,
     leagueId,
     leagueName,
     dateUtc,

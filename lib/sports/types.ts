@@ -78,8 +78,12 @@ export interface Match {
 
   homeTeamId: string;
   homeTeamName: string;
+  /** Optional crest/logo URL for the home team when the provider returns one. */
+  homeTeamLogo?: string;
   awayTeamId: string;
   awayTeamName: string;
+  /** Optional crest/logo URL for the away team when the provider returns one. */
+  awayTeamLogo?: string;
 
   /** Provider league key (ESPN `{sport}/{league}`). */
   leagueId: string;

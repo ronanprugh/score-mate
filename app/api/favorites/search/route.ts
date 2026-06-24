@@ -31,6 +31,8 @@ interface SearchResult {
   externalId: string;
   displayName: string;
   sport: Sport;
+  /** Team crest URL when the catalog has one (teams only). */
+  badgeUrl?: string;
   metadata?: {
     startDate?: string;
     endDate?: string;
@@ -107,6 +109,7 @@ export async function GET(req: NextRequest) {
       externalId: t.id,
       displayName: t.name,
       sport: t.sport,
+      ...(t.badgeUrl ? { badgeUrl: t.badgeUrl } : {}),
     });
   }
 

@@ -8,6 +8,8 @@ export interface FavoritePayload {
   externalId: string;
   displayName: string;
   sport: Sport;
+  /** Team crest URL when known. Render-only — not POSTed to /api/favorites. */
+  badgeUrl?: string;
   metadata?: { startDate?: string; endDate?: string };
 }
 
