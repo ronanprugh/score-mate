@@ -175,7 +175,7 @@
 
 ---
 
-### [ ] 5.0 Build the mobile-first homepage UI: day groups, match cards (Final / Live / Upcoming), and empty/error states
+### [x] 5.0 Build the mobile-first homepage UI: day groups, match cards (Final / Live / Upcoming), and empty/error states
 
 #### 5.0 Proof Artifact(s)
 
@@ -190,14 +190,14 @@
 
 #### 5.0 Tasks
 
-- [ ] 5.1 Rewrite `app/(app)/home/page.tsx` as a thin server-component shell (header copy, page metadata) that embeds `<HomeClient />`. Delete the spec-01 placeholder copy.
-- [ ] 5.2 Implement `components/home-client.tsx` (client component) responsible for: (a) computing the date window via `lib/date-window.ts` with the browser's TZ; (b) fetching `/api/home?dates=...` on mount; (c) rendering `<DataSourceErrorBanner />` when `source.ok === false`; (d) rendering three `<DaySection />`s in order; (e) rendering `<NoMatchesEmptyState />` when all three days are empty AND the user has favorites. (Polling is added in Task 6.0.)
-- [ ] 5.3 Implement `components/day-section.tsx`: sticky-readable header ("Yesterday" / "Today" / "Tomorrow") + a responsive grid (single column on mobile, multi-column at `md:`+) of `<MatchCard />`.
-- [ ] 5.4 Implement `components/match-card.tsx` with three branches keyed off `match.status`: **Final** (muted "Final" label + final score), **Live** (subtle-pulse "LIVE" pill + live score + minute/period/set), **Upcoming** (clock icon + local kickoff time + broadcast/streaming when present). Long names use `truncate` with `title` attribute. Card itself has `min-h-...` enough that all three states have uniform height.
-- [ ] 5.5 Implement `components/no-matches-empty-state.tsx` and `components/data-source-error-banner.tsx` as small presentational components.
-- [ ] 5.6 Author `components/match-card.test.tsx` covering all three branches (separate `it`s), a long-name truncation case, and a 44 px assertion on any interactive elements present.
-- [ ] 5.7 Replace `app/home/page.test.tsx` (now moved to `app/(app)/home/page.test.tsx` per Task 3.3) with assertions that the server-component shell renders and embeds `<HomeClient />`. Most rendering tests live in `components/home-client.test.tsx` (next task) and `match-card.test.tsx`.
-- [ ] 5.8 Author `components/home-client.test.tsx` covering the static cases: mock `/api/home` to return (a) one match per day → three day groups render; (b) all-empty arrays with favorites present → empty state renders; (c) `source.ok === false` → error banner renders. (Polling tests live in Task 6.0.)
+- [x] 5.1 Rewrote `app/(app)/home/page.tsx` as the thin server-component shell (auth gate + load favorites + header copy + page metadata) that embeds `<HomeClient hasFavorites={...} />`. Deleted the spec-01 placeholder copy and `AccountMenu` block.
+- [x] 5.2 Implemented `components/home-client.tsx`: computes the date window via `lib/date-window.ts` in the browser TZ, fetches `/api/home?dates=...` on mount with an `AbortController`, renders the error banner when `source.ok === false`, the three `<DaySection />`s in order when matches exist, the `<NoMatchesEmptyState />` when the user has favorites but no matches in window, and a "no favorites yet" prompt linking to `/favorites` otherwise. Polling is intentionally deferred to Task 6.0.
+- [x] 5.3 Implemented `components/day-section.tsx`: sticky day header ("Yesterday" / "Today" / "Tomorrow" + dated subtitle) + `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` of `<MatchCard />`. Empty days fall back to an inline "No matches." line so the section still anchors the layout.
+- [x] 5.4 Implemented `components/match-card.tsx` with three branches keyed off `match.status`: Final (muted "Final" + scores), Live (pulsing "LIVE" pill + scores + `liveProgress`), Upcoming (clock icon + locale-formatted kickoff + venue/broadcast). Long names use `truncate` with `title`. Uniform card height via `min-h-32`.
+- [x] 5.5 Implemented `components/no-matches-empty-state.tsx` (44 px CTA back to `/favorites`) and `components/data-source-error-banner.tsx` (role="alert" with pluralized failure count) as small presentational components.
+- [x] 5.6 Authored `components/match-card.test.tsx`: 5 tests — Final branch + scores, Live branch + progress, Upcoming branch + broadcast, long-name truncation via `title`, uniform `min-h` assertion.
+- [x] 5.7 Rewrote `app/(app)/home/page.test.tsx` (4 tests): redirects when no session, redirects when session.user has no id, renders the header + embeds `<HomeClient />` with `hasFavorites=false`, passes `hasFavorites=true` and calls `listFavoritesForUser(session.user.id)` when favorites exist. `HomeClient` is mocked to a stub so the page test stays focused on the shell.
+- [x] 5.8 Authored `components/home-client.test.tsx` (4 tests): per-day rendering when matches exist, no-matches empty state when `hasFavorites=true`, no-favorites prompt when `hasFavorites=false`, data-source error banner with failure-count copy when `source.ok=false`. Polling/visibility tests remain Task 6.0.
 
 ---
 

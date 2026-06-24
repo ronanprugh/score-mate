@@ -1,9 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-// next/navigation's `redirect` throws a Next-specific error to abort
-// rendering. We need to catch it in the test so we can assert it ran with
-// the expected path.
 class RedirectError extends Error {
   constructor(public readonly path: string) {
     super(`__REDIRECT__:${path}`);
@@ -16,12 +13,10 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-// Mock the AccountMenu so we don't have to render the server-action form
-// (which is awkward inside vitest). We assert its props are correct.
-vi.mock("@/components/account-menu", () => ({
-  AccountMenu: ({ email, name }: { email: string; name: string | null }) => (
-    <div data-testid="account-menu" data-email={email} data-name={name ?? ""}>
-      AccountMenu
+vi.mock("@/components/home-client", () => ({
+  HomeClient: ({ hasFavorites }: { hasFavorites: boolean }) => (
+    <div data-testid="home-client" data-has-favorites={String(hasFavorites)}>
+      HomeClient
     </div>
   ),
 }));
@@ -31,11 +26,17 @@ vi.mock("@/auth", () => ({
   auth: () => authMock(),
 }));
 
+const listFavoritesMock = vi.fn();
+vi.mock("@/lib/favorites/queries", () => ({
+  listFavoritesForUser: (userId: string) => listFavoritesMock(userId),
+}));
+
 import HomePage from "./page";
 
-describe("Home page (gated)", () => {
+describe("Home page (server shell)", () => {
   beforeEach(() => {
     authMock.mockReset();
+    listFavoritesMock.mockReset();
   });
 
   it("redirects to /signin when there is no session", async () => {
@@ -43,40 +44,35 @@ describe("Home page (gated)", () => {
     await expect(HomePage()).rejects.toThrow(/__REDIRECT__:\/signin/);
   });
 
-  it("redirects to /signin when the session has no user", async () => {
-    authMock.mockResolvedValue({ user: undefined });
+  it("redirects to /signin when the session user has no id", async () => {
+    authMock.mockResolvedValue({ user: { email: "x@y" } });
     await expect(HomePage()).rejects.toThrow(/__REDIRECT__:\/signin/);
   });
 
-  it("redirects to /signin when the session has no email", async () => {
-    authMock.mockResolvedValue({ user: { name: "Alice" } });
-    await expect(HomePage()).rejects.toThrow(/__REDIRECT__:\/signin/);
-  });
-
-  it("renders the welcome heading and account menu when signed in", async () => {
-    authMock.mockResolvedValue({
-      user: { email: "alice@example.com", name: "Alice" },
-    });
+  it("renders the header and embeds HomeClient when signed in", async () => {
+    authMock.mockResolvedValue({ user: { id: "u1", email: "a@b" } });
+    listFavoritesMock.mockResolvedValue([]);
     const ui = await HomePage();
     render(ui);
 
     expect(
-      screen.getByRole("heading", { name: /welcome, alice/i, level: 1 }),
+      screen.getByRole("heading", { name: /your matches/i, level: 1 }),
     ).toBeInTheDocument();
-
-    const menu = screen.getByTestId("account-menu");
-    expect(menu).toHaveAttribute("data-email", "alice@example.com");
-    expect(menu).toHaveAttribute("data-name", "Alice");
+    expect(screen.getByTestId("home-client")).toHaveAttribute(
+      "data-has-favorites",
+      "false",
+    );
   });
 
-  it("falls back to the email local-part when no display name is present", async () => {
-    authMock.mockResolvedValue({
-      user: { email: "bob@example.com", name: null },
-    });
+  it("passes hasFavorites=true when the user has favorites", async () => {
+    authMock.mockResolvedValue({ user: { id: "u1", email: "a@b" } });
+    listFavoritesMock.mockResolvedValue([{ id: "f1" }]);
     const ui = await HomePage();
     render(ui);
-    expect(
-      screen.getByRole("heading", { name: /welcome, bob/i, level: 1 }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("home-client")).toHaveAttribute(
+      "data-has-favorites",
+      "true",
+    );
+    expect(listFavoritesMock).toHaveBeenCalledWith("u1");
   });
 });
