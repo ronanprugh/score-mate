@@ -44,7 +44,7 @@ interface SearchResult {
  */
 const CONTAINER_LEAGUE_NAME_CONTAINS: Readonly<Record<string, string>> = {
   "ATP World Tour": "ATP",
-  "WTA World Tour": "WTA",
+  "WTA Tour": "WTA",
 };
 
 function isSupportedSport(s: string | null): s is Sport {

@@ -35,7 +35,9 @@ import type { Favorite, Match } from "./sportsdb/types";
  */
 const KNOWN_CONTAINER_LEAGUE_NAME_CONTAINS: Readonly<Record<string, string>> = {
   "ATP World Tour": "ATP",
-  "WTA World Tour": "WTA",
+  // TheSportsDB calls this league "WTA Tour" (idLeague 4517); the leading
+  // "World" in the user-facing label was wrong on first ship.
+  "WTA Tour": "WTA",
 };
 
 function leagueClaimsMatch(fav: Favorite, match: Match): boolean {

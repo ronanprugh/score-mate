@@ -254,7 +254,7 @@ describe("favorite-matcher: dedup", () => {
       type: "league",
       sport: "Tennis",
       externalId: "wta-tour-id",
-      displayName: "WTA World Tour",
+      displayName: "WTA Tour",
       metadata: null,
     });
     const out = matchFavoritesAgainstMatches([wtaFavWithoutMetadata], matches);
