@@ -122,18 +122,20 @@ describe("HomeClient (static cases)", () => {
     render(<HomeClient hasFavorites={true} />);
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: "English Premier League" }),
+        screen.getByTestId("league-group-English Premier League"),
       ).toBeInTheDocument(),
     );
     expect(
-      screen.getByRole("heading", { name: "FIFA World Cup" }),
+      screen.getByTestId("league-group-FIFA World Cup"),
     ).toBeInTheDocument();
-    // EPL group comes first (earlier kickoff in group).
-    const headings = screen.getAllByRole("heading", { level: 3 });
-    expect(headings.map((h) => h.textContent)).toEqual([
-      "English Premier League",
-      "FIFA World Cup",
-    ]);
+    // EPL group comes first (earlier kickoff in group). Each group is a
+    // collapsible <details> with a <summary> showing the league name and
+    // a match count.
+    const summaries = screen.getAllByText(/Premier League|World Cup/);
+    const groupNames = summaries
+      .filter((el) => el.tagName === "SPAN" && el.closest("summary"))
+      .map((el) => el.textContent);
+    expect(groupNames).toEqual(["English Premier League", "FIFA World Cup"]);
   });
 
   it("clicking a tab swaps the rendered panel", async () => {

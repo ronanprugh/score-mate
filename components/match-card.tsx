@@ -30,126 +30,123 @@ export function MatchCard({ match }: Props) {
     kickoffUtc,
   } = match;
 
-  const showHeader = Boolean(round) || status === "live";
+  const hasScores =
+    (status === "live" || status === "final") &&
+    typeof homeScore === "number" &&
+    typeof awayScore === "number";
+
+  // The centerpiece between the two team names. Scores when we have them,
+  // kickoff time for upcoming, em-dash otherwise.
+  const centerLabel = hasScores
+    ? `${homeScore} – ${awayScore}`
+    : status === "upcoming"
+      ? formatKickoffLocal(kickoffUtc)
+      : "–";
+
   const showFooter =
     status === "final" ||
-    status === "upcoming" ||
-    Boolean(liveProgress) ||
-    Boolean(venue);
+    status === "live" ||
+    Boolean(round) ||
+    Boolean(venue) ||
+    (status === "upcoming" && Boolean(broadcast));
 
   return (
     <article
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-20 flex-col justify-between gap-1.5 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
+      className="flex min-h-16 flex-col justify-between gap-1.5 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
     >
-      {showHeader && (
-        <header className="flex items-center justify-between gap-2">
-          <span
-            className="truncate text-[10px] font-medium uppercase tracking-wide text-zinc-500"
-            title={round ?? ""}
-          >
-            {round ?? ""}
-          </span>
-          {status === "live" && (
+      <div className="flex items-center gap-2">
+        <span
+          className="min-w-0 flex-1 truncate text-right text-sm font-semibold leading-tight"
+          title={homeTeamName}
+        >
+          {homeTeamName}
+        </span>
+        <span
+          data-testid="match-center"
+          className={[
+            "shrink-0 tabular-nums",
+            hasScores
+              ? "text-sm font-semibold"
+              : "text-xs font-medium text-zinc-600 dark:text-zinc-300",
+          ].join(" ")}
+          aria-label={
+            hasScores
+              ? `${homeTeamName} ${homeScore}, ${awayTeamName} ${awayScore}`
+              : undefined
+          }
+        >
+          {hasScores ? (
+            <>
+              <span data-testid="home-score">{homeScore}</span>
+              <span aria-hidden="true" className="px-1 text-zinc-400">
+                –
+              </span>
+              <span data-testid="away-score">{awayScore}</span>
+            </>
+          ) : (
             <span
-              data-testid="live-pill"
-              className="inline-flex animate-pulse items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+              data-testid={status === "upcoming" ? "upcoming-time" : undefined}
             >
-              Live
+              {centerLabel}
             </span>
           )}
-        </header>
-      )}
-
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="min-w-0 flex-1 truncate text-sm font-semibold leading-tight"
-            title={homeTeamName}
-          >
-            {homeTeamName}
-          </span>
-          {(status === "live" || status === "final") &&
-            typeof homeScore === "number" && (
-              <span
-                data-testid="home-score"
-                className="text-sm font-semibold tabular-nums"
-              >
-                {homeScore}
-              </span>
-            )}
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="min-w-0 flex-1 truncate text-sm font-semibold leading-tight"
-            title={awayTeamName}
-          >
-            {awayTeamName}
-          </span>
-          {(status === "live" || status === "final") &&
-            typeof awayScore === "number" && (
-              <span
-                data-testid="away-score"
-                className="text-sm font-semibold tabular-nums"
-              >
-                {awayScore}
-              </span>
-            )}
-        </div>
+        </span>
+        <span
+          className="min-w-0 flex-1 truncate text-left text-sm font-semibold leading-tight"
+          title={awayTeamName}
+        >
+          {awayTeamName}
+        </span>
       </div>
 
       {showFooter && (
-        <footer className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-zinc-500">
-          {status === "final" && (
-            <span
-              data-testid="final-label"
-              className="font-semibold uppercase tracking-wide"
-            >
-              Final
-            </span>
-          )}
-          {status === "upcoming" && (
-            <span
-              data-testid="upcoming-time"
-              className="inline-flex items-center gap-1 font-medium text-zinc-600 dark:text-zinc-300"
-              aria-label={`Kickoff at ${formatKickoffLocal(kickoffUtc)}`}
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 16 16"
-                className="h-2.5 w-2.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
+        <footer className="flex items-center gap-2 text-[10px] text-zinc-500">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
+            {status === "final" && (
+              <span
+                data-testid="final-label"
+                className="font-semibold uppercase tracking-wide"
               >
-                <circle cx="8" cy="8" r="6.5" />
-                <path d="M8 4.5V8l2.5 1.5" strokeLinecap="round" />
-              </svg>
-              {formatKickoffLocal(kickoffUtc)}
-            </span>
-          )}
-          {status === "live" && liveProgress && (
+                Final
+              </span>
+            )}
+            {status === "live" && liveProgress && (
+              <span
+                data-testid="live-progress"
+                className="font-medium text-red-600 dark:text-red-400"
+              >
+                {liveProgress}
+              </span>
+            )}
+            {round && (
+              <span className="truncate uppercase tracking-wide" title={round}>
+                {round}
+              </span>
+            )}
+            {venue && (
+              <span className="truncate" title={venue}>
+                {venue}
+              </span>
+            )}
+            {status === "upcoming" && broadcast && (
+              <span
+                data-testid="broadcast"
+                className="truncate"
+                title={broadcast}
+              >
+                {broadcast}
+              </span>
+            )}
+          </div>
+          {status === "live" && (
             <span
-              data-testid="live-progress"
-              className="font-medium text-red-600 dark:text-red-400"
+              data-testid="live-pill"
+              className="inline-flex shrink-0 animate-pulse items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
             >
-              {liveProgress}
-            </span>
-          )}
-          {venue && (
-            <span className="truncate" title={venue}>
-              {venue}
-            </span>
-          )}
-          {status === "upcoming" && broadcast && (
-            <span
-              data-testid="broadcast"
-              className="truncate"
-              title={broadcast}
-            >
-              {broadcast}
+              Live
             </span>
           )}
         </footer>

@@ -278,23 +278,42 @@ function DayPanel({ day, dateLabel, matches }: DayPanelProps) {
         </p>
       ) : (
         groups.map((g) => (
-          <div
+          <details
             key={g.leagueName}
             data-testid={`league-group-${g.leagueName}`}
-            className="flex flex-col gap-1.5"
+            open
+            className="group flex flex-col gap-1.5 [&[open]>summary>svg]:rotate-90"
           >
-            <h3
-              className="truncate text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400"
+            <summary
+              className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 rounded-sm py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 outline-none hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:text-zinc-400 dark:hover:text-zinc-100"
               title={g.leagueName}
             >
-              {g.leagueName}
-            </h3>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 12 12"
+                className="h-2.5 w-2.5 shrink-0 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 2.5L8 6L4 9.5" />
+              </svg>
+              <span className="truncate">{g.leagueName}</span>
+              <span
+                aria-hidden="true"
+                className="shrink-0 font-normal normal-case tracking-normal text-zinc-400 dark:text-zinc-500"
+              >
+                ({g.matches.length})
+              </span>
+            </summary>
+            <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2 lg:grid-cols-3">
               {g.matches.map((m) => (
                 <MatchCard key={m.id} match={m} />
               ))}
             </div>
-          </div>
+          </details>
         ))
       )}
     </section>
