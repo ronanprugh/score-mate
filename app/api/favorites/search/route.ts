@@ -1,23 +1,25 @@
 /**
  * GET /api/favorites/search?q=...&sport=...
  *
- * Powers the typeahead on the Favorites screen. Calls TheSportsDB
- * `searchteams` + `search_all_leagues` (across all supported sports in
- * parallel) and merges them with the hand-curated events catalog plus a
- * sport-name match into a single type-labeled result list.
+ * Powers the typeahead on the Favorites screen. Substring-matches the
+ * query against (a) the committed ESPN team/league catalog
+ * (`lib/espn/catalog.json`), (b) the hand-curated events catalog
+ * (`lib/events-catalog.ts`), and (c) the supported-sport names. All four
+ * sources combine into a single type-labeled result list.
  *
  * Each result is `{ type, externalId, displayName, sport, metadata? }` —
  * exactly the shape POST /api/favorites accepts. The client sends a result
  * back unchanged via FavoriteAddButton.
  *
- * Auth-gated. Uses `Promise.allSettled` so partial upstream failures don't
- * blank the whole result set.
+ * Auth-gated. No upstream network calls (the catalog is committed), so
+ * `Promise.allSettled` isn't needed — the search is deterministic and
+ * cache-free.
  */
 
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
+import { searchCatalogLeagues, searchCatalogTeams } from "@/lib/espn/catalog";
 import { searchEventsCatalog } from "@/lib/events-catalog";
-import { searchAllLeagues, searchTeams } from "@/lib/sportsdb/client";
 import {
   SUPPORTED_SPORTS,
   type FavoriteType,
@@ -36,16 +38,7 @@ interface SearchResult {
   };
 }
 
-/**
- * "Container" leagues whose own `idLeague` returns no matches because the
- * actual events sit under per-tournament child league rows. We tag the
- * search result with `metadata.leagueNameContains` so the favorite saves
- * with a fuzzy fallback the matcher honors.
- */
-const CONTAINER_LEAGUE_NAME_CONTAINS: Readonly<Record<string, string>> = {
-  "ATP World Tour": "ATP",
-  "WTA Tour": "WTA",
-};
+const PER_CATEGORY_CAP = 10;
 
 function isSupportedSport(s: string | null): s is Sport {
   return SUPPORTED_SPORTS.includes(s as Sport);
@@ -66,60 +59,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] as SearchResult[] });
   }
 
-  const sportsToSearch = sportFilter ? [sportFilter] : SUPPORTED_SPORTS;
-
-  // Teams + leagues in parallel; allSettled so a single upstream failure
-  // doesn't blank the whole result set.
-  const [teamsSettled, ...leaguesSettled] = await Promise.allSettled([
-    searchTeams(q),
-    ...sportsToSearch.map((s) => searchAllLeagues(s)),
-  ]);
-
-  // --- Teams: keep only teams whose sport is one of our four ---
-  const teamResults: SearchResult[] =
-    teamsSettled?.status === "fulfilled"
-      ? teamsSettled.value
-          .filter((t): t is typeof t & { sport: Sport } => Boolean(t.sport))
-          .filter((t) => (sportFilter ? t.sport === sportFilter : true))
-          .map((t) => ({
-            type: "team",
-            externalId: t.id,
-            displayName: t.name,
-            sport: t.sport,
-          }))
-      : [];
-
-  // --- Leagues: substring match on the league name ---
-  const leagueResults: SearchResult[] = [];
-  for (let i = 0; i < leaguesSettled.length; i++) {
-    const settled = leaguesSettled[i]!;
-    if (settled.status !== "fulfilled") continue;
-    for (const lg of settled.value) {
-      if (!lg.name.toLowerCase().includes(q.toLowerCase())) continue;
-      const containerSubstring = CONTAINER_LEAGUE_NAME_CONTAINS[lg.name];
-      leagueResults.push({
-        type: "league",
-        externalId: lg.id,
-        displayName: lg.name,
-        sport: lg.sport,
-        ...(containerSubstring
-          ? { metadata: { leagueNameContains: containerSubstring } }
-          : {}),
-      });
-    }
-  }
-
-  // --- Events: hand-curated catalog ---
-  const eventResults: SearchResult[] = searchEventsCatalog(q, sportFilter).map(
-    (e) => ({
-      type: "event",
-      externalId: e.id,
-      displayName: e.name,
-      sport: e.sport,
-      metadata: { startDate: e.startDate, endDate: e.endDate },
-    }),
-  );
-
   // --- Sport-as-favorite: matches when the query is part of a sport name ---
   const sportResults: SearchResult[] = SUPPORTED_SPORTS.filter(
     (s) =>
@@ -132,8 +71,47 @@ export async function GET(req: NextRequest) {
     sport: s,
   }));
 
+  // --- Events: hand-curated catalog ---
+  const eventResults: SearchResult[] = searchEventsCatalog(q, sportFilter).map(
+    (e) => ({
+      type: "event",
+      externalId: e.id,
+      displayName: e.name,
+      sport: e.sport,
+      metadata: { startDate: e.startDate, endDate: e.endDate },
+    }),
+  );
+
+  // --- Leagues: in-memory ESPN catalog ---
+  const leagueResults: SearchResult[] = searchCatalogLeagues(
+    q,
+    sportFilter,
+  ).map((l) => ({
+    type: "league",
+    externalId: l.id,
+    displayName: l.name,
+    sport: l.sport,
+  }));
+
+  // --- Teams: in-memory ESPN catalog. A team can appear in multiple
+  // leagues (e.g. Arsenal is in both Premier League and FA Cup catalogs);
+  // dedupe by team id so the UI doesn't repeat the same card. ---
+  const seenTeamIds = new Set<string>();
+  const teamResults: SearchResult[] = [];
+  for (const t of searchCatalogTeams(q, sportFilter)) {
+    if (!t.sport) continue;
+    if (seenTeamIds.has(t.id)) continue;
+    seenTeamIds.add(t.id);
+    teamResults.push({
+      type: "team",
+      externalId: t.id,
+      displayName: t.name,
+      sport: t.sport,
+    });
+  }
+
   // Cap each section so the result list stays scannable on a phone.
-  const cap = (xs: SearchResult[]) => xs.slice(0, 10);
+  const cap = (xs: SearchResult[]) => xs.slice(0, PER_CATEGORY_CAP);
   const results: SearchResult[] = [
     ...cap(sportResults),
     ...cap(eventResults),

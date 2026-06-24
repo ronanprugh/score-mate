@@ -15,7 +15,10 @@ import {
   sportFromLeagueKey,
 } from "./client";
 
-function mockJsonFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) {
+function mockJsonFetch(
+  body: unknown,
+  init: { ok?: boolean; status?: number } = {},
+) {
   return async () =>
     new Response(JSON.stringify(body), {
       status: init.status ?? 200,

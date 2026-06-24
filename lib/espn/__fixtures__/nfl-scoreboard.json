@@ -27,7 +27,9 @@
                 "id": "12",
                 "displayName": "Kansas City Chiefs",
                 "shortDisplayName": "Chiefs",
-                "logos": [{ "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" }]
+                "logos": [
+                  { "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" }
+                ]
               }
             },
             {
@@ -37,7 +39,11 @@
                 "id": "11",
                 "displayName": "Indianapolis Colts",
                 "shortDisplayName": "Colts",
-                "logos": [{ "href": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" }]
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png"
+                  }
+                ]
               }
             }
           ],

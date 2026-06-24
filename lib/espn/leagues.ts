@@ -66,7 +66,11 @@ export const SUPPORTED_LEAGUES: readonly SupportedLeague[] = [
     sport: "Soccer",
     displayName: "UEFA Conference League",
   },
-  { leagueKey: "soccer/fifa.world", sport: "Soccer", displayName: "FIFA World Cup" },
+  {
+    leagueKey: "soccer/fifa.world",
+    sport: "Soccer",
+    displayName: "FIFA World Cup",
+  },
   {
     leagueKey: "soccer/conmebol.libertadores",
     sport: "Soccer",

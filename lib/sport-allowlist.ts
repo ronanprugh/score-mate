@@ -4,19 +4,21 @@
  * favoriting — a Sport favorite ONLY includes matches whose league/tournament
  * is on the list below for that sport.
  *
- * Entries use TheSportsDB league IDs where they're stable. Entries without a
- * clean single-id mapping (notably US college sports, where the spec calls
- * for "ranked-vs-ranked" filtering) use league-name substring matching as a
- * pragmatic fallback for v1. League IDs may need verification once
- * implementation hits the live API; see spec § Open Questions.
+ * Entries use ESPN `{sport}/{league}` keys (the canonical `leagueId` in our
+ * provider-neutral types) where possible. League-name substring matching is
+ * a pragmatic fallback for tournaments without a stable per-league endpoint
+ * (e.g. seasonal cups, Top-25 NCAA matchups inside a parent league).
  *
- * Source list: spec 02 § Technical Considerations § Sport favorite allowlist.
+ * Tennis is dropped in Spec 03 (ESPN backend swap, Q3 (G)).
+ *
+ * Source list: spec 02 § Technical Considerations § Sport favorite allowlist,
+ * remapped to ESPN league keys by Spec 03.
  */
 
-import type { Match, Sport } from "./sportsdb/types";
+import type { Match, Sport } from "./sports/types";
 
 interface AllowlistEntry {
-  /** TheSportsDB league id (`idLeague`) when known. */
+  /** ESPN `{sport}/{league}` key when known. */
   leagueId?: string;
   /**
    * Case-insensitive substring used as a fallback when `leagueId` is absent
@@ -29,15 +31,15 @@ interface AllowlistEntry {
 
 export const SPORT_ALLOWLIST: Record<Sport, AllowlistEntry[]> = {
   Soccer: [
-    { leagueId: "4328", label: "English Premier League" },
-    { leagueId: "4335", label: "Spanish La Liga" },
-    { leagueId: "4332", label: "Italian Serie A" },
-    { leagueId: "4331", label: "German Bundesliga" },
-    { leagueId: "4334", label: "French Ligue 1" },
-    { leagueId: "4346", label: "MLS (Major League Soccer)" },
-    { leagueId: "4480", label: "UEFA Champions League" },
-    { leagueId: "4481", label: "UEFA Europa League" },
-    { leagueId: "4429", label: "FIFA World Cup" },
+    { leagueId: "soccer/eng.1", label: "English Premier League" },
+    { leagueId: "soccer/esp.1", label: "Spanish La Liga" },
+    { leagueId: "soccer/ita.1", label: "Italian Serie A" },
+    { leagueId: "soccer/ger.1", label: "German Bundesliga" },
+    { leagueId: "soccer/fra.1", label: "French Ligue 1" },
+    { leagueId: "soccer/usa.1", label: "MLS (Major League Soccer)" },
+    { leagueId: "soccer/uefa.champions", label: "UEFA Champions League" },
+    { leagueId: "soccer/uefa.europa", label: "UEFA Europa League" },
+    { leagueId: "soccer/fifa.world", label: "FIFA World Cup" },
     { leagueNameContains: "UEFA Euro", label: "UEFA Euros" },
     { leagueNameContains: "Copa America", label: "Copa América" },
     {
@@ -46,31 +48,26 @@ export const SPORT_ALLOWLIST: Record<Sport, AllowlistEntry[]> = {
     },
   ],
   "American Football": [
-    { leagueId: "4391", label: "NFL" },
+    { leagueId: "football/nfl", label: "NFL" },
     {
       leagueNameContains: "College Football Playoff",
       label: "College Football Playoff",
     },
     { leagueNameContains: "Bowl", label: "Major bowl games" },
-    // Top-25 NCAA matchups: name-only fallback; the data source's coverage of
-    // NCAA FBS is uneven (spec § TheSportsDB coverage gaps). We accept gaps.
-    { leagueNameContains: "NCAA Football", label: "NCAA FBS (Top-25 only)" },
+    // Top-25 NCAA matchups: name-only fallback within ESPN's college-football
+    // league. The Top-25 ranking signal isn't in ESPN's scoreboard payload,
+    // so v1 accepts all FBS games tagged "NCAA Football"; tightening to
+    // ranked-only is a follow-up.
+    { leagueId: "football/college-football", label: "NCAA FBS" },
   ],
   Basketball: [
-    { leagueId: "4387", label: "NBA" },
-    { leagueNameContains: "NCAA Basketball", label: "NCAA D-I (Top-25 only)" },
+    { leagueId: "basketball/nba", label: "NBA" },
+    {
+      leagueId: "basketball/mens-college-basketball",
+      label: "NCAA D-I",
+    },
     { leagueNameContains: "NCAA Tournament", label: "March Madness" },
-    { leagueNameContains: "WNBA Finals", label: "WNBA Finals" },
-  ],
-  Tennis: [
-    { leagueNameContains: "Australian Open", label: "Australian Open" },
-    { leagueNameContains: "Roland", label: "Roland-Garros (French Open)" },
-    { leagueNameContains: "Wimbledon", label: "Wimbledon" },
-    { leagueNameContains: "US Open", label: "US Open" },
-    { leagueNameContains: "ATP Masters 1000", label: "ATP Masters 1000" },
-    { leagueNameContains: "WTA 1000", label: "WTA 1000" },
-    { leagueNameContains: "ATP Finals", label: "ATP Finals" },
-    { leagueNameContains: "WTA Finals", label: "WTA Finals" },
+    { leagueId: "basketball/wnba", label: "WNBA" },
   ],
 };
 

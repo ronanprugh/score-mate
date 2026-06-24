@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchesSportAllowlist, SPORT_ALLOWLIST } from "./sport-allowlist";
-import type { Match, Sport } from "./sportsdb/types";
+import type { Match, Sport } from "./sports/types";
 
 function makeMatch(overrides: Partial<Match>): Match {
   return {
@@ -10,8 +10,8 @@ function makeMatch(overrides: Partial<Match>): Match {
     homeTeamName: "Home",
     awayTeamId: "a",
     awayTeamName: "Away",
-    leagueId: "0000",
-    leagueName: "Some League",
+    leagueId: "soccer/eng.1",
+    leagueName: "English Premier League",
     dateUtc: "2026-06-22",
     kickoffUtc: "2026-06-22T15:00:00",
     status: "upcoming",
@@ -21,12 +21,7 @@ function makeMatch(overrides: Partial<Match>): Match {
 
 describe("SPORT_ALLOWLIST shape", () => {
   it("has at least one entry for each supported sport", () => {
-    const sports: Sport[] = [
-      "Soccer",
-      "American Football",
-      "Basketball",
-      "Tennis",
-    ];
+    const sports: Sport[] = ["Soccer", "American Football", "Basketball"];
     for (const s of sports) {
       expect(SPORT_ALLOWLIST[s].length).toBeGreaterThan(0);
     }
@@ -40,13 +35,17 @@ describe("SPORT_ALLOWLIST shape", () => {
       }
     }
   });
+
+  it("contains no Tennis allowlist", () => {
+    expect((SPORT_ALLOWLIST as Record<string, unknown>).Tennis).toBeUndefined();
+  });
 });
 
 describe("matchesSportAllowlist", () => {
   it("rejects matches whose sport doesn't match the requested sport", () => {
     const basketballMatch = makeMatch({
       sport: "Basketball",
-      leagueId: "4387",
+      leagueId: "basketball/nba",
     });
     expect(matchesSportAllowlist("Soccer", basketballMatch)).toBe(false);
   });
@@ -55,7 +54,7 @@ describe("matchesSportAllowlist", () => {
   it("Soccer: accepts a Premier League match (by leagueId)", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4328",
+      leagueId: "soccer/eng.1",
       leagueName: "English Premier League",
     });
     expect(matchesSportAllowlist("Soccer", m)).toBe(true);
@@ -64,7 +63,7 @@ describe("matchesSportAllowlist", () => {
   it("Soccer: accepts a UEFA Euro match (by name substring)", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "0001",
+      leagueId: "soccer/uefa.euro",
       leagueName: "UEFA Euro 2028 Qualification",
     });
     expect(matchesSportAllowlist("Soccer", m)).toBe(true);
@@ -73,7 +72,7 @@ describe("matchesSportAllowlist", () => {
   it("Soccer: REJECTS a Championship match (not on the allowlist)", () => {
     const m = makeMatch({
       sport: "Soccer",
-      leagueId: "4396",
+      leagueId: "soccer/eng.2",
       leagueName: "English League Championship",
     });
     expect(matchesSportAllowlist("Soccer", m)).toBe(false);
@@ -83,7 +82,7 @@ describe("matchesSportAllowlist", () => {
   it("American Football: accepts an NFL match (by leagueId)", () => {
     const m = makeMatch({
       sport: "American Football",
-      leagueId: "4391",
+      leagueId: "football/nfl",
       leagueName: "NFL",
     });
     expect(matchesSportAllowlist("American Football", m)).toBe(true);
@@ -92,7 +91,7 @@ describe("matchesSportAllowlist", () => {
   it("American Football: rejects an XFL match", () => {
     const m = makeMatch({
       sport: "American Football",
-      leagueId: "9999",
+      leagueId: "football/xfl",
       leagueName: "XFL",
     });
     expect(matchesSportAllowlist("American Football", m)).toBe(false);
@@ -102,7 +101,7 @@ describe("matchesSportAllowlist", () => {
   it("Basketball: accepts an NBA match (by leagueId)", () => {
     const m = makeMatch({
       sport: "Basketball",
-      leagueId: "4387",
+      leagueId: "basketball/nba",
       leagueName: "NBA",
     });
     expect(matchesSportAllowlist("Basketball", m)).toBe(true);
@@ -111,28 +110,9 @@ describe("matchesSportAllowlist", () => {
   it("Basketball: rejects an EuroLeague match", () => {
     const m = makeMatch({
       sport: "Basketball",
-      leagueId: "9998",
+      leagueId: "basketball/euroleague",
       leagueName: "EuroLeague",
     });
     expect(matchesSportAllowlist("Basketball", m)).toBe(false);
-  });
-
-  /* ---------- Tennis ---------- */
-  it("Tennis: accepts a Wimbledon match (by name substring)", () => {
-    const m = makeMatch({
-      sport: "Tennis",
-      leagueId: "4464",
-      leagueName: "ATP Wimbledon",
-    });
-    expect(matchesSportAllowlist("Tennis", m)).toBe(true);
-  });
-
-  it("Tennis: rejects an ATP 250 event (not on the allowlist)", () => {
-    const m = makeMatch({
-      sport: "Tennis",
-      leagueId: "9997",
-      leagueName: "ATP 250 Adelaide",
-    });
-    expect(matchesSportAllowlist("Tennis", m)).toBe(false);
   });
 });

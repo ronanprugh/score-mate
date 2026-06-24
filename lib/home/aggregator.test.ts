@@ -233,7 +233,9 @@ describe("aggregateMatchesForUser", () => {
     });
     const fetchers = fetchersFrom({
       [`basketball/nba|${DATES.today}`]: [liveMatch],
-      [`basketball/wnba|${DATES.today}`]: new Error("ESPN 503 Service Unavailable"),
+      [`basketball/wnba|${DATES.today}`]: new Error(
+        "ESPN 503 Service Unavailable",
+      ),
     });
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.source.ok).toBe(false);

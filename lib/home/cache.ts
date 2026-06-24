@@ -83,7 +83,8 @@ function cachedScoreboard(
  */
 export function makeCachedFetchers(dates: DateWindow): Fetchers {
   return {
-    eventsLeagueDay: (leagueKey, date) => cachedScoreboard(leagueKey, date, dates),
+    eventsLeagueDay: (leagueKey, date) =>
+      cachedScoreboard(leagueKey, date, dates),
   };
 }
 

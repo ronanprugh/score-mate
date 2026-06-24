@@ -7,19 +7,12 @@
  * client + this file change.
  */
 
-/**
- * NOTE: Tennis is being dropped as part of Spec 03 (ESPN backend swap).
- * It remains in this union until Task 3.9 removes the last `lib/sportsdb/`
- * caller (which would otherwise fail to typecheck). Do not add new Tennis
- * code paths.
- */
-export type Sport = "Soccer" | "American Football" | "Basketball" | "Tennis";
+export type Sport = "Soccer" | "American Football" | "Basketball";
 
 export const SUPPORTED_SPORTS: readonly Sport[] = [
   "Soccer",
   "American Football",
   "Basketball",
-  "Tennis",
 ] as const;
 
 export type FavoriteType = "team" | "sport" | "league" | "event";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchFavoritesAgainstMatches } from "./favorite-matcher";
-import type { Favorite, Match } from "./sportsdb/types";
+import type { Favorite, Match } from "./sports/types";
 
 function makeMatch(overrides: Partial<Match> & Pick<Match, "id">): Match {
   return {
@@ -51,7 +51,7 @@ describe("favorite-matcher: Sport favorites (allowlist-bounded)", () => {
       makeMatch({
         id: "m1",
         sport: "Soccer",
-        leagueId: "4328",
+        leagueId: "soccer/eng.1",
         leagueName: "English Premier League",
       }),
     ];
@@ -67,7 +67,7 @@ describe("favorite-matcher: Sport favorites (allowlist-bounded)", () => {
       makeMatch({
         id: "m1",
         sport: "Soccer",
-        leagueId: "4396",
+        leagueId: "soccer/eng.2",
         leagueName: "English League Championship",
       }),
     ];
@@ -85,7 +85,7 @@ describe("favorite-matcher: Sport favorites (allowlist-bounded)", () => {
       makeMatch({
         id: "m1",
         sport: "Soccer",
-        leagueId: "4328",
+        leagueId: "soccer/eng.1",
         leagueName: "English Premier League",
       }),
     ];
@@ -100,11 +100,11 @@ describe("favorite-matcher: Sport favorites (allowlist-bounded)", () => {
 describe("favorite-matcher: League favorites", () => {
   it("matches any match in the favorited league", () => {
     const matches = [
-      makeMatch({ id: "m1", leagueId: "4328" }),
-      makeMatch({ id: "m2", leagueId: "4335" }),
+      makeMatch({ id: "m1", leagueId: "soccer/eng.1" }),
+      makeMatch({ id: "m2", leagueId: "soccer/esp.1" }),
     ];
     const out = matchFavoritesAgainstMatches(
-      [fav({ type: "league", externalId: "4328" })],
+      [fav({ type: "league", externalId: "soccer/eng.1" })],
       matches,
     );
     expect(out.map((m) => m.id)).toEqual(["m1"]);
@@ -117,7 +117,7 @@ describe("favorite-matcher: Event favorites (silent-expire)", () => {
       id,
       sport: "Soccer",
       eventInstanceId: "wc-2026",
-      leagueId: "4429",
+      leagueId: "soccer/fifa.world",
       leagueName: "FIFA World Cup",
       dateUtc: date,
     });
@@ -173,20 +173,20 @@ describe("favorite-matcher: dedup", () => {
         id: "m1",
         sport: "Soccer",
         homeTeamId: "team-usa",
-        leagueId: "4328",
+        leagueId: "soccer/eng.1",
         leagueName: "English Premier League",
       }),
       // m2 is in an out-of-allowlist league and isn't otherwise favorited — should NOT appear in the output.
       makeMatch({
         id: "m2",
         sport: "Soccer",
-        leagueId: "4396",
+        leagueId: "soccer/eng.2",
         leagueName: "English League Championship",
       }),
     ];
     const favorites: Favorite[] = [
       fav({ type: "team", externalId: "team-usa" }),
-      fav({ id: "fav-2", type: "league", externalId: "4328" }),
+      fav({ id: "fav-2", type: "league", externalId: "soccer/eng.1" }),
       fav({
         id: "fav-3",
         type: "sport",
@@ -210,67 +210,40 @@ describe("favorite-matcher: dedup", () => {
   it("league favorite with metadata.leagueNameContains matches by substring (case-insensitive)", () => {
     const matches = [
       makeMatch({
-        id: "wimbledon-m1",
-        sport: "Tennis",
-        leagueId: "child-tournament-id",
-        leagueName: "ATP Wimbledon — Men's Singles",
-      }),
-      makeMatch({
-        id: "wta-m1",
-        sport: "Tennis",
-        leagueId: "wta-child",
-        leagueName: "WTA Eastbourne",
-      }),
-      makeMatch({
-        id: "soccer-m1",
+        id: "euro-m1",
         sport: "Soccer",
-        leagueId: "999",
-        leagueName: "Some random league",
+        leagueId: "soccer/uefa.euro.qual",
+        leagueName: "UEFA Euro 2028 Qualification",
       }),
-    ];
-    const atpFav = fav({
-      id: "atp-tour-fav",
-      type: "league",
-      sport: "Tennis",
-      externalId: "atp-tour-id",
-      displayName: "ATP World Tour",
-      metadata: { leagueNameContains: "ATP" },
-    });
-    const out = matchFavoritesAgainstMatches([atpFav], matches);
-    expect(out.map((m) => m.id)).toEqual(["wimbledon-m1"]);
-  });
-
-  it("known container league displayName falls back to its built-in substring when metadata is null (back-compat for already-saved favorites)", () => {
-    const matches = [
       makeMatch({
-        id: "wta-grass",
-        sport: "Tennis",
-        leagueId: "child-wta-bad-homburg",
-        leagueName: "WTA Bad Homburg Open",
+        id: "epl-m1",
+        sport: "Soccer",
+        leagueId: "soccer/eng.1",
+        leagueName: "English Premier League",
       }),
     ];
-    const wtaFavWithoutMetadata = fav({
-      id: "wta-tour-fav",
+    const euroFav = fav({
+      id: "euro-fav",
       type: "league",
-      sport: "Tennis",
-      externalId: "wta-tour-id",
-      displayName: "WTA Tour",
-      metadata: null,
+      sport: "Soccer",
+      externalId: "soccer/uefa.euro",
+      displayName: "UEFA Euro 2028",
+      metadata: { leagueNameContains: "UEFA Euro" },
     });
-    const out = matchFavoritesAgainstMatches([wtaFavWithoutMetadata], matches);
-    expect(out.map((m) => m.id)).toEqual(["wta-grass"]);
+    const out = matchFavoritesAgainstMatches([euroFav], matches);
+    expect(out.map((m) => m.id)).toEqual(["euro-m1"]);
   });
 
   it("league favorite still prefers exact leagueId when both could match", () => {
     const m = makeMatch({
       id: "exact",
       sport: "Soccer",
-      leagueId: "4328",
+      leagueId: "soccer/eng.1",
       leagueName: "English Premier League",
     });
     const fav1 = fav({
       type: "league",
-      externalId: "4328",
+      externalId: "soccer/eng.1",
       displayName: "English Premier League",
     });
     const out = matchFavoritesAgainstMatches([fav1], [m]);

@@ -19,7 +19,13 @@
  * Docs: https://github.com/pseudo-r/Public-ESPN-API
  */
 
-import type { League, Match, MatchStatus, Sport, Team } from "@/lib/sports/types";
+import type {
+  League,
+  Match,
+  MatchStatus,
+  Sport,
+  Team,
+} from "@/lib/sports/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 
@@ -267,7 +273,9 @@ export function parseEvent(
     leagueName,
     dateUtc,
     kickoffUtc,
-    round: raw.week?.text ?? (raw.week?.number ? `Week ${raw.week.number}` : undefined),
+    round:
+      raw.week?.text ??
+      (raw.week?.number ? `Week ${raw.week.number}` : undefined),
     venue: competition.venue?.fullName,
     broadcast: broadcast && broadcast.length > 0 ? broadcast : undefined,
     status,
@@ -277,10 +285,7 @@ export function parseEvent(
   };
 }
 
-export function parseTeam(
-  raw: RawTeamsTeam,
-  sport: Sport,
-): Team {
+export function parseTeam(raw: RawTeamsTeam, sport: Sport): Team {
   return {
     id: raw.id,
     name: raw.displayName ?? raw.shortDisplayName ?? raw.id,
