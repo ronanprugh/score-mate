@@ -59,62 +59,76 @@ function TeamSide({ name, shortName, logo, align, outcome }: TeamSideProps) {
   const isRight = align === "right";
   const dim = outcome === "loser";
   const [prefix, mascot] = splitTeamName(name, shortName);
-  return (
+
+  const nameBlock = (
     <div
       className={[
-        "flex min-w-0 flex-1 items-center gap-2",
-        isRight ? "flex-row-reverse" : "flex-row",
+        "flex min-w-0 flex-1 flex-col leading-tight transition-colors",
+        isRight ? "items-end text-right" : "items-start text-left",
+        dim ? "text-zinc-400 dark:text-zinc-500" : "",
       ].join(" ")}
+      title={name}
     >
-      {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={logo}
-          alt=""
-          loading="lazy"
-          className={[
-            "mx-1 h-7 w-7 shrink-0 object-contain transition-opacity",
-            dim ? "opacity-50" : "",
-          ].join(" ")}
-        />
-      ) : (
-        <div
-          aria-hidden="true"
-          className={[
-            "mx-1 h-7 w-7 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
-            dim ? "opacity-50" : "",
-          ].join(" ")}
-        />
-      )}
-      <div
-        className={[
-          "flex min-w-0 flex-1 flex-col leading-tight transition-colors",
-          isRight ? "items-end text-right" : "items-start text-left",
-          dim ? "text-zinc-400 dark:text-zinc-500" : "",
-        ].join(" ")}
-        title={name}
-      >
-        {prefix && (
-          <span
-            className={[
-              "max-w-full truncate text-xs",
-              dim
-                ? "font-normal"
-                : "font-normal text-zinc-500 dark:text-zinc-400",
-            ].join(" ")}
-          >
-            {prefix}
-          </span>
-        )}
+      {prefix && (
         <span
           className={[
-            "max-w-full truncate text-base",
-            dim ? "font-normal" : "font-semibold",
+            "max-w-full truncate text-xs",
+            dim
+              ? "font-normal"
+              : "font-normal text-zinc-500 dark:text-zinc-400",
           ].join(" ")}
         >
-          {mascot}
+          {prefix}
         </span>
-      </div>
+      )}
+      <span
+        className={[
+          "max-w-full truncate text-base",
+          dim ? "font-normal" : "font-semibold",
+        ].join(" ")}
+      >
+        {mascot}
+      </span>
+    </div>
+  );
+
+  const logoBlock = logo ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={logo}
+      alt=""
+      loading="lazy"
+      className={[
+        "h-7 w-7 shrink-0 object-contain transition-opacity",
+        dim ? "opacity-50" : "",
+      ].join(" ")}
+    />
+  ) : (
+    <div
+      aria-hidden="true"
+      className={[
+        "h-7 w-7 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
+        dim ? "opacity-50" : "",
+      ].join(" ")}
+    />
+  );
+
+  // DOM order matches visual order — no flex-row-reverse needed. Home:
+  // name on the outer (left) edge, logo on the inner (center) edge.
+  // Away: logo on the inner (center) edge, name on the outer (right) edge.
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      {isRight ? (
+        <>
+          {nameBlock}
+          {logoBlock}
+        </>
+      ) : (
+        <>
+          {logoBlock}
+          {nameBlock}
+        </>
+      )}
     </div>
   );
 }
@@ -169,7 +183,7 @@ export function MatchCard({ match }: Props) {
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-20 flex-col justify-between gap-1 rounded-md border border-zinc-200 bg-background px-6 py-3 shadow-sm dark:border-zinc-800"
+      className="flex min-h-20 flex-col justify-between gap-1 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
     >
       <div className="flex items-center gap-2">
         <TeamSide
