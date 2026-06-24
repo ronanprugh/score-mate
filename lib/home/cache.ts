@@ -35,38 +35,38 @@ const REVALIDATE_TEAM_LEAGUE_SECONDS = 300;
 const eventsDayCachedShort = unstable_cache(
   async (date: string, sport: Sport): Promise<Match[]> =>
     eventsDay(date, sport),
-  ["sportsdb", "eventsDay", "short"],
+  ["sportsdb", "eventsDay", "short", "v2-utc"],
   { revalidate: REVALIDATE_TODAY_SECONDS },
 );
 
 const eventsDayCachedLong = unstable_cache(
   async (date: string, sport: Sport): Promise<Match[]> =>
     eventsDay(date, sport),
-  ["sportsdb", "eventsDay", "long"],
+  ["sportsdb", "eventsDay", "long", "v2-utc"],
   { revalidate: REVALIDATE_ADJACENT_SECONDS },
 );
 
 const eventsNextTeamCached = unstable_cache(
   async (teamId: string): Promise<Match[]> => eventsNext(teamId),
-  ["sportsdb", "eventsNext"],
+  ["sportsdb", "eventsNext", "v2-utc"],
   { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
 );
 
 const eventsLastTeamCached = unstable_cache(
   async (teamId: string): Promise<Match[]> => eventsLast(teamId),
-  ["sportsdb", "eventsLast"],
+  ["sportsdb", "eventsLast", "v2-utc"],
   { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
 );
 
 const eventsNextLeagueCached = unstable_cache(
   async (leagueId: string): Promise<Match[]> => eventsNextLeague(leagueId),
-  ["sportsdb", "eventsNextLeague"],
+  ["sportsdb", "eventsNextLeague", "v2-utc"],
   { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
 );
 
 const eventsPastLeagueCached = unstable_cache(
   async (leagueId: string): Promise<Match[]> => eventsPastLeague(leagueId),
-  ["sportsdb", "eventsPastLeague"],
+  ["sportsdb", "eventsPastLeague", "v2-utc"],
   { revalidate: REVALIDATE_TEAM_LEAGUE_SECONDS },
 );
 
