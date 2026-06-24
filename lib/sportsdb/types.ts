@@ -55,6 +55,19 @@ export interface EventInstance {
   sport: Sport;
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD inclusive
+  /**
+   * TheSportsDB league id (`idLeague`) when the tournament maps cleanly to
+   * one. Used by the aggregator to tag incoming matches with this event
+   * instance so type='event' favorites match. Either this or
+   * `leagueNameContains` should be present.
+   */
+  leagueId?: string;
+  /**
+   * Case-insensitive substring matched against `match.leagueName` when
+   * `leagueId` is absent (or as a secondary signal). Pragmatic v1 fallback
+   * for tournaments whose league id isn't stable across TheSportsDB endpoints.
+   */
+  leagueNameContains?: string;
 }
 
 export interface Match {

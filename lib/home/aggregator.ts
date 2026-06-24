@@ -19,6 +19,7 @@
  */
 
 import type { DateWindow } from "@/lib/date-window";
+import { enrichMatchWithEventInstance } from "@/lib/events-catalog";
 import { matchFavoritesAgainstMatches } from "@/lib/favorite-matcher";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import type { Match, Sport } from "@/lib/sportsdb/types";
@@ -62,7 +63,11 @@ export function buildHomeEnvelope(
   dates: DateWindow,
   errors: string[] = [],
 ): HomeEnvelope {
-  const matched = matchFavoritesAgainstMatches(favorites, matches);
+  // Tag matches with `eventInstanceId` from the curated events catalog
+  // before running the matcher. Without this, type='event' favorites can
+  // never match anything because TheSportsDB itself never sets the id.
+  const enriched = matches.map(enrichMatchWithEventInstance);
+  const matched = matchFavoritesAgainstMatches(favorites, enriched);
 
   const out: HomeEnvelope = {
     yesterday: [],
