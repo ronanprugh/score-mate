@@ -91,6 +91,51 @@ describe("HomeClient (static cases)", () => {
     expect(screen.queryByText("M-home")).not.toBeInTheDocument();
   });
 
+  it("groups matches within a tab by leagueName with a heading per group", async () => {
+    mockJson(
+      envelope({
+        today: [
+          makeMatch({
+            id: "epl-1",
+            homeTeamName: "Arsenal",
+            leagueId: "4328",
+            leagueName: "English Premier League",
+            kickoffUtc: "2026-06-24T15:00:00Z",
+          }),
+          makeMatch({
+            id: "epl-2",
+            homeTeamName: "Chelsea",
+            leagueId: "4328",
+            leagueName: "English Premier League",
+            kickoffUtc: "2026-06-24T17:30:00Z",
+          }),
+          makeMatch({
+            id: "wc-1",
+            homeTeamName: "USA",
+            leagueId: "4429",
+            leagueName: "FIFA World Cup",
+            kickoffUtc: "2026-06-24T20:00:00Z",
+          }),
+        ],
+      }),
+    );
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "English Premier League" }),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("heading", { name: "FIFA World Cup" }),
+    ).toBeInTheDocument();
+    // EPL group comes first (earlier kickoff in group).
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "English Premier League",
+      "FIFA World Cup",
+    ]);
+  });
+
   it("clicking a tab swaps the rendered panel", async () => {
     mockJson(
       envelope({

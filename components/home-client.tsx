@@ -42,6 +42,39 @@ function envelopeHasLive(env: HomeEnvelope): boolean {
   );
 }
 
+interface MatchGroup {
+  leagueName: string;
+  matches: Match[];
+  /** Earliest kickoff in the group; used to order groups within a day. */
+  earliestKickoff: string;
+}
+
+const LATE_KICKOFF_SENTINEL = "9999-12-31T23:59:59";
+
+function groupMatchesByLeague(matches: readonly Match[]): MatchGroup[] {
+  const byLeague = new Map<string, Match[]>();
+  for (const m of matches) {
+    const arr = byLeague.get(m.leagueName);
+    if (arr) arr.push(m);
+    else byLeague.set(m.leagueName, [m]);
+  }
+  const out: MatchGroup[] = [];
+  for (const [leagueName, group] of byLeague) {
+    const sorted = [...group].sort((a, b) => {
+      const ak = a.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
+      const bk = b.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
+      return ak.localeCompare(bk);
+    });
+    out.push({
+      leagueName,
+      matches: sorted,
+      earliestKickoff: sorted[0]?.kickoffUtc ?? LATE_KICKOFF_SENTINEL,
+    });
+  }
+  out.sort((a, b) => a.earliestKickoff.localeCompare(b.earliestKickoff));
+  return out;
+}
+
 /**
  * Owns the date-window computation, the /api/home fetch, and live-gated
  * polling. Renders a tabbed view (Yesterday / Today / Tomorrow); only the
@@ -229,6 +262,7 @@ interface DayPanelProps {
 }
 
 function DayPanel({ day, dateLabel, matches }: DayPanelProps) {
+  const groups = groupMatchesByLeague(matches);
   return (
     <section
       role="tabpanel"
@@ -236,18 +270,32 @@ function DayPanel({ day, dateLabel, matches }: DayPanelProps) {
       aria-labelledby={`day-tab-${day}`}
       data-testid={`day-panel-${day}`}
       aria-label={`${DAY_LABELS[day]} — ${dateLabel}`}
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-4"
     >
       {matches.length === 0 ? (
         <p className="py-6 text-center text-sm text-zinc-500">
           No matches for {DAY_LABELS[day].toLowerCase()}.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {matches.map((m) => (
-            <MatchCard key={m.id} match={m} />
-          ))}
-        </div>
+        groups.map((g) => (
+          <div
+            key={g.leagueName}
+            data-testid={`league-group-${g.leagueName}`}
+            className="flex flex-col gap-1.5"
+          >
+            <h3
+              className="truncate text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400"
+              title={g.leagueName}
+            >
+              {g.leagueName}
+            </h3>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {g.matches.map((m) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
+            </div>
+          </div>
+        ))
       )}
     </section>
   );

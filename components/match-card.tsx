@@ -23,7 +23,6 @@ export function MatchCard({ match }: Props) {
     awayTeamName,
     homeScore,
     awayScore,
-    leagueName,
     round,
     venue,
     broadcast,
@@ -41,10 +40,9 @@ export function MatchCard({ match }: Props) {
       <header className="flex items-center justify-between gap-2">
         <span
           className="truncate text-[10px] font-medium uppercase tracking-wide text-zinc-500"
-          title={leagueName}
+          title={round ?? ""}
         >
-          {leagueName}
-          {round ? ` · ${round}` : ""}
+          {round ?? ""}
         </span>
         {status === "live" && (
           <span
