@@ -1,0 +1,13 @@
+=== Success Metric §4 — breadth check ===
+Each anchor query must return ≥ 1 result from lib/espn/catalog.json.
+
+  q='arsenal'  total=3  teams=3  leagues=0  example='Arsenal'
+  q='lakers'  total=6  teams=6  leagues=0  example='Grand Valley State Lakers'
+  q='chiefs'  total=2  teams=2  leagues=0  example='Morningside Chiefs'
+  q='manchester'  total=6  teams=6  leagues=0  example='Manchester Spartans'
+  q='liverpool'  total=4  teams=4  leagues=0  example='Liverpool'
+  q='barcelona'  total=3  teams=3  leagues=0  example='Barcelona SC'
+  q='wnba'  total=1  teams=0  leagues=1  example='WNBA'
+  q='mls'  total=1  teams=0  leagues=1  example='MLS'
+
+All eight anchors returned ≥ 1 result.

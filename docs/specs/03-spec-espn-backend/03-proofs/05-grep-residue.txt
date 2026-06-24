@@ -1,0 +1,5 @@
+=== Residue grep: thesportsdb | lib/sportsdb across .ts .tsx .json ===
+Excludes: node_modules, .next, docs/specs, pnpm-lock.yaml
+
+
+RESULT: zero hits (Success Metric §1 satisfied)

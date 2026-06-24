@@ -1,0 +1,9 @@
+Soccer leagues: 14; dates: 5; planned calls: 70
+  run 1: 291 ms, 70 ok, 0 err, 26 events
+  run 2: 83 ms, 70 ok, 0 err, 26 events
+  run 3: 79 ms, 70 ok, 0 err, 26 events
+  run 4: 84 ms, 70 ok, 0 err, 26 events
+  run 5: 83 ms, 70 ok, 0 err, 26 events
+
+Summary: min=79ms  p50=83ms  max=291ms
+Cold (run 1): 291ms with 26 events fetched.
