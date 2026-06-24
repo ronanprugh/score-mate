@@ -16,10 +16,14 @@ vi.mock("@/lib/home/aggregator", async () => {
   };
 });
 
-// makeCachedEventsDayFetcher is exercised by the cache layer (integration only);
-// here we stub it so the route test stays a pure unit test.
+// The cache layer is exercised in integration only; here we stub the
+// fetchers bundle so the route test stays a pure unit test.
 vi.mock("@/lib/home/cache", () => ({
-  makeCachedEventsDayFetcher: () => async () => [],
+  makeCachedFetchers: () => ({
+    eventsDay: async () => [],
+    eventsTeam: async () => [],
+    eventsLeague: async () => [],
+  }),
 }));
 
 import { GET } from "./route";
@@ -89,7 +93,11 @@ describe("GET /api/home", () => {
     expect(aggregateMock).toHaveBeenCalledWith(
       "user-a",
       { yesterday: "2026-06-21", today: "2026-06-22", tomorrow: "2026-06-23" },
-      expect.any(Function),
+      expect.objectContaining({
+        eventsDay: expect.any(Function),
+        eventsTeam: expect.any(Function),
+        eventsLeague: expect.any(Function),
+      }),
     );
   });
 

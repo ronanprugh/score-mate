@@ -24,7 +24,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { aggregateMatchesForUser } from "@/lib/home/aggregator";
-import { makeCachedEventsDayFetcher } from "@/lib/home/cache";
+import { makeCachedFetchers } from "@/lib/home/cache";
 import type { DateWindow } from "@/lib/date-window";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
   const envelope = await aggregateMatchesForUser(
     session.user.id,
     dates,
-    makeCachedEventsDayFetcher(dates),
+    makeCachedFetchers(dates),
   );
 
   return NextResponse.json(envelope, { status: 200 });

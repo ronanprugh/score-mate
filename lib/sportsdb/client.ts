@@ -11,6 +11,8 @@
  *   - GET /eventsday.php?d=YYYY-MM-DD&s=<Sport>     events on a date for a sport
  *   - GET /eventsnext.php?id=<teamId>               next 5 events for a team
  *   - GET /eventslast.php?id=<teamId>               last 5 events for a team
+ *   - GET /eventsnextleague.php?id=<leagueId>       next ~15 events in a league
+ *   - GET /eventspastleague.php?id=<leagueId>       last ~15 events in a league
  *   - GET /searchteams.php?t=<name>                 team search by name
  *   - GET /search_all_leagues.php?s=<Sport>         league discovery by sport
  *
@@ -36,6 +38,14 @@ export function buildEventsNextUrl(teamId: string): string {
 
 export function buildEventsLastUrl(teamId: string): string {
   return `${BASE_URL}/eventslast.php?id=${encodeURIComponent(teamId)}`;
+}
+
+export function buildEventsNextLeagueUrl(leagueId: string): string {
+  return `${BASE_URL}/eventsnextleague.php?id=${encodeURIComponent(leagueId)}`;
+}
+
+export function buildEventsPastLeagueUrl(leagueId: string): string {
+  return `${BASE_URL}/eventspastleague.php?id=${encodeURIComponent(leagueId)}`;
 }
 
 export function buildSearchTeamsUrl(query: string): string {
@@ -226,6 +236,26 @@ export async function eventsLast(
   const data = await fetchJson<{ results: RawEvent[] | null }>(url, opts);
   if (!data.results) return [];
   return data.results.map(parseEvent).filter((m): m is Match => m !== null);
+}
+
+export async function eventsNextLeague(
+  leagueId: string,
+  opts: ClientOptions = {},
+): Promise<Match[]> {
+  const url = buildEventsNextLeagueUrl(leagueId);
+  const data = await fetchJson<{ events: RawEvent[] | null }>(url, opts);
+  if (!data.events) return [];
+  return data.events.map(parseEvent).filter((m): m is Match => m !== null);
+}
+
+export async function eventsPastLeague(
+  leagueId: string,
+  opts: ClientOptions = {},
+): Promise<Match[]> {
+  const url = buildEventsPastLeagueUrl(leagueId);
+  const data = await fetchJson<{ events: RawEvent[] | null }>(url, opts);
+  if (!data.events) return [];
+  return data.events.map(parseEvent).filter((m): m is Match => m !== null);
 }
 
 export async function searchTeams(

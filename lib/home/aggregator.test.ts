@@ -16,6 +16,9 @@ import {
   aggregateMatchesForUser,
   buildHomeEnvelope,
   type EventsDayFetcher,
+  type EventsLeagueFetcher,
+  type EventsTeamFetcher,
+  type Fetchers,
 } from "./aggregator";
 import type { Match, Sport } from "@/lib/sportsdb/types";
 import type { FavoriteRow } from "@/db/schema/favorites";
@@ -62,7 +65,7 @@ function match(overrides: Partial<Match> & Pick<Match, "id">): Match {
 }
 
 /** Build an EventsDayFetcher that returns a fixed lookup table. */
-function fetcherFrom(
+function dayFetcherFrom(
   table: Record<string, Record<Sport, Match[] | Error>>,
 ): EventsDayFetcher {
   return async (date, sport) => {
@@ -71,6 +74,22 @@ function fetcherFrom(
     const slot = dayMap[sport];
     if (slot instanceof Error) throw slot;
     return slot ?? [];
+  };
+}
+
+const noopTeamFetcher: EventsTeamFetcher = async () => [];
+const noopLeagueFetcher: EventsLeagueFetcher = async () => [];
+
+/** Build a Fetchers bundle with the given day fetcher and optional overrides. */
+function fetchersFrom(
+  table: Record<string, Record<Sport, Match[] | Error>>,
+  overrides: Partial<Fetchers> = {},
+): Fetchers {
+  return {
+    eventsDay: dayFetcherFrom(table),
+    eventsTeam: noopTeamFetcher,
+    eventsLeague: noopLeagueFetcher,
+    ...overrides,
   };
 }
 
@@ -85,15 +104,19 @@ describe("aggregateMatchesForUser", () => {
 
   it("returns an empty envelope (ok=true, no errors) for a user with zero favorites", async () => {
     listMock.mockResolvedValue([]);
-    const fetcher = vi.fn<EventsDayFetcher>(async () => []);
-    const env = await aggregateMatchesForUser("user-a", DATES, fetcher);
+    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
+    const env = await aggregateMatchesForUser("user-a", DATES, {
+      eventsDay: dayFetcher,
+      eventsTeam: noopTeamFetcher,
+      eventsLeague: noopLeagueFetcher,
+    });
     expect(env).toEqual({
       yesterday: [],
       today: [],
       tomorrow: [],
       source: { ok: true, errors: [] },
     });
-    expect(fetcher).not.toHaveBeenCalled();
+    expect(dayFetcher).not.toHaveBeenCalled();
   });
 
   it("plans the minimum query set: one call per (date × sport) covered by any favorite", async () => {
@@ -106,11 +129,22 @@ describe("aggregateMatchesForUser", () => {
         externalId: "4387",
       }),
     ]);
-    const fetcher = vi.fn<EventsDayFetcher>(async () => []);
-    await aggregateMatchesForUser("user-a", DATES, fetcher);
-    // 2 sports × 3 dates = 6 calls; no extras for sports not in favorites.
-    expect(fetcher).toHaveBeenCalledTimes(6);
-    const callSports = new Set<Sport>(fetcher.mock.calls.map((c) => c[1]));
+    const dayFetcher = vi.fn<EventsDayFetcher>(async () => []);
+    const teamFetcher = vi.fn<EventsTeamFetcher>(async () => []);
+    const leagueFetcher = vi.fn<EventsLeagueFetcher>(async () => []);
+    await aggregateMatchesForUser("user-a", DATES, {
+      eventsDay: dayFetcher,
+      eventsTeam: teamFetcher,
+      eventsLeague: leagueFetcher,
+    });
+    // 2 sports × 3 dates = 6 day calls; no extras for sports not in favorites.
+    expect(dayFetcher).toHaveBeenCalledTimes(6);
+    // 1 team favorite → 1 team call; 1 league favorite → 1 league call.
+    expect(teamFetcher).toHaveBeenCalledWith("team-usa");
+    expect(teamFetcher).toHaveBeenCalledTimes(1);
+    expect(leagueFetcher).toHaveBeenCalledWith("4387");
+    expect(leagueFetcher).toHaveBeenCalledTimes(1);
+    const callSports = new Set<Sport>(dayFetcher.mock.calls.map((c) => c[1]));
     expect(callSports).toEqual(new Set<Sport>(["Soccer", "Basketball"]));
     // No American Football / Tennis calls.
     expect(callSports.has("American Football")).toBe(false);
@@ -139,7 +173,7 @@ describe("aggregateMatchesForUser", () => {
         externalId: "4464",
       }),
     ]);
-    const fetcher = fetcherFrom({
+    const fetchers = fetchersFrom({
       [DATES.yesterday]: {
         Soccer: [],
         Basketball: [
@@ -200,7 +234,7 @@ describe("aggregateMatchesForUser", () => {
       },
     });
 
-    const env = await aggregateMatchesForUser("user-a", DATES, fetcher);
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.source.ok).toBe(true);
     expect(env.source.errors).toEqual([]);
 
@@ -229,7 +263,7 @@ describe("aggregateMatchesForUser", () => {
     });
     // The same match comes back from the single Soccer-today call (de-duped at
     // the matcher level even though only one fetcher returns it).
-    const fetcher = fetcherFrom({
+    const fetchers = fetchersFrom({
       [DATES.yesterday]: {
         Soccer: [],
         Basketball: [],
@@ -249,7 +283,7 @@ describe("aggregateMatchesForUser", () => {
         Tennis: [],
       },
     });
-    const env = await aggregateMatchesForUser("user-a", DATES, fetcher);
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.today.map((m) => m.id)).toEqual(["dup"]);
   });
 
@@ -263,7 +297,7 @@ describe("aggregateMatchesForUser", () => {
         externalId: "4387",
       }),
     ]);
-    const fetcher = fetcherFrom({
+    const fetchers = fetchersFrom({
       [DATES.yesterday]: {
         Soccer: [],
         Basketball: [],
@@ -293,7 +327,7 @@ describe("aggregateMatchesForUser", () => {
       },
     });
 
-    const env = await aggregateMatchesForUser("user-a", DATES, fetcher);
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.source.ok).toBe(false);
     expect(env.source.errors).toHaveLength(1);
     expect(env.source.errors[0]).toMatch(/503/);
@@ -305,7 +339,7 @@ describe("aggregateMatchesForUser", () => {
     listMock.mockResolvedValue([
       fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
     ]);
-    const fetcher = fetcherFrom({
+    const fetchers = fetchersFrom({
       [DATES.yesterday]: {
         Soccer: [],
         Basketball: [],
@@ -332,10 +366,108 @@ describe("aggregateMatchesForUser", () => {
         Tennis: [],
       },
     });
-    const env = await aggregateMatchesForUser("user-a", DATES, fetcher);
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.yesterday).toEqual([]);
     expect(env.today).toEqual([]);
     expect(env.tomorrow).toEqual([]);
+  });
+
+  it("unions per-team and per-league fetcher results with per-day results before matching", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "team-usa" }),
+      fav({ id: "f-2", type: "league", sport: "Soccer", externalId: "9999" }),
+    ]);
+    // Per-day returns nothing; the match is ONLY in the per-team fetch.
+    // This is the exact scenario the league/team fanout was added to fix.
+    const teamOnlyMatch = match({
+      id: "team-only",
+      sport: "Soccer",
+      homeTeamId: "team-usa",
+      leagueId: "9999",
+      dateUtc: DATES.today,
+    });
+    const leagueOnlyMatch = match({
+      id: "league-only",
+      sport: "Soccer",
+      homeTeamId: "other-team",
+      leagueId: "9999",
+      dateUtc: DATES.tomorrow,
+      kickoffUtc: `${DATES.tomorrow}T20:00:00`,
+    });
+    const fetchers = fetchersFrom(
+      {
+        [DATES.yesterday]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+        [DATES.today]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+        [DATES.tomorrow]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+      },
+      {
+        eventsTeam: async (teamId) => {
+          if (teamId === "team-usa") return [teamOnlyMatch];
+          return [];
+        },
+        eventsLeague: async (leagueId) => {
+          if (leagueId === "9999") return [leagueOnlyMatch];
+          return [];
+        },
+      },
+    );
+
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
+    expect(env.today.map((m) => m.id)).toEqual(["team-only"]);
+    expect(env.tomorrow.map((m) => m.id)).toEqual(["league-only"]);
+    expect(env.source.ok).toBe(true);
+  });
+
+  it("expands an Event favorite to its catalog leagueId when one exists (FIFA World Cup 2026 → 4429)", async () => {
+    listMock.mockResolvedValue([
+      fav({
+        type: "event",
+        sport: "Soccer",
+        externalId: "fifa-world-cup-2026",
+        metadata: { startDate: "2026-06-11", endDate: "2026-07-19" },
+      }),
+    ]);
+    const leagueFetcher = vi.fn<EventsLeagueFetcher>(async () => []);
+    const fetchers = fetchersFrom(
+      {
+        [DATES.yesterday]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+        [DATES.today]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+        [DATES.tomorrow]: {
+          Soccer: [],
+          Basketball: [],
+          "American Football": [],
+          Tennis: [],
+        },
+      },
+      { eventsLeague: leagueFetcher },
+    );
+    await aggregateMatchesForUser("user-a", DATES, fetchers);
+    expect(leagueFetcher).toHaveBeenCalledWith("4429");
   });
 });
 

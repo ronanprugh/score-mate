@@ -68,6 +68,10 @@ export const EVENTS_CATALOG: readonly CatalogEvent[] = [
   },
 ] as const;
 
+export function findEventInstanceById(id: string): CatalogEvent | null {
+  return EVENTS_CATALOG.find((e) => e.id === id) ?? null;
+}
+
 export function searchEventsCatalog(query: string, sportFilter?: Sport) {
   const q = query.trim().toLowerCase();
   if (!q) return [];

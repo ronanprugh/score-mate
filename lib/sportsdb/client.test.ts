@@ -9,10 +9,14 @@ import searchLeaguesSoccer from "./__fixtures__/search-all-leagues-soccer.json" 
 import {
   buildEventsDayUrl,
   buildEventsLastUrl,
+  buildEventsNextLeagueUrl,
   buildEventsNextUrl,
+  buildEventsPastLeagueUrl,
   buildSearchAllLeaguesUrl,
   buildSearchTeamsUrl,
   eventsDay,
+  eventsNextLeague,
+  eventsPastLeague,
   searchAllLeagues,
   searchTeams,
 } from "./client";
@@ -39,6 +43,18 @@ describe("TheSportsDB URL builders", () => {
   it("builds eventslast URL with the team id encoded", () => {
     expect(buildEventsLastUrl("133604")).toBe(
       "https://www.thesportsdb.com/api/v1/json/3/eventslast.php?id=133604",
+    );
+  });
+
+  it("builds eventsnextleague URL with the league id encoded", () => {
+    expect(buildEventsNextLeagueUrl("4429")).toBe(
+      "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4429",
+    );
+  });
+
+  it("builds eventspastleague URL with the league id encoded", () => {
+    expect(buildEventsPastLeagueUrl("4429")).toBe(
+      "https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429",
     );
   });
 
@@ -145,6 +161,23 @@ describe("eventsDay parser", () => {
     await expect(
       eventsDay("2026-06-22", "Soccer", { fetchFn: failingFetch }),
     ).rejects.toThrow(/503/);
+  });
+});
+
+describe("eventsNextLeague / eventsPastLeague parsers", () => {
+  it("parses a soccer-style {events: [...]} response", async () => {
+    const matches = await eventsNextLeague("4429", {
+      fetchFn: mockJsonFetch(eventsdaySoccer),
+    });
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches[0]!.leagueId).toBeTruthy();
+  });
+
+  it("returns [] when the upstream responds with events: null", async () => {
+    const matches = await eventsPastLeague("4429", {
+      fetchFn: mockJsonFetch({ events: null }),
+    });
+    expect(matches).toEqual([]);
   });
 });
 
