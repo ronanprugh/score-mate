@@ -46,7 +46,7 @@ function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
           alt=""
           loading="lazy"
           className={[
-            "h-5 w-5 shrink-0 object-contain transition-opacity",
+            "h-6 w-6 shrink-0 object-contain transition-opacity",
             dim ? "opacity-50" : "",
           ].join(" ")}
         />
@@ -54,14 +54,14 @@ function TeamSide({ name, logo, align, outcome }: TeamSideProps) {
         <div
           aria-hidden="true"
           className={[
-            "h-5 w-5 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
+            "h-6 w-6 shrink-0 rounded-sm bg-zinc-100 dark:bg-zinc-800",
             dim ? "opacity-50" : "",
           ].join(" ")}
         />
       )}
       <span
         className={[
-          "min-w-0 flex-1 truncate text-sm leading-tight transition-colors",
+          "min-w-0 flex-1 truncate text-base leading-tight transition-colors",
           isRight ? "text-right" : "text-left",
           dim
             ? "font-normal text-zinc-400 dark:text-zinc-500"
@@ -123,7 +123,7 @@ export function MatchCard({ match }: Props) {
       data-testid="match-card"
       data-status={status}
       aria-label={`${homeTeamName} vs ${awayTeamName} — ${status}`}
-      className="flex min-h-16 flex-col justify-between gap-1.5 rounded-md border border-zinc-200 bg-background p-2.5 shadow-sm dark:border-zinc-800"
+      className="flex min-h-20 flex-col justify-between gap-2 rounded-md border border-zinc-200 bg-background p-3 shadow-sm dark:border-zinc-800"
     >
       <div className="flex items-center gap-2">
         <TeamSide
@@ -137,8 +137,8 @@ export function MatchCard({ match }: Props) {
           className={[
             "shrink-0 tabular-nums",
             hasScores
-              ? "text-sm font-semibold"
-              : "text-xs font-medium text-zinc-600 dark:text-zinc-300",
+              ? "text-base font-semibold"
+              : "text-sm font-medium text-zinc-600 dark:text-zinc-300",
           ].join(" ")}
           aria-label={
             hasScores
