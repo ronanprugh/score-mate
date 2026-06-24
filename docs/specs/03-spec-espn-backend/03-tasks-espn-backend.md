@@ -119,7 +119,7 @@ Add the operator-run catalog refresh script, commit the generated JSON catalog, 
 - [x] 3.8 Run `pnpm lint && pnpm typecheck && pnpm test:ci`. Commit using `feat(search): in-memory ESPN catalog search` with body `Related to T3.0 in Spec 03-spec-espn-backend`.
 - [x] 3.9 **Final cleanup (absorbs deferred T1.3, T1.11, T1.12).** Delete the entire `lib/sportsdb/` directory (`client.ts`, `client.test.ts`, `types.ts`, `__fixtures__/`). Drop `"Tennis"` from the `Sport` union and `SUPPORTED_SPORTS` in `lib/sports/types.ts`. Remove Tennis entries from `lib/sport-allowlist.ts`, fixture Tennis cases from `lib/favorite-matcher.test.ts`, the Tennis row in `lib/favorites/validators.test.ts`, the Tennis `Tennis: []` stub rows in `lib/home/aggregator.test.ts`, and the Wimbledon / US-Open-Tennis entries from `lib/events-catalog.ts` (+ its test). Run `pnpm lint && pnpm typecheck && pnpm test:ci` and the residue grep `grep -rE "thesportsdb|lib/sportsdb" --include="*.ts" --include="*.tsx" .` (zero hits required). Commit using `chore(espn): remove TheSportsDB and drop Tennis` with body `Related to T3.9 in Spec 03-spec-espn-backend`.
 
-### [ ] 4.0 Tiered cache + favorites-reset migration
+### [x] 4.0 Tiered cache + favorites-reset migration
 
 Tier the per-(leagueKey, date) cache TTLs by bucket and ship a one-shot `TRUNCATE favorites` migration. Maps Spec Unit 4.
 
@@ -132,13 +132,13 @@ Tier the per-(leagueKey, date) cache TTLs by bucket and ship a one-shot `TRUNCAT
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Refactor `lib/home/cache.ts`: replace the single TTL with a `chooseRevalidate(callDate, dates)` pure helper returning `30` when `callDate === dates.today`, `3600` when `callDate` ∈ {`yesterday`, widened `yesterday-1`}, `300` when `callDate` ∈ {`tomorrow`, widened `tomorrow+1`}, with a documented default fallback. Use this in the `unstable_cache` `revalidate` option per fetcher invocation.
-- [ ] 4.2 Bump the cache-key prefix from `v2-utc` to `v3-espn-{leagueKey}-{date}` (one key per league/date combination) so the deploy invalidates the prior keyspace.
-- [ ] 4.3 Write `lib/home/cache.test.ts`: table-driven test asserting `chooseRevalidate` returns the right TTL for every (callDate ∈ widened-5-set, dates) combination, plus a guard test asserting the cache-key prefix is `"v3-espn"`.
-- [ ] 4.4 Author `db/migrations/NNNN_reset_favorites_for_espn.sql` containing only `TRUNCATE TABLE favorites;` with the SDD-task comment header. Use `pnpm db:generate`-compatible numbering (next index after the current highest migration).
-- [ ] 4.5 Run `pnpm db:migrate` against a local Neon dev branch; verify with `psql` that `favorites` is empty. Capture the run output for the proof bundle.
-- [ ] 4.6 Add the one-line release note to `README.md` under an "Operations" / "Release notes" entry: explicitly call out that "Provider swapped to ESPN; existing favorites were truncated by migration NNNN."
-- [ ] 4.7 Commit using `feat(cache): tier homepage TTLs and reset favorites for ESPN cutover` with body `Related to T4.0 in Spec 03-spec-espn-backend`.
+- [x] 4.1 Refactor `lib/home/cache.ts`: replace the single TTL with a `chooseRevalidate(callDate, dates)` pure helper returning `30` when `callDate === dates.today`, `3600` when `callDate` ∈ {`yesterday`, widened `yesterday-1`}, `300` when `callDate` ∈ {`tomorrow`, widened `tomorrow+1`}, with a documented default fallback. Use this in the `unstable_cache` `revalidate` option per fetcher invocation.
+- [x] 4.2 Bump the cache-key prefix from `v2-utc` to `v3-espn-{leagueKey}-{date}` (one key per league/date combination) so the deploy invalidates the prior keyspace.
+- [x] 4.3 Write `lib/home/cache.test.ts`: table-driven test asserting `chooseRevalidate` returns the right TTL for every (callDate ∈ widened-5-set, dates) combination, plus a guard test asserting the cache-key prefix is `"v3-espn"`.
+- [x] 4.4 Author `db/migrations/NNNN_reset_favorites_for_espn.sql` containing only `TRUNCATE TABLE favorites;` with the SDD-task comment header. Use `pnpm db:generate`-compatible numbering (next index after the current highest migration).
+- [x] 4.5 Run `pnpm db:migrate` against a local Neon dev branch; verify with `psql` that `favorites` is empty. Capture the run output for the proof bundle.
+- [x] 4.6 Add the one-line release note to `README.md` under an "Operations" / "Release notes" entry: explicitly call out that "Provider swapped to ESPN; existing favorites were truncated by migration NNNN."
+- [x] 4.7 Commit using `feat(cache): tier homepage TTLs and reset favorites for ESPN cutover` with body `Related to T4.0 in Spec 03-spec-espn-backend`.
 
 ### [ ] 5.0 End-to-end verification + residue sweep
 

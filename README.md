@@ -77,6 +77,10 @@ The migrator uses the standard `postgres` driver; the runtime app uses the Neon 
 
 ## Operations
 
+### Release notes
+
+- **2026-06-24 — Provider swap (Spec 03):** the data backend moved from TheSportsDB to ESPN. Migration `0003_reset_favorites_for_espn.sql` truncates the `favorites` table on deploy (Spec 03 Q4 (D) — no production users yet); users re-favorite from the new ESPN-backed search. Tennis is dropped from the supported-sports set in v1.
+
 ### Deploy to Vercel
 
 1. **Push the repo to GitHub.** Vercel pulls from there.
