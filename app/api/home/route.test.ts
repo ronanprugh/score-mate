@@ -6,15 +6,15 @@ vi.mock("@/auth", () => ({
 }));
 
 const aggregateMock = vi.fn();
-vi.mock("@/lib/home/aggregator", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/home/aggregator")>(
-    "@/lib/home/aggregator",
-  );
-  return {
-    ...actual,
-    aggregateMatchesForUser: (...args: unknown[]) => aggregateMock(...args),
-  };
-});
+// Mock without `importActual` — the real aggregator module imports
+// `lib/favorites/queries.ts` which imports `db/index.ts`, and `db/index.ts`
+// throws at module load when DATABASE_URL is unset (CI test step doesn't
+// set one). The route handler only calls `aggregateMatchesForUser`, so
+// stubbing the other exports as no-ops is enough.
+vi.mock("@/lib/home/aggregator", () => ({
+  aggregateMatchesForUser: (...args: unknown[]) => aggregateMock(...args),
+  buildHomeEnvelope: vi.fn(),
+}));
 
 // The cache layer is exercised in integration only; here we stub the
 // fetchers bundle so the route test stays a pure unit test.
