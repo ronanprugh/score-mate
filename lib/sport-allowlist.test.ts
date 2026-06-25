@@ -21,7 +21,12 @@ function makeMatch(overrides: Partial<Match>): Match {
 
 describe("SPORT_ALLOWLIST shape", () => {
   it("has at least one entry for each supported sport", () => {
-    const sports: Sport[] = ["Soccer", "American Football", "Basketball"];
+    const sports: Sport[] = [
+      "Soccer",
+      "American Football",
+      "Basketball",
+      "Baseball",
+    ];
     for (const s of sports) {
       expect(SPORT_ALLOWLIST[s].length).toBeGreaterThan(0);
     }
@@ -36,8 +41,9 @@ describe("SPORT_ALLOWLIST shape", () => {
     }
   });
 
-  it("contains no Tennis allowlist", () => {
+  it("contains no Tennis allowlist but includes Baseball", () => {
     expect((SPORT_ALLOWLIST as Record<string, unknown>).Tennis).toBeUndefined();
+    expect((SPORT_ALLOWLIST as Record<string, unknown>).Baseball).toBeDefined();
   });
 });
 
@@ -114,5 +120,33 @@ describe("matchesSportAllowlist", () => {
       leagueName: "EuroLeague",
     });
     expect(matchesSportAllowlist("Basketball", m)).toBe(false);
+  });
+
+  /* ---------- Baseball ---------- */
+  it("Baseball: accepts an MLB match (by leagueId)", () => {
+    const m = makeMatch({
+      sport: "Baseball",
+      leagueId: "baseball/mlb",
+      leagueName: "Major League Baseball",
+    });
+    expect(matchesSportAllowlist("Baseball", m)).toBe(true);
+  });
+
+  it("Baseball: accepts a College World Series game (by name substring)", () => {
+    const m = makeMatch({
+      sport: "Baseball",
+      leagueId: "baseball/college-baseball",
+      leagueName: "NCAA College World Series",
+    });
+    expect(matchesSportAllowlist("Baseball", m)).toBe(true);
+  });
+
+  it("Baseball: rejects an NPB Pacific League match (not on the allowlist)", () => {
+    const m = makeMatch({
+      sport: "Baseball",
+      leagueId: "baseball/npb",
+      leagueName: "NPB Pacific League",
+    });
+    expect(matchesSportAllowlist("Baseball", m)).toBe(false);
   });
 });

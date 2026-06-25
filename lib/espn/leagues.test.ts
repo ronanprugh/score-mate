@@ -6,7 +6,7 @@ import {
 } from "./leagues";
 
 describe("SUPPORTED_LEAGUES registry", () => {
-  it("contains exactly the v1 set: 2 football + 3 basketball + 14 soccer", () => {
+  it("contains exactly the v1+baseball set: 2 football + 3 basketball + 14 soccer + 2 baseball = 21", () => {
     const bySport = new Map<string, number>();
     for (const l of SUPPORTED_LEAGUES) {
       bySport.set(l.sport, (bySport.get(l.sport) ?? 0) + 1);
@@ -14,7 +14,8 @@ describe("SUPPORTED_LEAGUES registry", () => {
     expect(bySport.get("American Football")).toBe(2);
     expect(bySport.get("Basketball")).toBe(3);
     expect(bySport.get("Soccer")).toBe(14);
-    expect(SUPPORTED_LEAGUES).toHaveLength(19);
+    expect(bySport.get("Baseball")).toBe(2);
+    expect(SUPPORTED_LEAGUES).toHaveLength(21);
   });
 
   it("does not contain Tennis", () => {
@@ -31,7 +32,7 @@ describe("SUPPORTED_LEAGUES registry", () => {
 
   it("every league key uses the {sport}/{league} ESPN URL shape", () => {
     for (const l of SUPPORTED_LEAGUES) {
-      expect(l.leagueKey).toMatch(/^(football|basketball|soccer)\//);
+      expect(l.leagueKey).toMatch(/^(football|basketball|soccer|baseball)\//);
     }
   });
 });
@@ -58,14 +59,30 @@ describe("leagueKeysForSport", () => {
       expect.arrayContaining(["football/nfl", "football/college-football"]),
     );
   });
+
+  it("Baseball returns mlb + college-baseball", () => {
+    const keys = leagueKeysForSport("Baseball");
+    expect(keys).toEqual(
+      expect.arrayContaining(["baseball/mlb", "baseball/college-baseball"]),
+    );
+    expect(keys).toHaveLength(2);
+  });
 });
 
 describe("findSupportedLeague", () => {
-  it("returns the entry for a known key", () => {
+  it("returns the entry for a known soccer key", () => {
     expect(findSupportedLeague("soccer/fifa.world")).toEqual({
       leagueKey: "soccer/fifa.world",
       sport: "Soccer",
       displayName: "FIFA World Cup",
+    });
+  });
+
+  it("returns the entry for the new MLB key", () => {
+    expect(findSupportedLeague("baseball/mlb")).toEqual({
+      leagueKey: "baseball/mlb",
+      sport: "Baseball",
+      displayName: "MLB",
     });
   });
 

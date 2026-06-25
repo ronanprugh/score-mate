@@ -6,11 +6,12 @@
  * Each `leagueKey` is the canonical ESPN URL segment pair
  * (`{sport}/{league}`). It doubles as the internal `League.id`.
  *
- * Coverage decisions (Spec 03 Q3):
+ * Coverage decisions (Spec 03 Q3, Spec 04 Q2):
  *   - American Football: NFL + NCAA FBS.
  *   - Basketball: NBA + WNBA + NCAA men's.
  *   - Soccer: big-5 + MLS + UEFA Champions/Europa/Conf + FIFA World +
  *     CONMEBOL Libertadores + CONCACAF Champions + FA Cup + Carabao Cup.
+ *   - Baseball: MLB + NCAA D-I.
  *
  * To extend coverage, add an entry here and re-run
  * `pnpm tsx scripts/refresh-espn-catalog.ts` (added in T3.1) to refresh
@@ -86,6 +87,14 @@ export const SUPPORTED_LEAGUES: readonly SupportedLeague[] = [
     leagueKey: "soccer/eng.league_cup",
     sport: "Soccer",
     displayName: "Carabao Cup",
+  },
+
+  // Baseball
+  { leagueKey: "baseball/mlb", sport: "Baseball", displayName: "MLB" },
+  {
+    leagueKey: "baseball/college-baseball",
+    sport: "Baseball",
+    displayName: "NCAA Baseball",
   },
 ] as const;
 

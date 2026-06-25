@@ -54,11 +54,13 @@ describe("sportFromLeagueKey", () => {
     ["basketball/wnba", "Basketball"],
     ["soccer/eng.1", "Soccer"],
     ["soccer/fifa.world", "Soccer"],
+    ["baseball/mlb", "Baseball"],
+    ["baseball/college-baseball", "Baseball"],
   ])("%s -> %s", (key, expected) => {
     expect(sportFromLeagueKey(key)).toBe(expected);
   });
 
-  it("returns null for unsupported sports (e.g. tennis)", () => {
+  it("returns null for unsupported sports (e.g. tennis, hockey)", () => {
     expect(sportFromLeagueKey("tennis/atp")).toBeNull();
     expect(sportFromLeagueKey("hockey/nhl")).toBeNull();
   });

@@ -36,12 +36,14 @@ const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 /**
  * ESPN's URL `{sport}` segment to our internal `Sport`. Add new sports
  * here when expanding coverage. Tennis is intentionally absent (Spec 03
- * Q3 (G) — ESPN's tennis API is per-tournament and out of scope for v1).
+ * Q3 (G) — ESPN's tennis API is per-tournament and out of scope for v1;
+ * tracked in Spec 05).
  */
 const SPORT_FROM_SEGMENT: Record<string, Sport> = {
   football: "American Football",
   basketball: "Basketball",
   soccer: "Soccer",
+  baseball: "Baseball",
 };
 
 /**

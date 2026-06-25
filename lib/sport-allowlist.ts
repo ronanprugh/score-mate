@@ -10,9 +10,10 @@
  * (e.g. seasonal cups, Top-25 NCAA matchups inside a parent league).
  *
  * Tennis is dropped in Spec 03 (ESPN backend swap, Q3 (G)).
+ * Baseball (MLB + NCAA D-I + College World Series) added in Spec 04.
  *
  * Source list: spec 02 § Technical Considerations § Sport favorite allowlist,
- * remapped to ESPN league keys by Spec 03.
+ * remapped to ESPN league keys by Spec 03; extended for Baseball by Spec 04.
  */
 
 import type { Match, Sport } from "./sports/types";
@@ -68,6 +69,14 @@ export const SPORT_ALLOWLIST: Record<Sport, AllowlistEntry[]> = {
     },
     { leagueNameContains: "NCAA Tournament", label: "March Madness" },
     { leagueId: "basketball/wnba", label: "WNBA" },
+  ],
+  Baseball: [
+    { leagueId: "baseball/mlb", label: "MLB" },
+    {
+      leagueId: "baseball/college-baseball",
+      label: "NCAA D-I Baseball",
+    },
+    { leagueNameContains: "College World Series", label: "College World Series" },
   ],
 };
 

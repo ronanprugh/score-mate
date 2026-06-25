@@ -17,16 +17,16 @@ describe("favoriteTypeSchema", () => {
 });
 
 describe("sportSchema", () => {
-  it.each(["Soccer", "American Football", "Basketball"])("accepts %s", (s) => {
-    expect(sportSchema.parse(s)).toBe(s);
-  });
-
-  it.each(["Hockey", "Baseball", "soccer", "MMA", "Tennis"])(
-    "rejects %s",
-    (bad) => {
-      expect(() => sportSchema.parse(bad)).toThrow();
+  it.each(["Soccer", "American Football", "Basketball", "Baseball"])(
+    "accepts %s",
+    (s) => {
+      expect(sportSchema.parse(s)).toBe(s);
     },
   );
+
+  it.each(["Hockey", "soccer", "MMA", "Tennis"])("rejects %s", (bad) => {
+    expect(() => sportSchema.parse(bad)).toThrow();
+  });
 });
 
 describe("createFavoriteSchema", () => {
