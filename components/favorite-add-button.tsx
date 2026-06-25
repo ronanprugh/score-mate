@@ -38,10 +38,13 @@ export function FavoriteAddButton({ payload, initialAdded }: Props) {
     setError(null);
     setStatus("pending");
     try {
+      // badgeUrl is render-only; the server schema is strict and rejects it.
+      const { badgeUrl: _badgeUrl, ...body } = payload;
+      void _badgeUrl;
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         if (res.status === 429) {
