@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-24T20:06:11.010Z",
+  "generatedAt": "2026-06-25T01:33:11.594Z",
   "leagues": [
     {
       "id": "football/college-football",
@@ -10,6 +10,16 @@
       "id": "football/nfl",
       "name": "NFL",
       "sport": "American Football"
+    },
+    {
+      "id": "baseball/college-baseball",
+      "name": "NCAA Baseball",
+      "sport": "Baseball"
+    },
+    {
+      "id": "baseball/mlb",
+      "name": "MLB",
+      "sport": "Baseball"
     },
     {
       "id": "basketball/mens-college-basketball",
@@ -5527,6 +5537,3240 @@
       "sport": "American Football",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png",
       "leagueKey": "football/nfl"
+    },
+    {
+      "id": "55",
+      "name": "Auburn Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "56",
+      "name": "Birmingham Southern Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/3.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "57",
+      "name": "South Alabama Jaguars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/6.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "58",
+      "name": "Arkansas Razorbacks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/8.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "59",
+      "name": "Arizona State Sun Devils",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/9.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "60",
+      "name": "Arizona Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/12.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "61",
+      "name": "Cal Poly Mustangs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/13.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "62",
+      "name": "San Diego State Aztecs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/21.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "63",
+      "name": "San José State Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/23.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "64",
+      "name": "Stanford Cardinal",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/24.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "65",
+      "name": "California Golden Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/25.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "66",
+      "name": "UCLA Bruins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/26.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "67",
+      "name": "UC Riverside Highlanders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/27.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "68",
+      "name": "USC Trojans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/30.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "69",
+      "name": "UConn Huskies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/41.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "70",
+      "name": "Hartford Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/42.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "71",
+      "name": "George Washington Revolutionaries",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/45.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "72",
+      "name": "Florida State Seminoles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/52.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "73",
+      "name": "Jacksonville State Gamecocks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/55.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "74",
+      "name": "Stetson Hatters",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/56.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "75",
+      "name": "Florida Gators",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/57.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "76",
+      "name": "South Florida Bulls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/58.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "77",
+      "name": "Georgia Tech Yellow Jackets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/59.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "78",
+      "name": "Georgia Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/61.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "79",
+      "name": "Hawai'i Rainbow Warriors",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/62.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "80",
+      "name": "UIC Flames",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/82.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "81",
+      "name": "Notre Dame Fighting Irish",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/87.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "82",
+      "name": "Kentucky Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/96.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "83",
+      "name": "Louisville Cardinals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/97.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "84",
+      "name": "Western Kentucky Hilltoppers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/98.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "85",
+      "name": "LSU Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/99.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "86",
+      "name": "Boston College Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/103.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "87",
+      "name": "Maryland Terrapins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/120.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "88",
+      "name": "Michigan State Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/127.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "89",
+      "name": "Michigan Wolverines",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/130.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "90",
+      "name": "Minnesota Golden Gophers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/135.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "91",
+      "name": "Missouri Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/142.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "92",
+      "name": "Ole Miss Rebels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/145.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "93",
+      "name": "Duke Blue Devils",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/150.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "94",
+      "name": "East Carolina Pirates",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/151.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "95",
+      "name": "NC State Wolfpack",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/152.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "96",
+      "name": "North Carolina Tar Heels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/153.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "97",
+      "name": "Wake Forest Demon Deacons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/154.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "98",
+      "name": "Creighton Bluejays",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/156.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "99",
+      "name": "Nebraska Cornhuskers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/158.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "100",
+      "name": "Dartmouth Big Green",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/159.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "101",
+      "name": "Princeton Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/163.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "102",
+      "name": "Rutgers Scarlet Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/164.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "103",
+      "name": "New Mexico State Aggies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/166.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "104",
+      "name": "New Mexico Lobos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/167.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "105",
+      "name": "St. Bonaventure Bonnies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/179.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "106",
+      "name": "Bowling Green Falcons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/189.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "107",
+      "name": "Miami (OH) RedHawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/193.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "108",
+      "name": "Ohio State Buckeyes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/194.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "109",
+      "name": "Ohio Bobcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/195.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "110",
+      "name": "Oklahoma State Cowboys",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/197.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "111",
+      "name": "Oral Roberts Golden Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/198.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "112",
+      "name": "Oklahoma Sooners",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/201.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "113",
+      "name": "Oregon State Beavers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/204.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "114",
+      "name": "Temple Owls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/218.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "115",
+      "name": "Pittsburgh Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/221.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "116",
+      "name": "Brown Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/225.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "117",
+      "name": "Clemson Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/228.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "118",
+      "name": "Charleston Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/232.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "119",
+      "name": "Memphis Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/235.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "120",
+      "name": "Vanderbilt Commodores",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/238.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "121",
+      "name": "Baylor Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/239.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "122",
+      "name": "Rice Owls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/242.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "123",
+      "name": "Texas A&M Aggies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/245.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "124",
+      "name": "Houston Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/248.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "125",
+      "name": "UT Arlington Mavericks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/250.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "126",
+      "name": "Texas Longhorns",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/251.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "127",
+      "name": "BYU Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "128",
+      "name": "Utah Utes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/254.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129",
+      "name": "James Madison Dukes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/256.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "130",
+      "name": "Richmond Spiders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/257.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "131",
+      "name": "Virginia Cavaliers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/258.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "132",
+      "name": "Virginia Tech Hokies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/259.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "133",
+      "name": "Washington Huskies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/264.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "134",
+      "name": "Washington State Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/265.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "135",
+      "name": "Milwaukee Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/270.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "136",
+      "name": "West Virginia Mountaineers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/277.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "137",
+      "name": "Fresno State Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/278.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "138",
+      "name": "Georgia Southern Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/290.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "139",
+      "name": "Jacksonville Dolphins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/294.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "140",
+      "name": "Old Dominion Monarchs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/295.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "141",
+      "name": "Long Beach State Beach",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/299.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "142",
+      "name": "UC Irvine Anteaters",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/300.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "143",
+      "name": "San Diego Toreros",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/301.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "144",
+      "name": "Louisiana Ragin' Cajuns",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/309.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "145",
+      "name": "Lafayette Leopards",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/322.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "146",
+      "name": "Coastal Carolina Chanticleers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/324.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "147",
+      "name": "Texas State Bobcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/326.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "148",
+      "name": "Alabama Crimson Tide",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/333.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "149",
+      "name": "Evansville Purple Aces",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/339.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "150",
+      "name": "Mississippi State Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/344.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "151",
+      "name": "Army Black Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/349.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "152",
+      "name": "UNC Wilmington Seahawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/350.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "153",
+      "name": "Illinois Fighting Illini",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/356.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "154",
+      "name": "UAlbany Great Danes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/399.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "155",
+      "name": "Air Force Falcons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "156",
+      "name": "Austin Peay Governors",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2046.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "157",
+      "name": "Ball State Cardinals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2050.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "158",
+      "name": "Bethune-Cookman Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2065.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "159",
+      "name": "Central Connecticut Blue Devils",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2115.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "160",
+      "name": "UCF Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2116.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "161",
+      "name": "Cincinnati Bearcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2132.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "162",
+      "name": "Coppin State Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2154.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "163",
+      "name": "Florida Atlantic Owls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "164",
+      "name": "Florida International Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "165",
+      "name": "Cal State Fullerton Titans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2239.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "166",
+      "name": "George Mason Patriots",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2244.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "167",
+      "name": "Iowa Hawkeyes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "168",
+      "name": "Kansas Jayhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "169",
+      "name": "Kent State Golden Flashes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2309.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "170",
+      "name": "Lamar Cardinals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2320.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "171",
+      "name": "Le Moyne Dolphins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2330.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "172",
+      "name": "Liberty Flames",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2335.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "173",
+      "name": "Louisiana Tech Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2348.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "174",
+      "name": "Loyola Marymount Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2351.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "175",
+      "name": "Marist Red Foxes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2368.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "176",
+      "name": "Miami Hurricanes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "177",
+      "name": "Middle Tennessee Blue Raiders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "178",
+      "name": "Monmouth Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2405.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "179",
+      "name": "Navy Midshipmen",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2426.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "180",
+      "name": "Charlotte 49ers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2429.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "181",
+      "name": "UNC Greensboro Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2430.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "182",
+      "name": "UNLV Rebels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "183",
+      "name": "Nevada Wolf Pack",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "184",
+      "name": "New Orleans Privateers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2443.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "185",
+      "name": "Cal State Northridge Matadors",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2463.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "186",
+      "name": "Northwestern State Demons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2466.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "187",
+      "name": "Pepperdine Waves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2492.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "188",
+      "name": "Prairie View A&M Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2504.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "189",
+      "name": "Purdue Boilermakers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2509.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "190",
+      "name": "Sam Houston Bearkats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "191",
+      "name": "Southeast Missouri State Redhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2546.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "192",
+      "name": "Southern Miss Golden Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "193",
+      "name": "South Carolina Gamecocks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2579.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "194",
+      "name": "Southern Jaguars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2582.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "195",
+      "name": "St. John's Red Storm",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2599.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "196",
+      "name": "Stony Brook Seawolves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2619.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "197",
+      "name": "Missouri State Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2623.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "198",
+      "name": "TCU Horned Frogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2628.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "199",
+      "name": "Tennessee Volunteers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "200",
+      "name": "Texas Southern Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2640.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "201",
+      "name": "Texas Tech Red Raiders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "202",
+      "name": "The Citadel Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2643.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "203",
+      "name": "Tulane Green Wave",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2655.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "204",
+      "name": "VCU Rams",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2670.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "205",
+      "name": "Western Carolina Catamounts",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2717.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "206",
+      "name": "Wichita State Shockers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2724.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "207",
+      "name": "Winthrop Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2737.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "208",
+      "name": "Wofford Terriers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2747.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "209",
+      "name": "Youngstown State Penguins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2754.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "259",
+      "name": "Maine Black Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/311.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "260",
+      "name": "Alcorn State Braves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2016.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "261",
+      "name": "Little Rock Trojans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2031.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "262",
+      "name": "Belmont Bruins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2057.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "263",
+      "name": "Dallas Baptist Patriots",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2164.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "264",
+      "name": "Kansas State Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2306.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "265",
+      "name": "Manhattan Jaspers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2363.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "266",
+      "name": "Sacred Heart Pioneers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2529.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "267",
+      "name": "San Francisco Dons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2539.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "268",
+      "name": "Seton Hall Pirates",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2550.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "269",
+      "name": "Troy Trojans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2653.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "270",
+      "name": "Wright State Raiders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2750.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "271",
+      "name": "App State Mountaineers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "272",
+      "name": "UL Monroe Warhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2433.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "273",
+      "name": "Oregon Ducks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "274",
+      "name": "Samford Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2535.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "284",
+      "name": "Columbia Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/171.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "285",
+      "name": "Jackson State Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2296.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "286",
+      "name": "Savannah State Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2542.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "287",
+      "name": "Gonzaga Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2250.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "288",
+      "name": "Illinois State Redbirds",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2287.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "289",
+      "name": "William & Mary Tribe",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2729.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "290",
+      "name": "UC Santa Barbara Gauchos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2540.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "291",
+      "name": "Florida Gulf Coast Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/526.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "292",
+      "name": "Binghamton Bearcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2066.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "293",
+      "name": "Campbell Fighting Camels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2097.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "294",
+      "name": "Indiana Hoosiers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/84.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "295",
+      "name": "Mercer Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2382.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "296",
+      "name": "North Florida Ospreys",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2454.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "297",
+      "name": "UTSA Roadrunners",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2636.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "298",
+      "name": "Canisius Golden Griffins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2099.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "299",
+      "name": "Bryant Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2803.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "300",
+      "name": "Saint Louis Billikens",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/139.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "301",
+      "name": "South Dakota State Jackrabbits",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2571.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "302",
+      "name": "Valparaiso Beacons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2674.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "303",
+      "name": "Elon Phoenix",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2210.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "304",
+      "name": "East Tennessee State Buccaneers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2193.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "305",
+      "name": "Towson Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/119.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "306",
+      "name": "Central Arkansas Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2110.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "307",
+      "name": "Kennesaw State Owls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/338.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "308",
+      "name": "Indiana State Sycamores",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/282.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "309",
+      "name": "SE Louisiana Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2545.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "310",
+      "name": "North Dakota State Bison",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2449.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "311",
+      "name": "Siena Saints",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2561.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "312",
+      "name": "Xavier Musketeers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2752.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "313",
+      "name": "Bucknell Bison",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2083.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "314",
+      "name": "Sacramento State Hornets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/16.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "315",
+      "name": "Abilene Christian Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2000.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "316",
+      "name": "Akron Zips",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "317",
+      "name": "Alabama A&M Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2010.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "318",
+      "name": "Alabama State Hornets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2011.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "319",
+      "name": "American University Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/44.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "320",
+      "name": "Arkansas State Red Wolves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "321",
+      "name": "Arkansas-Pine Bluff Golden Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2029.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "322",
+      "name": "Boise State Broncos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/68.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "323",
+      "name": "Boston University Terriers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/104.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "324",
+      "name": "Bradley Braves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/71.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "325",
+      "name": "Buffalo Bulls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2084.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "326",
+      "name": "Butler Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2086.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "327",
+      "name": "Cal State Bakersfield Roadrunners",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2934.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "328",
+      "name": "Central Michigan Chippewas",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "329",
+      "name": "Charleston Southern Buccaneers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2127.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "330",
+      "name": "Chattanooga Mocs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/236.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "331",
+      "name": "Chicago St Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2130.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "332",
+      "name": "Cleveland State Vikings",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/325.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "333",
+      "name": "Colgate Raiders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2142.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "334",
+      "name": "Colorado Buffaloes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/38.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "335",
+      "name": "Colorado State Rams",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/36.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "336",
+      "name": "Cornell Big Red",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/172.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "337",
+      "name": "Davidson Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2166.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "338",
+      "name": "Dayton Flyers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2168.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "339",
+      "name": "Delaware Blue Hens",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/48.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "340",
+      "name": "Delaware State Hornets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2169.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "341",
+      "name": "Denver Pioneers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2172.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "342",
+      "name": "DePaul Blue Demons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/305.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "343",
+      "name": "Detroit Mercy Titans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2174.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "344",
+      "name": "Drake Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2181.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "345",
+      "name": "Drexel Dragons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2182.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "346",
+      "name": "Duquesne Dukes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2184.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "347",
+      "name": "Eastern Illinois Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2197.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "348",
+      "name": "Eastern Kentucky Colonels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2198.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "349",
+      "name": "Eastern Michigan Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "350",
+      "name": "Eastern Washington Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/331.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "351",
+      "name": "Fairfield Stags",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2217.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "352",
+      "name": "Fairleigh Dickinson Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/161.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "353",
+      "name": "Florida A&M Rattlers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/50.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "354",
+      "name": "Fordham Rams",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2230.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "355",
+      "name": "Furman Paladins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/231.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "356",
+      "name": "Gardner-Webb Runnin' Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2241.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "357",
+      "name": "Georgetown Hoyas",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/46.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "358",
+      "name": "Georgia State Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "359",
+      "name": "Grambling Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2755.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "360",
+      "name": "Grand Canyon Lopes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2253.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "361",
+      "name": "Green Bay Phoenix",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2739.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "362",
+      "name": "Hampton Pirates",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2261.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "363",
+      "name": "Harvard Crimson",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/108.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "364",
+      "name": "High Point Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2272.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "365",
+      "name": "Hofstra Pride",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2275.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "366",
+      "name": "Holy Cross Crusaders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/107.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "367",
+      "name": "Houston Christian Huskies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2277.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "368",
+      "name": "Howard Bison",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/47.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "369",
+      "name": "Idaho Vandals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/70.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "370",
+      "name": "Idaho State Bengals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/304.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "371",
+      "name": "Incarnate Word Cardinals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2916.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "372",
+      "name": "Iona Gaels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/314.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "373",
+      "name": "Iowa State Cyclones",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/66.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "374",
+      "name": "Purdue Fort Wayne Mastodons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2870.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "375",
+      "name": "IU Indianapolis Jaguars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/85.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "376",
+      "name": "La Salle Explorers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2325.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "377",
+      "name": "Lehigh Mountain Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2329.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "378",
+      "name": "Lipscomb Bisons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/288.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "379",
+      "name": "Long Island University Sharks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2341.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "380",
+      "name": "Longwood Lancers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2344.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "381",
+      "name": "Loyola Chicago Ramblers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2350.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "382",
+      "name": "Loyola Maryland Greyhounds",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2352.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "383",
+      "name": "Marquette Golden Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/269.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "384",
+      "name": "Marshall Thundering Herd",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/276.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "385",
+      "name": "Maryland Eastern Shore Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2379.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "386",
+      "name": "Massachusetts Minutemen",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/113.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "387",
+      "name": "McNeese Cowboys",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2377.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "388",
+      "name": "Mississippi Valley State Delta Devils",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2400.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "389",
+      "name": "Montana Grizzlies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/149.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "390",
+      "name": "Montana State Bobcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/147.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "391",
+      "name": "Morehead State Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2413.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "392",
+      "name": "Morgan State Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2415.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "393",
+      "name": "Mount St. Mary's Mountaineers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/116.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "394",
+      "name": "Murray State Racers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/93.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "395",
+      "name": "NJIT Highlanders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2885.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "396",
+      "name": "Omaha Mavericks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2437.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "397",
+      "name": "New Hampshire Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/160.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "398",
+      "name": "Niagara Purple Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/315.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "399",
+      "name": "Nicholls Colonels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2447.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "400",
+      "name": "Norfolk State Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2450.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "401",
+      "name": "North Carolina A&T Aggies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2448.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "402",
+      "name": "North Carolina Central Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2428.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "403",
+      "name": "North Dakota Fighting Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/155.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "404",
+      "name": "North Texas Mean Green",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/249.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "405",
+      "name": "Northeastern Huskies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/111.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "406",
+      "name": "Northern Arizona Lumberjacks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2464.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "407",
+      "name": "Northern Colorado Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2458.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "408",
+      "name": "Northern Illinois Huskies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2459.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "409",
+      "name": "Northern Iowa Panthers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2460.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "410",
+      "name": "Northern Kentucky Norse",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/94.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "411",
+      "name": "Northwestern Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/77.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "412",
+      "name": "Oakland Golden Grizzlies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2473.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "413",
+      "name": "Pacific Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/279.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "414",
+      "name": "Penn State Nittany Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/213.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "415",
+      "name": "Pennsylvania Quakers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/219.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "416",
+      "name": "Portland Pilots",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2501.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "417",
+      "name": "Portland State Vikings",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2502.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "418",
+      "name": "Presbyterian Blue Hose",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2506.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "419",
+      "name": "Providence Friars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2507.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "420",
+      "name": "Quinnipiac Bobcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2514.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "421",
+      "name": "Radford Highlanders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2515.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "422",
+      "name": "Rhode Island Rams",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/227.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "423",
+      "name": "Rider Broncs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2520.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "424",
+      "name": "Robert Morris Colonials",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2523.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "425",
+      "name": "Saint Joseph's Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2603.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "426",
+      "name": "Saint Mary's Gaels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2608.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "427",
+      "name": "Santa Clara Broncos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2541.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "428",
+      "name": "Seattle U Redhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "429",
+      "name": "SIU Edwardsville Cougars",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2565.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "430",
+      "name": "South Carolina State Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2569.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "431",
+      "name": "South Dakota Coyotes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/233.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "432",
+      "name": "Southern Illinois Salukis",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/79.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "433",
+      "name": "SMU Mustangs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "434",
+      "name": "Southern Utah Thunderbirds",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/253.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "435",
+      "name": "St. Francis (BKN) Terriers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2597.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "436",
+      "name": "Saint Francis Red Flash",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2598.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "437",
+      "name": "Saint Peter's Peacocks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2612.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "438",
+      "name": "Stephen F. Austin Lumberjacks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2617.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "439",
+      "name": "Syracuse Orange",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/183.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "440",
+      "name": "Tennessee State Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2634.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "441",
+      "name": "Tennessee Tech Golden Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2635.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "442",
+      "name": "UT Martin Skyhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2630.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "443",
+      "name": "Texas A&M-Corpus Christi Islanders",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/357.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "444",
+      "name": "Texas-Pan American Broncs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/292.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "445",
+      "name": "Toledo Rockets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2649.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "446",
+      "name": "Tulsa Golden Hurricane",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/202.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "447",
+      "name": "UAB Blazers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/5.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "448",
+      "name": "UC Davis Aggies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/302.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "449",
+      "name": "UMass Lowell River Hawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2349.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "450",
+      "name": "UMBC Retrievers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2378.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "451",
+      "name": "Kansas City Roos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/140.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "452",
+      "name": "UNC Asheville Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2427.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "453",
+      "name": "South Carolina Upstate Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2908.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "454",
+      "name": "Utah State Aggies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "455",
+      "name": "Utah Valley Wolverines",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/3084.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "456",
+      "name": "UTEP Miners",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "457",
+      "name": "Vermont Catamounts",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/261.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "458",
+      "name": "Villanova Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/222.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "459",
+      "name": "VMI Keydets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2678.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "460",
+      "name": "Wagner Seahawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2681.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "461",
+      "name": "Weber State Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2692.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "462",
+      "name": "Western Illinois Leathernecks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2710.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "463",
+      "name": "Western Michigan Broncos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2711.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "464",
+      "name": "Wisconsin Badgers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/275.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "465",
+      "name": "Wyoming Cowboys",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "466",
+      "name": "Yale Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/43.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "821",
+      "name": "Alma Scots",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2800.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "822",
+      "name": "Anderson (IN) Ravens",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2023.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "823",
+      "name": "MUSKOGEE Bacone",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "824",
+      "name": "Baker University",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "825",
+      "name": "Barry Buccaneers",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "826",
+      "name": "Bethany (KS) BETHANY (KS)",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "827",
+      "name": "Cal Poly Pomona Broncos",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "828",
+      "name": "Centenary (LA) Gentlemen",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2113.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "829",
+      "name": "Central Missouri Mules",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2118.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "830",
+      "name": "Emporia State Hornets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2214.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "831",
+      "name": "Francis Marion Patriots",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "832",
+      "name": "Hawaiʻi Pacific Sea Warriors",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/guid/cf8e81e2-4cc5-310a-838f-c046b0d505b7/logos/default.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "833",
+      "name": "Lenoir Rhyne Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2331.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "834",
+      "name": "Lincoln Lions",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "835",
+      "name": "Louisiana Christian Wildcats",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "836",
+      "name": "Lubbock Christian Chaparrals",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "837",
+      "name": "Mid America Christian Evangels",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "838",
+      "name": "NY Institute of Technology Yellow Jackets",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "839",
+      "name": "North Georgia Saints",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "840",
+      "name": "Northwestern (IA) NORTHWESTERN COLLEGE (IA)",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "841",
+      "name": "Salisbury Sea Gulls",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2532.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "842",
+      "name": "Southwestern Oklahoma State Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2927.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "843",
+      "name": "St. Gregory Cavaliers",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "844",
+      "name": "Saint Martin's Saints",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/guid/08d18faa-f47d-3616-a74e-4dd0c338c6c2/logos/default.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "845",
+      "name": "Tabor TABOR",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "846",
+      "name": "Texas Lutheran Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2639.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "847",
+      "name": "Hawaiʻi Hilo Vulcans",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "849",
+      "name": "Nebraska Kearney Lopers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2438.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "850",
+      "name": "St. Thomas-Minnesota Tommies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2900.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "851",
+      "name": "Valdosta State Blazers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2673.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "852",
+      "name": "Wayne State (NE) Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2844.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "853",
+      "name": "William Woods WILLIAM WOODS",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "924",
+      "name": "Truman State Bulldogs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2654.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "926",
+      "name": "Lindenwood Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2815.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "928",
+      "name": "Cornell (IA) Rams",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2155.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "929",
+      "name": "St. Thomas (FL) Bobcats",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "932",
+      "name": "UT Rio Grande Valley Vaqueros",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/292.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "935",
+      "name": "Nova Southeastern Sharks",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1067",
+      "name": "Concordia St. Paul Golden Bears",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/3066.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1103",
+      "name": "North Alabama Lions",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2453.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1105",
+      "name": "California Baptist Lancers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2856.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1139",
+      "name": "Boise State Broncos",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/68.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1143",
+      "name": "Bellarmine Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/91.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1145",
+      "name": "Tarleton State Texans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2627.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1146",
+      "name": "Utah Tech Trailblazers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/3101.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1147",
+      "name": "UC San Diego Tritons",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/28.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1148",
+      "name": "Merrimack Warriors",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2771.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1153",
+      "name": "TBD",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1154",
+      "name": "TBD",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1189",
+      "name": "Loras Duhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/263.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1190",
+      "name": "Grand View Vikings",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2254.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1191",
+      "name": "Roosevelt Lakers",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1197",
+      "name": "Southeastern Fires",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1238",
+      "name": "Queens University Royals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2511.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1239",
+      "name": "Upper Iowa Peacocks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/389.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1245",
+      "name": "Stonehill Skyhawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/284.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1246",
+      "name": "Southern Indiana Screaming Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/88.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1247",
+      "name": "Linfield Wildcats",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/203.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1248",
+      "name": "Coe Kohawks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2141.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1273",
+      "name": "Tampa Spartans",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1274",
+      "name": "Florida Southern Moccasins",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1275",
+      "name": "San Jacinto SANJACJC",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1276",
+      "name": "John A. Logan JALC",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1277",
+      "name": "Northwest Mississippi CC NMCC",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1278",
+      "name": "State College of Florida SCOF",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1279",
+      "name": "Pearl River PEARL",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1280",
+      "name": "Copiah Lincoln CLCC",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1281",
+      "name": "Southern Nevada Coyotes",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1282",
+      "name": "Florence Darlington Tech FDTC",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1286",
+      "name": "DePauw Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/83.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1287",
+      "name": "St. Olaf Oles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/133.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129698",
+      "name": "Mercyhurst Lakers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2385.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129699",
+      "name": "West Georgia Wolves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2698.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129700",
+      "name": "Pacific Lutheran Lutes",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2486.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129701",
+      "name": "Augustana (IL) Vikings",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2042.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129702",
+      "name": "Aurora Spartans",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2044.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129706",
+      "name": "New Haven Chargers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2441.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129756",
+      "name": "Wartburg Knights",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2685.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129760",
+      "name": "Cal State Los Angeles Golden Eagles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/guid/01aa35b6-c8e3-3ab4-80a6-6e84895c47a2/logos/default.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129762",
+      "name": "Southwest Mustangs",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129763",
+      "name": "Wisconsin Platteville Pioneers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/272.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129772",
+      "name": "Oakland City Mighty Oaks",
+      "sport": "Baseball",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "129773",
+      "name": "Washburn Ichabods",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/2687.png",
+      "leagueKey": "baseball/college-baseball"
+    },
+    {
+      "id": "1",
+      "name": "Baltimore Orioles",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/bal.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "2",
+      "name": "Boston Red Sox",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/bos.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "3",
+      "name": "Los Angeles Angels",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "4",
+      "name": "Chicago White Sox",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/chw.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "5",
+      "name": "Cleveland Guardians",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/cle.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "6",
+      "name": "Detroit Tigers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "7",
+      "name": "Kansas City Royals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "8",
+      "name": "Milwaukee Brewers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "9",
+      "name": "Minnesota Twins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "10",
+      "name": "New York Yankees",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "11",
+      "name": "Athletics",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/ath.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "12",
+      "name": "Seattle Mariners",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "13",
+      "name": "Texas Rangers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "14",
+      "name": "Toronto Blue Jays",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "15",
+      "name": "Atlanta Braves",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "16",
+      "name": "Chicago Cubs",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/chc.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "17",
+      "name": "Cincinnati Reds",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/cin.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "18",
+      "name": "Houston Astros",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "19",
+      "name": "Los Angeles Dodgers",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "20",
+      "name": "Washington Nationals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "21",
+      "name": "New York Mets",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "22",
+      "name": "Philadelphia Phillies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "23",
+      "name": "Pittsburgh Pirates",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/pit.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "24",
+      "name": "St. Louis Cardinals",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/stl.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "25",
+      "name": "San Diego Padres",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/sd.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "26",
+      "name": "San Francisco Giants",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/sf.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "27",
+      "name": "Colorado Rockies",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "28",
+      "name": "Miami Marlins",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "29",
+      "name": "Arizona Diamondbacks",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/ari.png",
+      "leagueKey": "baseball/mlb"
+    },
+    {
+      "id": "30",
+      "name": "Tampa Bay Rays",
+      "sport": "Baseball",
+      "badgeUrl": "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png",
+      "leagueKey": "baseball/mlb"
     },
     {
       "id": "2",

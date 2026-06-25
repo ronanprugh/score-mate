@@ -57,7 +57,7 @@ Teach the type system, the ESPN sport-segment decoder, the league registry, the 
 - [x] 1.8 Update `lib/favorites/validators.test.ts`: move `"Baseball"` out of the `it.each([..., "Tennis"])("rejects %s")` set and into the `it.each(["Soccer", "American Football", "Basketball"])("accepts %s")` set. The validator itself (`lib/favorites/validators.ts`) needs no edit because its Zod schema is built from `SUPPORTED_SPORTS`.
 - [x] 1.9 Run `pnpm lint && pnpm typecheck && pnpm test:ci`. Commit using `feat(baseball): register Baseball sport, leagues, and allowlist` with body `Related to T1.0 in Spec 04-spec-tennis-and-baseball`.
 
-### [ ] 2.0 Catalog refresh + cache prefix bump + release note
+### [x] 2.0 Catalog refresh + cache prefix bump + release note
 
 Refresh the committed `lib/espn/catalog.json` so baseball teams appear in the favorites typeahead, bump the homepage cache prefix so existing cached planning results don't suppress baseball, and add a one-line README release note. Depends on T1.0 (the refresh script reads `SUPPORTED_LEAGUES`). Maps Spec Unit 2.
 
@@ -73,18 +73,18 @@ Refresh the committed `lib/espn/catalog.json` so baseball teams appear in the fa
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Execute `pnpm tsx scripts/refresh-espn-catalog.ts` to regenerate `lib/espn/catalog.json`. Confirm the per-league summary log shows `✓ baseball/mlb: 30 teams` and `✓ baseball/college-baseball: ~290 teams` (exact number recorded as-observed) with zero errors.
-- [ ] 2.2 Update `lib/espn/catalog.test.ts`:
+- [x] 2.1 Execute `pnpm tsx scripts/refresh-espn-catalog.ts` to regenerate `lib/espn/catalog.json`. Confirm the per-league summary log shows `✓ baseball/mlb: 30 teams` and `✓ baseball/college-baseball: ~290 teams` (exact number recorded as-observed) with zero errors.
+- [x] 2.2 Update `lib/espn/catalog.test.ts`:
   - Bump the team-count floor (currently ≥ 500) to ≥ 1900 to reflect the expanded catalog.
   - Change `expect(sports).toEqual(new Set(["American Football", "Basketball", "Soccer"]))` to include `"Baseball"`.
   - Bump the league count from 19 to 21.
   - Add at least one Baseball assertion: `searchCatalogTeams("yankees")` returns ≥ 1 team with `sport === "Baseball"` and `leagueKey === "baseball/mlb"`.
-- [ ] 2.3 Bump `CACHE_KEY_PREFIX` in `lib/home/cache.ts` from `"v5-espn-shortname"` to `"v6-espn-baseball"`. Update the doc-comment one-liner that explains the prefix rationale.
-- [ ] 2.4 Update the prefix assertion in `lib/home/cache.test.ts` to expect `"v6-espn-baseball"` with a one-line rationale comment referencing this spec.
-- [ ] 2.5 Append a one-line entry to `README.md` under **Operations → Release notes**: a 2026-MM-DD-prefixed line referencing Spec 04 and noting that Baseball (MLB + NCAA D-I) is now supported, with the cache-prefix bump as the deploy mechanism.
-- [ ] 2.6 Create `docs/specs/04-spec-tennis-and-baseball/04-proofs/04-catalog-counts.md` with per-league baseball team counts captured from T2.1's run.
-- [ ] 2.7 Write the breadth check: a small node one-liner against the committed `catalog.json` that asserts `yankees`, `dodgers`, `orioles` (plus `bombers` as a NCAA-side sanity check) each return ≥ 1 Baseball team; capture output to `04-proofs/04-breadth.txt`.
-- [ ] 2.8 Run the full CI gate suite locally: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`. Capture transcript to `04-proofs/04-ci-gates.txt`.
-- [ ] 2.9 Verify Success Metric §6: run `git diff --name-only main..HEAD` (after committing both T1 and T2) and confirm the output does NOT include `lib/home/aggregator.ts`, `app/api/home/route.ts`, `app/api/favorites/search/route.ts`, or any path under `components/`. Capture the file list to `04-proofs/04-touched-files.txt`.
-- [ ] 2.10 Write `04-proofs/README.md` indexing every artifact (CI transcript, catalog counts, breadth output, touched-files list) with a column mapping each to the spec FR or success metric it evidences.
-- [ ] 2.11 Commit using `feat(baseball): refresh ESPN catalog + bump cache prefix + release note` with body `Related to T2.0 in Spec 04-spec-tennis-and-baseball`.
+- [x] 2.3 Bump `CACHE_KEY_PREFIX` in `lib/home/cache.ts` from `"v5-espn-shortname"` to `"v6-espn-baseball"`. Update the doc-comment one-liner that explains the prefix rationale.
+- [x] 2.4 Update the prefix assertion in `lib/home/cache.test.ts` to expect `"v6-espn-baseball"` with a one-line rationale comment referencing this spec.
+- [x] 2.5 Append a one-line entry to `README.md` under **Operations → Release notes**: a 2026-MM-DD-prefixed line referencing Spec 04 and noting that Baseball (MLB + NCAA D-I) is now supported, with the cache-prefix bump as the deploy mechanism.
+- [x] 2.6 Create `docs/specs/04-spec-tennis-and-baseball/04-proofs/04-catalog-counts.md` with per-league baseball team counts captured from T2.1's run.
+- [x] 2.7 Write the breadth check: a small node one-liner against the committed `catalog.json` that asserts `yankees`, `dodgers`, `orioles` (plus `bombers` as a NCAA-side sanity check) each return ≥ 1 Baseball team; capture output to `04-proofs/04-breadth.txt`.
+- [x] 2.8 Run the full CI gate suite locally: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`. Capture transcript to `04-proofs/04-ci-gates.txt`.
+- [x] 2.9 Verify Success Metric §6: run `git diff --name-only main..HEAD` (after committing both T1 and T2) and confirm the output does NOT include `lib/home/aggregator.ts`, `app/api/home/route.ts`, `app/api/favorites/search/route.ts`, or any path under `components/`. Capture the file list to `04-proofs/04-touched-files.txt`.
+- [x] 2.10 Write `04-proofs/README.md` indexing every artifact (CI transcript, catalog counts, breadth output, touched-files list) with a column mapping each to the spec FR or success metric it evidences.
+- [x] 2.11 Commit using `feat(baseball): refresh ESPN catalog + bump cache prefix + release note` with body `Related to T2.0 in Spec 04-spec-tennis-and-baseball`.

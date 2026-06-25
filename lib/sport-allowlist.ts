@@ -76,7 +76,10 @@ export const SPORT_ALLOWLIST: Record<Sport, AllowlistEntry[]> = {
       leagueId: "baseball/college-baseball",
       label: "NCAA D-I Baseball",
     },
-    { leagueNameContains: "College World Series", label: "College World Series" },
+    {
+      leagueNameContains: "College World Series",
+      label: "College World Series",
+    },
   ],
 };
 

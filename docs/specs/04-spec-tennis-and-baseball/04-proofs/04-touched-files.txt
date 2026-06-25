@@ -1,0 +1,37 @@
+# Files touched by Spec 04 (commits T1.0 + T2.0 vs origin/main)
+#
+# Generated via:
+#   git diff --name-only origin/main..HEAD
+# combined with the working-tree changes staged for the T2.0 commit.
+#
+# Success Metric §6 forbids edits to:
+#   - lib/home/aggregator.ts
+#   - app/api/home/route.ts
+#   - app/api/favorites/search/route.ts
+#   - components/**
+# None of the paths below are in those forbidden sets. Verified clean.
+
+README.md
+docs/specs/04-spec-tennis-and-baseball/04-audit-tennis-and-baseball.md
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-breadth.txt
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-catalog-counts.md
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-ci-gates.txt
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-task-01-proofs.md
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-task-02-proofs.md
+docs/specs/04-spec-tennis-and-baseball/04-proofs/04-touched-files.txt
+docs/specs/04-spec-tennis-and-baseball/04-proofs/README.md
+docs/specs/04-spec-tennis-and-baseball/04-questions-1-tennis-and-baseball.md
+docs/specs/04-spec-tennis-and-baseball/04-spec-tennis-and-baseball.md
+docs/specs/04-spec-tennis-and-baseball/04-tasks-tennis-and-baseball.md
+lib/espn/catalog.json
+lib/espn/catalog.test.ts
+lib/espn/client.test.ts
+lib/espn/client.ts
+lib/espn/leagues.test.ts
+lib/espn/leagues.ts
+lib/favorites/validators.test.ts
+lib/home/cache.test.ts
+lib/home/cache.ts
+lib/sport-allowlist.test.ts
+lib/sport-allowlist.ts
+lib/sports/types.ts

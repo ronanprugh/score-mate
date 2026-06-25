@@ -15,8 +15,9 @@
  *     results are settled.
  *   - Default fallback — 300s.
  *
- * Cache-key prefix is `v3-espn` so the deploy invalidates the prior
- * `v2-utc` (TheSportsDB) keyspace.
+ * Cache-key prefix is bumped per major data-shape change so each deploy
+ * invalidates the prior keyspace. Current: `v6-espn-baseball` (Spec 04
+ * adds Baseball to the planning set).
  */
 
 import { unstable_cache } from "next/cache";
@@ -55,12 +56,11 @@ export function chooseRevalidate(callDate: string, dates: DateWindow): number {
   return REVALIDATE_DEFAULT_SECONDS;
 }
 
-export const CACHE_KEY_PREFIX = "v5-espn-shortname";
+export const CACHE_KEY_PREFIX = "v6-espn-baseball";
 
 /**
  * Wraps `scoreboardForLeague` in `unstable_cache` with a per-(leagueKey,
- * date) key and a TTL chosen by `chooseRevalidate`. The cache key bumps
- * to `v3-espn` so the deploy invalidates the prior `v2-utc` keyspace.
+ * date) key and a TTL chosen by `chooseRevalidate`.
  */
 function cachedScoreboard(
   leagueKey: string,

@@ -1,0 +1,44 @@
+=== pnpm lint ===
+$ eslint
+
+=== pnpm format:check ===
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+
+=== pnpm typecheck ===
+$ tsc --noEmit
+
+=== pnpm test:ci ===
+        ************************************************************
+
+ ✓ app/page.test.tsx (2 tests) 60ms
+ ✓ db/smoke.test.ts (1 test) 150ms
+
+ Test Files  29 passed (29)
+      Tests  249 passed (249)
+   Start at  21:36:19
+   Duration  4.25s (transform 759ms, setup 1.90s, collect 2.56s, tests 2.54s, environment 10.97s, prepare 1.77s)
+
+
+=== pnpm build ===
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/favorites
+├ ƒ /api/favorites/[id]
+├ ƒ /api/favorites/search
+├ ƒ /api/home
+├ ƒ /auth/error
+├ ○ /check-email
+├ ƒ /favorites
+├ ƒ /home
+├ ƒ /my-favorites
+└ ○ /signin
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

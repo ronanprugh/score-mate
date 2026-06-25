@@ -7,24 +7,24 @@ import {
 } from "./catalog";
 
 describe("ESPN catalog shape", () => {
-  it("ships ≥ 500 teams across the supported leagues", () => {
-    expect(ALL_CATALOG_TEAMS.length).toBeGreaterThanOrEqual(500);
+  it("ships ≥ 1900 teams across the supported leagues", () => {
+    expect(ALL_CATALOG_TEAMS.length).toBeGreaterThanOrEqual(1900);
   });
 
-  it("only contains the three v1 sports (no Tennis, no Hockey)", () => {
+  it("contains the four v1 sports (no Tennis, no Hockey)", () => {
     const sports = new Set(ALL_CATALOG_TEAMS.map((t) => t.sport));
     expect(sports).toEqual(
-      new Set(["American Football", "Basketball", "Soccer"]),
+      new Set(["American Football", "Baseball", "Basketball", "Soccer"]),
     );
   });
 
-  it("league count matches the v1 registry (2 + 3 + 14 = 19)", () => {
-    expect(ALL_CATALOG_LEAGUES).toHaveLength(19);
+  it("league count matches the v1 registry (2 + 3 + 14 + 2 = 21)", () => {
+    expect(ALL_CATALOG_LEAGUES).toHaveLength(21);
   });
 
   it("every team carries a leagueKey using the {sport}/{league} ESPN shape", () => {
     for (const t of ALL_CATALOG_TEAMS) {
-      expect(t.leagueKey).toMatch(/^(football|basketball|soccer)\//);
+      expect(t.leagueKey).toMatch(/^(football|basketball|baseball|soccer)\//);
     }
   });
 });
@@ -59,6 +59,15 @@ describe("searchCatalogTeams — substring and sport filter", () => {
       hits.some(
         (t) =>
           t.name === "Kansas City Chiefs" && t.leagueKey === "football/nfl",
+      ),
+    ).toBe(true);
+  });
+
+  it("'yankees' finds a Baseball team in baseball/mlb", () => {
+    const hits = searchCatalogTeams("yankees");
+    expect(
+      hits.some(
+        (t) => t.sport === "Baseball" && t.leagueKey === "baseball/mlb",
       ),
     ).toBe(true);
   });

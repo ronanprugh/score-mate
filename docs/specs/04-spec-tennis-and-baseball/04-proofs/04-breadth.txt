@@ -1,0 +1,4 @@
+yankees     : 1 Baseball hit(s) — e.g. New York Yankees (baseball/mlb)
+dodgers     : 1 Baseball hit(s) — e.g. Los Angeles Dodgers (baseball/mlb)
+orioles     : 1 Baseball hit(s) — e.g. Baltimore Orioles (baseball/mlb)
+razorbacks  : 1 Baseball hit(s) — e.g. Arkansas Razorbacks (baseball/college-baseball)

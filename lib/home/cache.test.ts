@@ -67,7 +67,9 @@ describe("chooseRevalidate", () => {
 });
 
 describe("CACHE_KEY_PREFIX", () => {
-  it("is v5-espn-shortname (bumped so cached Match objects get re-parsed with team short names)", () => {
-    expect(CACHE_KEY_PREFIX).toBe("v5-espn-shortname");
+  // Spec 04: bumped from v5-espn-shortname → v6-espn-baseball so the deploy
+  // invalidates cached planning results that pre-date Baseball support.
+  it("is v6-espn-baseball", () => {
+    expect(CACHE_KEY_PREFIX).toBe("v6-espn-baseball");
   });
 });
