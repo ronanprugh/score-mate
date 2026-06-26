@@ -1,0 +1,302 @@
+=== CI GATE TRANSCRIPT — Spec 06: Tennis day-feed ===
+Date: Fri Jun 26 13:35:41 EDT 2026
+
+=== pnpm lint ===
+$ eslint
+
+/Users/rprugh/repos/score-mate/lib/espn/tennis.test.ts
+  93:9  warning  'buildLs' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/rprugh/repos/score-mate/scripts/verify-tennis-endpoints.ts
+  47:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 2 problems (0 errors, 2 warnings)
+
+lint EXIT 0
+
+=== pnpm format:check ===
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+format:check EXIT 0
+
+=== pnpm typecheck ===
+$ tsc --noEmit
+typecheck EXIT 0
+
+=== pnpm test:ci ===
+$ vitest run
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/rprugh/repos/score-mate
+
+stdout | app/api/favorites/search/route.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+stdout | lib/home/aggregator.test.ts
+◇ injected env (7) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+
+stdout | components/home-client.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+stdout | lib/espn/tennis.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+stdout | app/api/favorites/route.test.ts
+◇ injected env (7) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+
+stdout | lib/espn/client.test.ts
+◇ injected env (7) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+stdout | lib/favorite-matcher.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+ ✓ lib/favorite-matcher.test.ts (12 tests) 3ms
+ ✓ lib/espn/client.test.ts (27 tests) 11ms
+ ✓ lib/home/aggregator.test.ts (20 tests) 40ms
+ ✓ lib/espn/tennis.test.ts (20 tests) 60ms
+ ✓ app/api/favorites/route.test.ts (9 tests) 25ms
+ ✓ app/api/favorites/search/route.test.ts (22 tests) 27ms
+ ✓ components/home-client.test.tsx (16 tests) 209ms
+stdout | lib/home/tennis-aggregator.test.ts
+◇ injected env (7) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+stdout | components/tennis-match-card.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+
+ ✓ lib/home/tennis-aggregator.test.ts (6 tests) 3ms
+stdout | components/match-card.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+stdout | components/tournament-card.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+stdout | lib/sport-allowlist.test.ts
+◇ injected env (7) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+ ✓ lib/sport-allowlist.test.ts (14 tests) 6ms
+ ✓ components/tennis-match-card.test.tsx (9 tests) 78ms
+stdout | app/api/home/route.test.ts
+◇ injected env (7) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+ ✓ app/api/home/route.test.ts (6 tests) 21ms
+ ✓ components/match-card.test.tsx (9 tests) 78ms
+ ✓ components/tournament-card.test.tsx (7 tests) 137ms
+stdout | lib/events-catalog.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ ✓ lib/events-catalog.test.ts (11 tests) 3ms
+stdout | lib/espn/catalog.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ ✓ lib/espn/catalog.test.ts (17 tests) 62ms
+stdout | components/favorites-search.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+stdout | app/(app)/my-favorites/page.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+stdout | app/api/favorites/[id]/route.test.ts
+◇ injected env (7) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+stdout | lib/favorites/validators.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+ ✓ lib/favorites/validators.test.ts (30 tests) 6ms
+ ✓ app/api/favorites/[id]/route.test.ts (4 tests) 6ms
+stdout | app/(auth)/signin/page.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+stdout | lib/home/cache.test.ts
+◇ injected env (7) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ ✓ app/(app)/my-favorites/page.test.tsx (4 tests) 67ms
+ ✓ lib/home/cache.test.ts (10 tests) 3ms
+ ✓ app/(auth)/signin/page.test.tsx (5 tests) 154ms
+stderr | components/favorites-search.test.tsx > FavoritesSearch > does not search until at least 2 characters are entered
+An update to FavoritesSearch inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FavoritesSearch inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FavoritesSearch inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stdout | lib/espn/leagues.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ ✓ lib/espn/leagues.test.ts (11 tests) 4ms
+stdout | app/(app)/favorites/page.test.tsx
+◇ injected env (7) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+stdout | components/favorite-add-button.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+stdout | lib/rate-limit.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ ✓ lib/rate-limit.test.ts (5 tests) 3ms
+ ✓ app/(app)/favorites/page.test.tsx (4 tests) 50ms
+stdout | components/bottom-nav.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+ ✓ components/favorite-add-button.test.tsx (5 tests) 99ms
+stdout | app/(app)/home/page.test.tsx
+◇ injected env (7) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+
+ ✓ components/bottom-nav.test.tsx (5 tests) 70ms
+stdout | lib/date-window.test.ts
+◇ injected env (7) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+ ✓ app/(app)/home/page.test.tsx (4 tests) 29ms
+ ✓ lib/date-window.test.ts (6 tests) 21ms
+stdout | app/auth/error/page.test.tsx
+◇ injected env (7) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+ ✓ components/favorites-search.test.tsx (3 tests) 1102ms
+   ✓ FavoritesSearch > does not search until at least 2 characters are entered 427ms
+   ✓ FavoritesSearch > renders one type-labeled row per result with an Add CTA 349ms
+   ✓ FavoritesSearch > renders a row that's already in initialFavorites as 'Added' (disabled) 324ms
+stdout | lib/auth/auth.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+stdout | lib/env.test.ts
+◇ injected env (7) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+
+ ✓ lib/auth/auth.test.ts (4 tests) 2ms
+ ✓ app/auth/error/page.test.tsx (5 tests) 71ms
+ ✓ lib/env.test.ts (4 tests) 4ms
+stdout | app/page.test.tsx
+◇ injected env (7) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+stdout | db/smoke.test.ts
+◇ injected env (7) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+stderr | db/smoke.test.ts > db smoke > connects and executes SELECT 1
+          
+        ************************************************************
+        *                                                          *
+        *  WARNING: Running SQL directly from the browser can have *
+        *  security implications. Even if your database is         *
+        *  protected by Row-Level Security (RLS), use it at your   *
+        *  own risk. This approach is great for fast prototyping,  *
+        *  but ensure proper safeguards are in place to prevent    *
+        *  misuse or execution of expensive SQL queries by your    *
+        *  end users.                                              *
+        *                                                          *
+        *  If you've assessed the risks, suppress this message     *
+        *  using the disableWarningInBrowsers configuration        *
+        *  parameter.                                              *
+        *                                                          *
+        ************************************************************
+
+ ✓ app/page.test.tsx (2 tests) 46ms
+ ✓ db/smoke.test.ts (1 test) 139ms
+
+ Test Files  33 passed (33)
+      Tests  317 passed (317)
+   Start at  13:35:47
+   Duration  3.91s (transform 751ms, setup 1.71s, collect 2.39s, tests 2.64s, environment 9.59s, prepare 1.59s)
+
+test:ci EXIT 0
+
+=== pnpm build ===
+$ next build
+▲ Next.js 16.2.9 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 1878ms
+  Running TypeScript ...
+  Finished TypeScript in 2.1s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/15) ...
+  Generating static pages using 7 workers (3/15) 
+  Generating static pages using 7 workers (7/15) 
+  Generating static pages using 7 workers (11/15) 
+✓ Generating static pages using 7 workers (15/15) in 165ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/favorites
+├ ƒ /api/favorites/[id]
+├ ƒ /api/favorites/search
+├ ƒ /api/home
+├ ƒ /auth/error
+├ ○ /check-email
+├ ○ /dev-fixture/tennis-day
+├ ○ /dev-fixture/tennis-search
+├ ƒ /favorites
+├ ƒ /home
+├ ƒ /my-favorites
+└ ○ /signin
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+build EXIT 0
+
+=== ALL GATES PASSED ===

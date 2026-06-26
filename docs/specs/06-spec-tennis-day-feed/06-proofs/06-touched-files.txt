@@ -1,0 +1,51 @@
+== Spec 06 — Touched-Files Verification ==
+Command: git diff --name-only c5595e0..HEAD
+(c5595e0 = the last Spec 05 commit, i.e. the pre-Spec-06 baseline.)
+
+Success Metric §5: no regressions to team sports. The team-sport fetch/render
+path must be unchanged; only tennis/home-feed files and tests change.
+
+== Changed files (categorized) ==
+
+-- Spec 06 data layer --
+lib/home/aggregator.ts          per-day TennisByDay + tz threading (tennis fetcher only)
+lib/home/tennis-aggregator.ts   event-span date range + real-round currentRound + result shape
+lib/espn/tennis.ts              tz-aware local-date bucketing + event span (TennisScoreboardResult)
+lib/home/cache.ts               tz-keyed cachedActiveTennisTournaments (tennis cache only)
+
+-- Spec 06 UI --
+components/home-client.tsx       render tennis cards on all 3 tabs; counts + empty-state include tennis
+components/tournament-card.tsx   defaultOpen prop (fixtures); displays real round + event date range
+
+-- Spec 06 tests --
+lib/home/aggregator.test.ts
+lib/home/tennis-aggregator.test.ts
+lib/espn/tennis.test.ts
+lib/home/cache.test.ts
+components/home-client.test.tsx
+components/tournament-card.test.tsx
+app/api/home/route.test.ts
+
+-- Spec 06 fixture + proof bundle --
+app/dev-fixture/tennis-day/page.tsx          dev-only screenshot fixture (not linked in nav)
+docs/specs/06-spec-tennis-day-feed/...        spec, tasks, audit, proofs, screenshot
+
+-- Carried over from Spec 05 (uncommitted follow-ons, folded into T1.0 for a green build) --
+components/tennis-match-card.tsx              redesigned tennis match card (Spec 05 work)
+components/tennis-match-card.test.tsx
+lib/home/sort-helpers.ts                      client-safe sort helpers (Spec 05 bundle fix)
+lib/sports/types.ts                           TennisMatchDetail types (Spec 05 redesign)
+docs/specs/05-spec-tennis/05-validation-tennis.md   Spec 05 validation report
+
+== Team-sport path: UNCHANGED (verified) ==
+- lib/espn/client.ts (scoreboardForLeague)         NOT in diff → byte-unchanged
+- components/match-card.tsx (team-sport MatchCard)  NOT in diff → byte-unchanged
+- eventsLeagueDay / cachedScoreboard / league fan-out (cache.ts, aggregator.ts):
+  no +/- edits to those identifiers; the league fetch path is untouched. The only
+  shared-type change is additive (`tz` added to the tennis fetcher signature).
+- No edits to: app/api/auth/, db/schema/, components/bottom-nav.tsx,
+  app/api/favorites/, or any other route handler.
+
+== §5 Verdict ==
+PASS. All changes are within the tennis/home-feed file set (plus carried-over Spec 05
+tennis redesign). The team-sport fetch and render paths are unchanged.

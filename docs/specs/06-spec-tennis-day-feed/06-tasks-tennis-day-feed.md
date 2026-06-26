@@ -96,7 +96,7 @@ Maps Spec Unit 3. Render one `TournamentCard` per in-session tournament on all t
 - [x] 3.6 Capture `docs/specs/06-spec-tennis-day-feed/06-proofs/06-yesterday-tennis.png` — the Yesterday tab with an expanded tournament card showing that day's matches (devtools/fixture render acceptable if no live tournament is in session; redact any account email).
 - [x] 3.7 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(tennis): render tournament cards on all day tabs` with body `Related to T3.0 in Spec 06-spec-tennis-day-feed`.
 
-### [ ] 4.0 Full CI gate verification + proof bundle
+### [x] 4.0 Full CI gate verification + proof bundle
 
 Maps Spec Success Metrics §4–§5. Run the complete CI gate suite, capture the transcript, verify no out-of-scope or team-sport regressions, and assemble the proof bundle. Commits with body `Related to T4.0 in Spec 06-spec-tennis-day-feed`.
 
@@ -109,7 +109,7 @@ Maps Spec Success Metrics §4–§5. Run the complete CI gate suite, capture the
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`; capture the full transcript to `docs/specs/06-spec-tennis-day-feed/06-proofs/06-ci-gates.txt`.
-- [ ] 4.2 Run `git diff --name-only` (vs the pre-spec baseline) and write `docs/specs/06-spec-tennis-day-feed/06-proofs/06-touched-files.txt` with a header note confirming changes stay within the tennis/home-feed file set. Explicitly verify the team-sport path is unchanged: `git diff` shows no behavioral edits to `eventsLeagueDay`, the league fan-out, or `MatchCard`/league-grouping rendering — only additive tennis/`tz` threading.
-- [ ] 4.3 Write `docs/specs/06-spec-tennis-day-feed/06-proofs/README.md` indexing every artifact with a column mapping each to the FR or success metric it evidences; add task proof markdowns (`06-task-01-proofs.md` … `06-task-03-proofs.md`) with the recommended structure and the inlined screenshot.
-- [ ] 4.4 Commit `docs(tennis): proof bundle for Spec 06` with body `Related to T4.0 in Spec 06-spec-tennis-day-feed`.
+- [x] 4.1 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`; capture the full transcript to `docs/specs/06-spec-tennis-day-feed/06-proofs/06-ci-gates.txt`.
+- [x] 4.2 Run `git diff --name-only` (vs the pre-spec baseline) and write `docs/specs/06-spec-tennis-day-feed/06-proofs/06-touched-files.txt` with a header note confirming changes stay within the tennis/home-feed file set. Explicitly verify the team-sport path is unchanged: `git diff` shows no behavioral edits to `eventsLeagueDay`, the league fan-out, or `MatchCard`/league-grouping rendering — only additive tennis/`tz` threading.
+- [x] 4.3 Write `docs/specs/06-spec-tennis-day-feed/06-proofs/README.md` indexing every artifact with a column mapping each to the FR or success metric it evidences; add task proof markdowns (`06-task-01-proofs.md` … `06-task-03-proofs.md`) with the recommended structure and the inlined screenshot.
+- [x] 4.4 Commit `docs(tennis): proof bundle for Spec 06` with body `Related to T4.0 in Spec 06-spec-tennis-day-feed`.
