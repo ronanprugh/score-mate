@@ -7,10 +7,13 @@ import {
   type DateWindow,
 } from "@/lib/date-window";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
+import { sortKeyForTournamentCard } from "@/lib/home/aggregator";
+import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
 import type { Match } from "@/lib/sports/types";
 import { DataSourceErrorBanner } from "./data-source-error-banner";
 import { MatchCard } from "./match-card";
 import { NoMatchesEmptyState } from "./no-matches-empty-state";
+import { TournamentCard } from "./tournament-card";
 
 interface Props {
   /** True when the signed-in user has ≥1 favorite. Drives the empty-state copy. */
@@ -201,6 +204,7 @@ export function HomeClient({ hasFavorites }: Props) {
             day={activeDay}
             dateLabel={activeDate}
             matches={activeMatches}
+            activeTennisTournaments={envelope.activeTennisTournaments}
           />
         </>
       )}
@@ -255,13 +259,70 @@ function DayTabs({ active, onChange, counts, window }: DayTabsProps) {
   );
 }
 
+type TodayItem =
+  | { kind: "match"; m: Match }
+  | { kind: "tournament"; t: ActiveTournament };
+
 interface DayPanelProps {
   day: DayKey;
   dateLabel: string;
   matches: Match[];
+  activeTennisTournaments?: ActiveTournament[];
 }
 
-function DayPanel({ day, dateLabel, matches }: DayPanelProps) {
+function DayPanel({
+  day,
+  dateLabel,
+  matches,
+  activeTennisTournaments = [],
+}: DayPanelProps) {
+  // Today uses a unified flat sorted feed mixing matches and tournament cards.
+  if (day === "today") {
+    const items: TodayItem[] = [
+      ...matches.map((m): TodayItem => ({ kind: "match", m })),
+      ...activeTennisTournaments.map(
+        (t): TodayItem => ({ kind: "tournament", t }),
+      ),
+    ];
+    items.sort((a, b) => {
+      const ak =
+        a.kind === "match"
+          ? (a.m.kickoffUtc ?? LATE_KICKOFF_SENTINEL)
+          : sortKeyForTournamentCard(a.t);
+      const bk =
+        b.kind === "match"
+          ? (b.m.kickoffUtc ?? LATE_KICKOFF_SENTINEL)
+          : sortKeyForTournamentCard(b.t);
+      return ak.localeCompare(bk);
+    });
+    return (
+      <section
+        role="tabpanel"
+        id="day-panel-today"
+        aria-labelledby="day-tab-today"
+        data-testid="day-panel-today"
+        aria-label={`Today — ${dateLabel}`}
+        className="flex flex-col gap-4"
+      >
+        {items.length === 0 ? (
+          <p className="py-6 text-center text-sm text-zinc-500">
+            No matches for today.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {items.map((item) =>
+              item.kind === "match" ? (
+                <MatchCard key={item.m.id} match={item.m} />
+              ) : (
+                <TournamentCard key={item.t.id} tournament={item.t} />
+              ),
+            )}
+          </div>
+        )}
+      </section>
+    );
+  }
+
   const groups = groupMatchesByLeague(matches);
   return (
     <section

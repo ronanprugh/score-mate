@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react";
 import type { Match } from "@/lib/sports/types";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
+import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
 
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock as unknown as typeof fetch;
@@ -92,35 +93,43 @@ describe("HomeClient (static cases)", () => {
     expect(screen.queryByText("M-home")).not.toBeInTheDocument();
   });
 
-  it("groups matches within a tab by leagueName with a heading per group", async () => {
+  it("groups matches by leagueName on the yesterday/tomorrow tabs", async () => {
     mockJson(
       envelope({
-        today: [
+        yesterday: [
           makeMatch({
             id: "epl-1",
             homeTeamName: "Arsenal",
             leagueId: "4328",
             leagueName: "English Premier League",
-            kickoffUtc: "2026-06-24T15:00:00Z",
+            kickoffUtc: "2026-06-23T15:00:00Z",
+            dateUtc: "2026-06-23",
           }),
           makeMatch({
             id: "epl-2",
             homeTeamName: "Chelsea",
             leagueId: "4328",
             leagueName: "English Premier League",
-            kickoffUtc: "2026-06-24T17:30:00Z",
+            kickoffUtc: "2026-06-23T17:30:00Z",
+            dateUtc: "2026-06-23",
           }),
           makeMatch({
             id: "wc-1",
             homeTeamName: "USA",
             leagueId: "4429",
             leagueName: "FIFA World Cup",
-            kickoffUtc: "2026-06-24T20:00:00Z",
+            kickoffUtc: "2026-06-23T20:00:00Z",
+            dateUtc: "2026-06-23",
           }),
         ],
       }),
     );
     render(<HomeClient hasFavorites={true} />);
+    // Switch to yesterday tab
+    await waitFor(() =>
+      expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByTestId("day-tab-yesterday"));
     await waitFor(() =>
       expect(
         screen.getByTestId("league-group-English Premier League"),
@@ -129,9 +138,6 @@ describe("HomeClient (static cases)", () => {
     expect(
       screen.getByTestId("league-group-FIFA World Cup"),
     ).toBeInTheDocument();
-    // EPL group comes first (earlier kickoff in group). Each group is a
-    // collapsible <details> with a <summary> showing the league name and
-    // a match count.
     const summaries = screen.getAllByText(/Premier League|World Cup/);
     const groupNames = summaries
       .filter((el) => el.tagName === "SPAN" && el.closest("summary"))
@@ -202,6 +208,93 @@ describe("HomeClient (static cases)", () => {
     expect(screen.getByTestId("data-source-error-banner")).toHaveTextContent(
       /2 requests failed/i,
     );
+  });
+
+  function makeTournament(
+    overrides: Partial<ActiveTournament> = {},
+  ): ActiveTournament {
+    return {
+      id: "tennis/slam/wimbledon",
+      displayName: "Wimbledon",
+      tour: "Slam",
+      startDate: "2026-06-24",
+      endDate: "2026-07-13",
+      currentRound: "Quarterfinals",
+      liveCount: 1,
+      upcomingCount: 2,
+      doneCount: 0,
+      matches: [],
+      ...overrides,
+    };
+  }
+
+  it("(T3.8a) tournament card renders between two matches at its sort-key slot", async () => {
+    // match-early kicks off at 18:00, tournament has live match at 19:30,
+    // match-late kicks off at 21:00 → order should be early, tournament, late
+    mockJson(
+      envelope({
+        today: [
+          makeMatch({
+            id: "early",
+            kickoffUtc: "2026-06-24T18:00:00Z",
+          }),
+          makeMatch({
+            id: "late",
+            kickoffUtc: "2026-06-24T21:00:00Z",
+          }),
+        ],
+        activeTennisTournaments: [
+          makeTournament({
+            matches: [
+              makeMatch({
+                id: "tennis-live",
+                sport: "Tennis",
+                leagueId: "tennis/slam/wimbledon",
+                leagueName: "Wimbledon",
+                status: "live",
+                kickoffUtc: "2026-06-24T19:30:00Z",
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-card")).toBeInTheDocument(),
+    );
+
+    const panel = screen.getByTestId("day-panel-today");
+    const matchCards = panel.querySelectorAll('[data-testid="match-card"]');
+    const tournamentCards = panel.querySelectorAll(
+      '[data-testid="tournament-card"]',
+    );
+    expect(matchCards).toHaveLength(2);
+    expect(tournamentCards).toHaveLength(1);
+
+    // Verify DOM order: early match → tournament → late match
+    const allCards = panel.querySelectorAll(
+      '[data-testid="match-card"], [data-testid="tournament-card"]',
+    );
+    expect(allCards[0]?.getAttribute("data-testid")).toBe("match-card");
+    expect(allCards[1]?.getAttribute("data-testid")).toBe("tournament-card");
+    expect(allCards[2]?.getAttribute("data-testid")).toBe("match-card");
+  });
+
+  it("(T3.8b) when activeTennisTournaments is [], no TournamentCard is rendered", async () => {
+    mockJson(
+      envelope({
+        today: [makeMatch({ id: "t" })],
+        activeTennisTournaments: [],
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("tournament-card")).not.toBeInTheDocument();
   });
 });
 

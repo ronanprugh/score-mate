@@ -27,6 +27,8 @@ interface TeamSideProps {
    * "neutral" → no result distinction (live / upcoming / tie).
    */
   outcome: "winner" | "loser" | "neutral";
+  /** When true: no logo/placeholder rendered; full name unsplit (tennis players). */
+  isPlayerVsPlayer?: boolean;
 }
 
 /**
@@ -55,10 +57,20 @@ function splitTeamName(
   return [prefix, shortName];
 }
 
-function TeamSide({ name, shortName, logo, align, outcome }: TeamSideProps) {
+function TeamSide({
+  name,
+  shortName,
+  logo,
+  align,
+  outcome,
+  isPlayerVsPlayer = false,
+}: TeamSideProps) {
   const isRight = align === "right";
   const dim = outcome === "loser";
-  const [prefix, mascot] = splitTeamName(name, shortName);
+  // Tennis players: render full name without prefix/mascot split.
+  const [prefix, mascot] = isPlayerVsPlayer
+    ? [null, name]
+    : splitTeamName(name, shortName);
 
   const nameBlock = (
     <div
@@ -92,7 +104,8 @@ function TeamSide({ name, shortName, logo, align, outcome }: TeamSideProps) {
     </div>
   );
 
-  const logoBlock = logo ? (
+  // Tennis (player-vs-player): no logo or placeholder rendered.
+  const logoBlock = isPlayerVsPlayer ? null : logo ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={logo}
@@ -151,6 +164,8 @@ export function MatchCard({ match }: Props) {
     kickoffUtc,
   } = match;
 
+  const isPlayerVsPlayer = !homeTeamLogo && !awayTeamLogo;
+
   const hasScores =
     (status === "live" || status === "final") &&
     typeof homeScore === "number" &&
@@ -192,6 +207,7 @@ export function MatchCard({ match }: Props) {
           logo={homeTeamLogo}
           align="right"
           outcome={homeOutcome}
+          isPlayerVsPlayer={isPlayerVsPlayer}
         />
         <span
           data-testid="match-center"
@@ -251,6 +267,7 @@ export function MatchCard({ match }: Props) {
           logo={awayTeamLogo}
           align="left"
           outcome={awayOutcome}
+          isPlayerVsPlayer={isPlayerVsPlayer}
         />
       </div>
 

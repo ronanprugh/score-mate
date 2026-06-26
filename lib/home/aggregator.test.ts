@@ -16,6 +16,7 @@ import {
   aggregateMatchesForUser,
   buildHomeEnvelope,
   planLeagueKeys,
+  sortKeyForTournamentCard,
   type EventsLeagueDayFetcher,
   type Fetchers,
 } from "./aggregator";
@@ -407,5 +408,77 @@ describe("buildHomeEnvelope (pure)", () => {
       "with-time",
       "no-time",
     ]);
+  });
+});
+
+describe("sortKeyForTournamentCard", () => {
+  function tennisMatch(
+    id: string,
+    status: "live" | "upcoming" | "final",
+    kickoffUtc: string | null,
+  ): ActiveTournament["matches"][number] {
+    return match({
+      id,
+      sport: "Tennis",
+      leagueId: "tennis/slam/wimbledon",
+      leagueName: "Wimbledon",
+      status,
+      kickoffUtc,
+    });
+  }
+
+  it("returns earliest live/upcoming kickoffUtc as the sort key", () => {
+    const t: ActiveTournament = {
+      id: "tennis/slam/wimbledon",
+      displayName: "Wimbledon",
+      tour: "Slam",
+      startDate: DATES.today,
+      endDate: DATES.today,
+      currentRound: "QF",
+      liveCount: 1,
+      upcomingCount: 1,
+      doneCount: 1,
+      matches: [
+        tennisMatch("m1", "final", `${DATES.today}T10:00:00Z`),
+        tennisMatch("m2", "live", `${DATES.today}T14:00:00Z`),
+        tennisMatch("m3", "upcoming", `${DATES.today}T12:00:00Z`),
+      ],
+    };
+    expect(sortKeyForTournamentCard(t)).toBe(`${DATES.today}T12:00:00Z`);
+  });
+
+  it("falls back to sentinel when no live/upcoming matches — sorts below all match cards", () => {
+    const t: ActiveTournament = {
+      id: "tennis/slam/us-open",
+      displayName: "US Open",
+      tour: "Slam",
+      startDate: DATES.today,
+      endDate: DATES.today,
+      currentRound: "Final",
+      liveCount: 0,
+      upcomingCount: 0,
+      doneCount: 3,
+      matches: [
+        tennisMatch("f1", "final", `${DATES.today}T18:00:00Z`),
+        tennisMatch("f2", "final", `${DATES.today}T20:00:00Z`),
+      ],
+    };
+    expect(sortKeyForTournamentCard(t)).toBe("9999-12-31T23:59:59");
+  });
+
+  it("treats null kickoffUtc on a live/upcoming match as the sentinel", () => {
+    const t: ActiveTournament = {
+      id: "tennis/atp/miami",
+      displayName: "Miami Open",
+      tour: "ATP",
+      startDate: DATES.today,
+      endDate: DATES.today,
+      currentRound: "R32",
+      liveCount: 0,
+      upcomingCount: 1,
+      doneCount: 0,
+      matches: [tennisMatch("u1", "upcoming", null)],
+    };
+    expect(sortKeyForTournamentCard(t)).toBe("9999-12-31T23:59:59");
   });
 });

@@ -79,4 +79,49 @@ describe("MatchCard", () => {
     const card = screen.getByTestId("match-card");
     expect(card.className).toMatch(/\bmin-h-\d+\b/);
   });
+
+  describe("player-vs-player (tennis)", () => {
+    const tennisMatch = {
+      ...base,
+      sport: "Tennis" as const,
+      homeTeamName: "Carlos Alcaraz",
+      homeTeamShortName: undefined,
+      homeTeamLogo: undefined,
+      awayTeamName: "Jannik Sinner",
+      awayTeamShortName: undefined,
+      awayTeamLogo: undefined,
+      status: "live" as const,
+      homeScore: 2,
+      awayScore: 1,
+    };
+
+    it("renders both full player names verbatim in the DOM", () => {
+      render(<MatchCard match={tennisMatch} />);
+      expect(screen.getByText("Carlos Alcaraz")).toBeInTheDocument();
+      expect(screen.getByText("Jannik Sinner")).toBeInTheDocument();
+    });
+
+    it("renders no logo placeholder (bg-zinc-100) when both logos are absent", () => {
+      const { container } = render(<MatchCard match={tennisMatch} />);
+      const placeholders = container.querySelectorAll(".bg-zinc-100");
+      expect(placeholders).toHaveLength(0);
+    });
+
+    it("renders no prefix span (text-xs city/org prefix) for player names", () => {
+      const { container } = render(<MatchCard match={tennisMatch} />);
+      // prefix spans carry `text-xs`; with player-vs-player there should be none
+      // inside the team-side name block (the only text-xs elements are in the footer)
+      const nameBlocks = container.querySelectorAll("[title]");
+      for (const block of nameBlocks) {
+        const prefixSpans = block.querySelectorAll(".text-xs");
+        expect(prefixSpans).toHaveLength(0);
+      }
+    });
+
+    it("score column works the same as team sports", () => {
+      render(<MatchCard match={tennisMatch} />);
+      expect(screen.getByTestId("home-score")).toHaveTextContent("2");
+      expect(screen.getByTestId("away-score")).toHaveTextContent("1");
+    });
+  });
 });
