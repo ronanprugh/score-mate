@@ -16,15 +16,23 @@
  *   - Default fallback — 300s.
  *
  * Cache-key prefix is bumped per major data-shape change so each deploy
- * invalidates the prior keyspace. Current: `v6-espn-baseball` (Spec 04
- * adds Baseball to the planning set).
+ * invalidates the prior keyspace. Current: `v7-espn-tennis` (Spec 05
+ * adds Tennis + activeTennisTournaments to the aggregator output).
  */
 
 import { unstable_cache } from "next/cache";
 import { scoreboardForLeague } from "@/lib/espn/client";
+import { tennisScoreboard } from "@/lib/espn/tennis";
 import type { DateWindow } from "@/lib/date-window";
 import type { EventsLeagueDayFetcher, Fetchers } from "./aggregator";
 import type { Match } from "@/lib/sports/types";
+import {
+  getActiveTennisTournaments,
+  type ActiveTournament,
+  type TennisScoreboardFetcher,
+} from "./tennis-aggregator";
+
+export type { ActiveTournament, TennisScoreboardFetcher };
 
 export const REVALIDATE_TODAY_SECONDS = 30;
 export const REVALIDATE_YESTERDAY_SECONDS = 3600;
@@ -56,7 +64,7 @@ export function chooseRevalidate(callDate: string, dates: DateWindow): number {
   return REVALIDATE_DEFAULT_SECONDS;
 }
 
-export const CACHE_KEY_PREFIX = "v6-espn-baseball";
+export const CACHE_KEY_PREFIX = "v7-espn-tennis";
 
 /**
  * Wraps `scoreboardForLeague` in `unstable_cache` with a per-(leagueKey,
@@ -77,6 +85,22 @@ function cachedScoreboard(
 }
 
 /**
+ * Wraps `getActiveTennisTournaments` in `unstable_cache` with a 1-hour TTL.
+ * The fetcher passed to the inner call is the live `tennisScoreboard`.
+ */
+export function cachedActiveTennisTournaments(
+  today: string,
+): Promise<ActiveTournament[]> {
+  const wrapped = unstable_cache(
+    async (d: string): Promise<ActiveTournament[]> =>
+      getActiveTennisTournaments(d, (id, date) => tennisScoreboard(id, date)),
+    [CACHE_KEY_PREFIX, "tennis-active", today],
+    { revalidate: 3600 },
+  );
+  return wrapped(today);
+}
+
+/**
  * Returns the cache-wrapped fetcher the aggregator expects. The `dates`
  * argument lets the cache choose the right TTL per call without the
  * aggregator having to know about bucket semantics.
@@ -85,6 +109,7 @@ export function makeCachedFetchers(dates: DateWindow): Fetchers {
   return {
     eventsLeagueDay: (leagueKey, date) =>
       cachedScoreboard(leagueKey, date, dates),
+    activeTennisTournaments: (today) => cachedActiveTennisTournaments(today),
   };
 }
 

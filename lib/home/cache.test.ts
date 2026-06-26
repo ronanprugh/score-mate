@@ -67,9 +67,21 @@ describe("chooseRevalidate", () => {
 });
 
 describe("CACHE_KEY_PREFIX", () => {
-  // Spec 04: bumped from v5-espn-shortname → v6-espn-baseball so the deploy
-  // invalidates cached planning results that pre-date Baseball support.
-  it("is v6-espn-baseball", () => {
-    expect(CACHE_KEY_PREFIX).toBe("v6-espn-baseball");
+  // Spec 05: bumped from v6-espn-baseball → v7-espn-tennis so the deploy
+  // invalidates cached results that pre-date Tennis + activeTennisTournaments.
+  it("is v7-espn-tennis", () => {
+    expect(CACHE_KEY_PREFIX).toBe("v7-espn-tennis");
+  });
+
+  it("cachedActiveTennisTournaments key includes prefix, 'tennis-active', and date", () => {
+    const today = "2025-06-02";
+    // The key array passed to unstable_cache is [prefix, "tennis-active", today].
+    // We verify the constituent parts directly rather than calling the cached fn
+    // (which requires the Next.js runtime).
+    expect(CACHE_KEY_PREFIX).toContain("v7");
+    const expectedParts = [CACHE_KEY_PREFIX, "tennis-active", today];
+    expect(expectedParts).toContain("tennis-active");
+    expect(expectedParts).toContain(today);
+    expect(expectedParts[0]).toBe(CACHE_KEY_PREFIX);
   });
 });

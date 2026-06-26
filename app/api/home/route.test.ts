@@ -21,6 +21,7 @@ vi.mock("@/lib/home/aggregator", () => ({
 vi.mock("@/lib/home/cache", () => ({
   makeCachedFetchers: () => ({
     eventsLeagueDay: async () => [],
+    activeTennisTournaments: async () => [],
   }),
 }));
 
@@ -36,6 +37,7 @@ const EMPTY_ENVELOPE = {
   yesterday: [],
   today: [],
   tomorrow: [],
+  activeTennisTournaments: [],
   source: { ok: true, errors: [] },
 };
 

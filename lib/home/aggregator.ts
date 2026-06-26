@@ -39,6 +39,7 @@ import { matchFavoritesAgainstMatches } from "@/lib/favorite-matcher";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import type { Match, Sport } from "@/lib/sports/types";
 import type { FavoriteRow } from "@/db/schema/favorites";
+import type { ActiveTournament } from "./tennis-aggregator";
 
 /** Fetches every match for a league on a single UTC date. */
 export type EventsLeagueDayFetcher = (
@@ -48,12 +49,14 @@ export type EventsLeagueDayFetcher = (
 
 export interface Fetchers {
   eventsLeagueDay: EventsLeagueDayFetcher;
+  activeTennisTournaments: (today: string) => Promise<ActiveTournament[]>;
 }
 
 export interface HomeEnvelope {
   yesterday: Match[];
   today: Match[];
   tomorrow: Match[];
+  activeTennisTournaments: ActiveTournament[];
   source: {
     /** True if every upstream call succeeded. */
     ok: boolean;
@@ -66,6 +69,7 @@ const EMPTY_ENVELOPE = (): HomeEnvelope => ({
   yesterday: [],
   today: [],
   tomorrow: [],
+  activeTennisTournaments: [],
   source: { ok: true, errors: [] },
 });
 
@@ -123,6 +127,7 @@ export function buildHomeEnvelope(
   dates: DateWindow,
   errors: string[] = [],
   tz: string = "UTC",
+  activeTennisTournaments: ActiveTournament[] = [],
 ): HomeEnvelope {
   const enriched = matches.map(enrichMatchWithEventInstance);
   const matched = matchFavoritesAgainstMatches(favorites, enriched);
@@ -131,6 +136,7 @@ export function buildHomeEnvelope(
     yesterday: [],
     today: [],
     tomorrow: [],
+    activeTennisTournaments,
     source: { ok: errors.length === 0, errors },
   };
 
@@ -211,19 +217,22 @@ export async function aggregateMatchesForUser(
   ] as const;
 
   // ---- Schedule -------------------------------------------------------
-  const calls: Promise<Match[]>[] = [];
+  const leagueCalls: Promise<Match[]>[] = [];
   for (const leagueKey of leagueKeys) {
     for (const date of dateList) {
-      calls.push(fetchers.eventsLeagueDay(leagueKey, date));
+      leagueCalls.push(fetchers.eventsLeagueDay(leagueKey, date));
     }
   }
 
-  const settled = await Promise.allSettled(calls);
+  const [leagueSettled, tennisSettled] = await Promise.all([
+    Promise.allSettled(leagueCalls),
+    Promise.allSettled([fetchers.activeTennisTournaments(dates.today)]),
+  ]);
+
   const errors: string[] = [];
   const allMatches: Match[] = [];
 
-  for (let i = 0; i < settled.length; i++) {
-    const s = settled[i]!;
+  for (const s of leagueSettled) {
     if (s.status === "fulfilled") {
       allMatches.push(...s.value);
     } else {
@@ -238,5 +247,27 @@ export async function aggregateMatchesForUser(
     }
   }
 
-  return buildHomeEnvelope(favorites, allMatches, dates, errors, tz);
+  let activeTennisTournaments: ActiveTournament[] = [];
+  const ts = tennisSettled[0]!;
+  if (ts.status === "fulfilled") {
+    activeTennisTournaments = ts.value;
+  } else {
+    const reason = ts.reason;
+    const message =
+      reason instanceof Error
+        ? reason.message
+        : typeof reason === "string"
+          ? reason
+          : "Unknown upstream error";
+    errors.push(message);
+  }
+
+  return buildHomeEnvelope(
+    favorites,
+    allMatches,
+    dates,
+    errors,
+    tz,
+    activeTennisTournaments,
+  );
 }

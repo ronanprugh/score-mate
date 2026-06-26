@@ -22,6 +22,7 @@ import {
 import { leagueKeysForSport } from "@/lib/espn/leagues";
 import type { Match } from "@/lib/sports/types";
 import type { FavoriteRow } from "@/db/schema/favorites";
+import type { ActiveTournament } from "./tennis-aggregator";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
@@ -78,8 +79,14 @@ function fetcherFrom(
   };
 }
 
-function fetchersFrom(table: Record<string, Match[] | Error>): Fetchers {
-  return { eventsLeagueDay: fetcherFrom(table) };
+function fetchersFrom(
+  table: Record<string, Match[] | Error>,
+  tennisFetcher?: () => Promise<ActiveTournament[]>,
+): Fetchers {
+  return {
+    eventsLeagueDay: fetcherFrom(table),
+    activeTennisTournaments: tennisFetcher ?? (() => Promise.resolve([])),
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -131,11 +138,13 @@ describe("aggregateMatchesForUser", () => {
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     const env = await aggregateMatchesForUser("user-a", DATES, {
       eventsLeagueDay: fetcher,
+      activeTennisTournaments: async () => [],
     });
     expect(env).toEqual({
       yesterday: [],
       today: [],
       tomorrow: [],
+      activeTennisTournaments: [],
       source: { ok: true, errors: [] },
     });
     expect(fetcher).not.toHaveBeenCalled();
@@ -148,6 +157,7 @@ describe("aggregateMatchesForUser", () => {
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
       eventsLeagueDay: fetcher,
+      activeTennisTournaments: async () => [],
     });
     // 3 Basketball leagues × 5 widened dates = 15 calls.
     expect(fetcher).toHaveBeenCalledTimes(15);
@@ -168,6 +178,7 @@ describe("aggregateMatchesForUser", () => {
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
       eventsLeagueDay: fetcher,
+      activeTennisTournaments: async () => [],
     });
     const dates = new Set(fetcher.mock.calls.map((c) => c[1]));
     expect(dates).toEqual(
@@ -303,6 +314,7 @@ describe("aggregateMatchesForUser", () => {
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
       eventsLeagueDay: fetcher,
+      activeTennisTournaments: async () => [],
     });
     const keys = new Set(fetcher.mock.calls.map((c) => c[0]));
     expect(keys).toContain("soccer/fifa.world");
@@ -330,6 +342,53 @@ describe("aggregateMatchesForUser", () => {
     });
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
     expect(env.today.map((m) => m.id)).toEqual(["dup"]);
+  });
+
+  it("populates activeTennisTournaments from the tennis fetcher", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+    ]);
+    const tennisTournament: ActiveTournament = {
+      id: "tennis/slam/roland-garros",
+      displayName: "Roland Garros",
+      tour: "Slam",
+      startDate: DATES.today,
+      endDate: DATES.today,
+      currentRound: "Semifinals",
+      liveCount: 2,
+      upcomingCount: 0,
+      doneCount: 0,
+      matches: [],
+    };
+    const fetchers = fetchersFrom({}, async () => [tennisTournament]);
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
+    expect(env.activeTennisTournaments).toHaveLength(1);
+    expect(env.activeTennisTournaments[0]?.id).toBe(
+      "tennis/slam/roland-garros",
+    );
+  });
+
+  it("on tennis fetcher rejection: envelope succeeds with activeTennisTournaments=[] and a source.errors entry", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+    ]);
+    const fetchers = fetchersFrom({}, async () => {
+      throw new Error("Tennis 503");
+    });
+    const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
+    expect(env.activeTennisTournaments).toEqual([]);
+    expect(env.source.ok).toBe(false);
+    expect(env.source.errors).toHaveLength(1);
+    expect(env.source.errors[0]).toMatch(/Tennis 503/);
+  });
+
+  it("EMPTY_ENVELOPE includes activeTennisTournaments field defaulting to []", async () => {
+    listMock.mockResolvedValue([]);
+    const env = await aggregateMatchesForUser("user-a", DATES, {
+      eventsLeagueDay: async () => [],
+      activeTennisTournaments: async () => [],
+    });
+    expect(env).toHaveProperty("activeTennisTournaments", []);
   });
 });
 

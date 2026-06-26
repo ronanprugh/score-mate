@@ -38,6 +38,7 @@ function envelope(
     yesterday: partial.yesterday ?? [],
     today: partial.today ?? [],
     tomorrow: partial.tomorrow ?? [],
+    activeTennisTournaments: partial.activeTennisTournaments ?? [],
     source:
       partial.source ??
       (partial.okFailedCount !== undefined
