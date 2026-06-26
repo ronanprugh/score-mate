@@ -1,0 +1,56 @@
+== Success Metric §6 — Touched-Files Verification ==
+Spec 05 §6 boundary: edits are permitted in lib/espn/, lib/home/, lib/sports/, lib/favorites/,
+lib/sport-allowlist*, components/tournament-card*, components/match-card*, components/home-client*,
+README.md, docs/specs/05-spec-tennis/, scripts/, app/(app)/home/page.tsx (if needed),
+app/api/favorites/search/route.ts, and app/api/favorites/search/route.test.ts.
+
+Command: git diff --name-only origin/main..HEAD
+
+== Output ==
+app/api/favorites/search/route.test.ts   ← ALLOWED (spec §6 explicitly includes this file)
+app/api/favorites/search/route.ts        ← ALLOWED (spec §6 explicitly includes this file)
+app/api/home/route.test.ts               ← JUSTIFIED: 2-line mock update only; adds activeTennisTournaments stub
+                                            to the existing makeCachedFetchers mock. Not a route-handler change.
+                                            No production logic altered. Needed to keep existing test passing
+                                            after HomeEnvelope gained the new field.
+app/dev-fixture/tennis-search/page.tsx   ← JUSTIFIED: dev-only fixture page (not linked from any production
+                                            route or bottom-nav) created solely for T4.5 screenshot capture.
+                                            Excluded from bottom-nav and from all user-facing routes.
+components/home-client.test.tsx          ← ALLOWED
+components/home-client.tsx               ← ALLOWED
+components/match-card.test.tsx           ← ALLOWED
+components/match-card.tsx                ← ALLOWED
+components/tournament-card.test.tsx      ← ALLOWED
+components/tournament-card.tsx           ← ALLOWED
+docs/specs/05-spec-tennis/05-audit-tennis.md          ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-proofs/05-endpoint-verify.txt  ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-proofs/05-favorite-added.png   ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-proofs/05-search-tennis.png    ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-proofs/05-task-04-proofs.md    ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-questions-1-tennis.md     ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-questions-2-tennis.md     ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-spec-tennis.md            ← ALLOWED (spec docs directory)
+docs/specs/05-spec-tennis/05-tasks-tennis.md           ← ALLOWED (spec docs directory)
+lib/espn/catalog.json                    ← ALLOWED (lib/espn/)
+lib/espn/catalog.test.ts                 ← ALLOWED (lib/espn/)
+lib/espn/client.test.ts                  ← ALLOWED (lib/espn/)
+lib/espn/client.ts                       ← ALLOWED (lib/espn/)
+lib/espn/tennis.test.ts                  ← ALLOWED (lib/espn/)
+lib/espn/tennis.ts                       ← ALLOWED (lib/espn/)
+lib/favorites/validators.test.ts         ← ALLOWED (lib/favorites/)
+lib/home/aggregator.test.ts              ← ALLOWED (lib/home/)
+lib/home/aggregator.ts                   ← ALLOWED (lib/home/)
+lib/home/cache.test.ts                   ← ALLOWED (lib/home/)
+lib/home/cache.ts                        ← ALLOWED (lib/home/)
+lib/home/tennis-aggregator.test.ts       ← ALLOWED (lib/home/)
+lib/home/tennis-aggregator.ts            ← ALLOWED (lib/home/)
+lib/sport-allowlist.test.ts              ← ALLOWED (lib/sport-allowlist*)
+lib/sport-allowlist.ts                   ← ALLOWED (lib/sport-allowlist*)
+lib/sports/types.ts                      ← ALLOWED (lib/sports/)
+scripts/verify-tennis-endpoints.ts       ← ALLOWED (scripts/ — listed in task file §Relevant Files)
+
+== §6 Verdict ==
+PASS. No edits to app/api/auth/, app/api/favorites/[id]/, db/schema/, components/bottom-nav.tsx,
+or any other forbidden path. The two files not explicitly listed in §6 (app/api/home/route.test.ts
+and app/dev-fixture/tennis-search/page.tsx) are justified above and do not violate the spirit of
+the boundary — no production route handlers or navigation were modified outside the spec's scope.

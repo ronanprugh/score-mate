@@ -81,6 +81,7 @@ The migrator uses the standard `postgres` driver; the runtime app uses the Neon 
 
 - **2026-06-24 — Provider swap (Spec 03):** the data backend moved from TheSportsDB to ESPN. Migration `0003_reset_favorites_for_espn.sql` truncates the `favorites` table on deploy (Spec 03 Q4 (D) — no production users yet); users re-favorite from the new ESPN-backed search. Tennis is dropped from the supported-sports set in v1.
 - **2026-06-24 — Baseball support (Spec 04):** MLB and NCAA D-I baseball join the supported-sports set. The ESPN catalog is refreshed to include all baseball teams, and the homepage cache prefix is bumped from `v5-espn-shortname` to `v6-espn-baseball` so the deploy invalidates the prior keyspace.
+- **2026-06-25 — Tennis support (Spec 05):** Grand Slams + ATP/WTA 1000 marquee tournaments (23 total) join the supported-sports set. Tennis tournaments appear in the favorites typeahead and the homepage mixed feed. The homepage cache prefix is bumped to `v7-espn-tennis` as the deploy invalidation mechanism.
 
 ### Deploy to Vercel
 
