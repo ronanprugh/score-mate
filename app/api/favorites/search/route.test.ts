@@ -178,4 +178,28 @@ describe("GET /api/favorites/search — result composition", () => {
       if (r.type === "league") expect(sawEvent).toBe(true);
     }
   });
+
+  it("?q=wimbledon returns Wimbledon as type=event with sport=Tennis and year-less externalId", async () => {
+    const results = await searchAs("?q=wimbledon");
+    const wimbledon = results.find(
+      (r) =>
+        r.type === "event" &&
+        r.externalId === "tennis/slam/wimbledon" &&
+        r.sport === "Tennis",
+    );
+    expect(wimbledon).toBeDefined();
+    expect(wimbledon!.displayName).toBe("Wimbledon");
+  });
+
+  it("?q=australian returns Australian Open as type=event with sport=Tennis", async () => {
+    const results = await searchAs("?q=australian");
+    expect(
+      results.some(
+        (r) =>
+          r.type === "event" &&
+          r.externalId === "tennis/slam/australian-open" &&
+          r.sport === "Tennis",
+      ),
+    ).toBe(true);
+  });
 });

@@ -105,6 +105,121 @@
       "id": "soccer/usa.1",
       "name": "MLS",
       "sport": "Soccer"
+    },
+    {
+      "id": "tennis/atp/canada",
+      "name": "Canadian Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/cincinnati",
+      "name": "Cincinnati Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/indian-wells",
+      "name": "BNP Paribas Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/madrid",
+      "name": "Mutua Madrid Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/miami",
+      "name": "Miami Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/monte-carlo",
+      "name": "Monte-Carlo Masters",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/paris",
+      "name": "Rolex Paris Masters",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/rome",
+      "name": "Italian Open (ATP)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/atp/shanghai",
+      "name": "Shanghai Masters",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/slam/australian-open",
+      "name": "Australian Open",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/slam/roland-garros",
+      "name": "Roland Garros",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/slam/us-open",
+      "name": "US Open",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/slam/wimbledon",
+      "name": "Wimbledon",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/beijing",
+      "name": "China Open",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/canada",
+      "name": "Canadian Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/cincinnati",
+      "name": "Cincinnati Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/doha",
+      "name": "Qatar Open",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/dubai",
+      "name": "Dubai Tennis Championships",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/indian-wells",
+      "name": "BNP Paribas Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/madrid",
+      "name": "Mutua Madrid Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/miami",
+      "name": "Miami Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/rome",
+      "name": "Italian Open (WTA)",
+      "sport": "Tennis"
+    },
+    {
+      "id": "tennis/wta/wuhan",
+      "name": "Wuhan Open",
+      "sport": "Tennis"
     }
   ],
   "teams": [
@@ -201,7 +316,7 @@
     },
     {
       "id": "23",
-      "name": "San José State Spartans",
+      "name": "San Jos\u00e9 State Spartans",
       "sport": "American Football",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/23.png",
       "leagueKey": "football/college-football"
@@ -5596,7 +5711,7 @@
     },
     {
       "id": "63",
-      "name": "San José State Spartans",
+      "name": "San Jos\u00e9 State Spartans",
       "sport": "Baseball",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/23.png",
       "leagueKey": "baseball/college-baseball"
@@ -8089,7 +8204,7 @@
     },
     {
       "id": "832",
-      "name": "Hawaiʻi Pacific Sea Warriors",
+      "name": "Hawai\u02bbi Pacific Sea Warriors",
       "sport": "Baseball",
       "badgeUrl": "https://a.espncdn.com/guid/cf8e81e2-4cc5-310a-838f-c046b0d505b7/logos/default.png",
       "leagueKey": "baseball/college-baseball"
@@ -8185,7 +8300,7 @@
     },
     {
       "id": "847",
-      "name": "Hawaiʻi Hilo Vulcans",
+      "name": "Hawai\u02bbi Hilo Vulcans",
       "sport": "Baseball",
       "leagueKey": "baseball/college-baseball"
     },
@@ -8837,7 +8952,7 @@
     },
     {
       "id": "23",
-      "name": "San José State Spartans",
+      "name": "San Jos\u00e9 State Spartans",
       "sport": "Basketball",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/ncaa/500/23.png",
       "leagueKey": "basketball/mens-college-basketball"
@@ -11651,7 +11766,7 @@
     },
     {
       "id": "227",
-      "name": "América",
+      "name": "Am\u00e9rica",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/227.png",
       "leagueKey": "soccer/concacaf.champions"
@@ -11686,21 +11801,21 @@
     },
     {
       "id": "7239",
-      "name": "Cartaginés",
+      "name": "Cartagin\u00e9s",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/7239.png",
       "leagueKey": "soccer/concacaf.champions"
     },
     {
       "id": "7245",
-      "name": "Real España",
+      "name": "Real Espa\u00f1a",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/7245.png",
       "leagueKey": "soccer/concacaf.champions"
     },
     {
       "id": "7259",
-      "name": "Xelajú MC",
+      "name": "Xelaj\u00fa MC",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/7259.png",
       "leagueKey": "soccer/concacaf.champions"
@@ -11781,7 +11896,7 @@
     },
     {
       "id": "131584",
-      "name": "Atlético Ottawa",
+      "name": "Atl\u00e9tico Ottawa",
       "sport": "Soccer",
       "leagueKey": "soccer/concacaf.champions"
     },
@@ -11826,7 +11941,7 @@
     },
     {
       "id": "12",
-      "name": "Lanús",
+      "name": "Lan\u00fas",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/12.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11854,7 +11969,7 @@
     },
     {
       "id": "885",
-      "name": "Universidad Católica",
+      "name": "Universidad Cat\u00f3lica",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/885.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11882,7 +11997,7 @@
     },
     {
       "id": "2671",
-      "name": "Cerro Porteño",
+      "name": "Cerro Porte\u00f1o",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2671.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11896,14 +12011,14 @@
     },
     {
       "id": "2681",
-      "name": "Bolívar",
+      "name": "Bol\u00edvar",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2681.png",
       "leagueKey": "soccer/conmebol.libertadores"
     },
     {
       "id": "2683",
-      "name": "Peñarol",
+      "name": "Pe\u00f1arol",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2683.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11931,7 +12046,7 @@
     },
     {
       "id": "2690",
-      "name": "Independiente Medellín",
+      "name": "Independiente Medell\u00edn",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2690.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11952,7 +12067,7 @@
     },
     {
       "id": "4815",
-      "name": "Atlético Junior",
+      "name": "Atl\u00e9tico Junior",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/4815.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -11966,7 +12081,7 @@
     },
     {
       "id": "4818",
-      "name": "Deportivo Táchira",
+      "name": "Deportivo T\u00e1chira",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/4818.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -12022,7 +12137,7 @@
     },
     {
       "id": "7385",
-      "name": "Guaraní",
+      "name": "Guaran\u00ed",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/7385.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -12078,7 +12193,7 @@
     },
     {
       "id": "10311",
-      "name": "Nacional Potosí",
+      "name": "Nacional Potos\u00ed",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/10311.png",
       "leagueKey": "soccer/conmebol.libertadores"
@@ -13200,7 +13315,7 @@
     },
     {
       "id": "96",
-      "name": "Alavés",
+      "name": "Alav\u00e9s",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/96.png",
       "leagueKey": "soccer/esp.1"
@@ -13242,7 +13357,7 @@
     },
     {
       "id": "1068",
-      "name": "Atlético Madrid",
+      "name": "Atl\u00e9tico Madrid",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png",
       "leagueKey": "soccer/esp.1"
@@ -13389,7 +13504,7 @@
     },
     {
       "id": "465",
-      "name": "Türkiye",
+      "name": "T\u00fcrkiye",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/countries/500/tur.png",
       "leagueKey": "soccer/fifa.world"
@@ -13606,7 +13721,7 @@
     },
     {
       "id": "11678",
-      "name": "Curaçao",
+      "name": "Cura\u00e7ao",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/11678.png",
       "leagueKey": "soccer/fifa.world"
@@ -13809,7 +13924,7 @@
     },
     {
       "id": "268",
-      "name": "Borussia Mönchengladbach",
+      "name": "Borussia M\u00f6nchengladbach",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/268.png",
       "leagueKey": "soccer/ger.1"
@@ -14194,14 +14309,14 @@
     },
     {
       "id": "909",
-      "name": "F.C. København",
+      "name": "F.C. K\u00f8benhavn",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/909.png",
       "leagueKey": "soccer/uefa.champions"
     },
     {
       "id": "1068",
-      "name": "Atlético Madrid",
+      "name": "Atl\u00e9tico Madrid",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png",
       "leagueKey": "soccer/uefa.champions"
@@ -14453,7 +14568,7 @@
     },
     {
       "id": "2720",
-      "name": "Malmö FF",
+      "name": "Malm\u00f6 FF",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2720.png",
       "leagueKey": "soccer/uefa.europa"
@@ -14663,7 +14778,7 @@
     },
     {
       "id": "7834",
-      "name": "BK Häcken",
+      "name": "BK H\u00e4cken",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/7834.png",
       "leagueKey": "soccer/uefa.europa.conf"
@@ -14684,7 +14799,7 @@
     },
     {
       "id": "8151",
-      "name": "KF Shkëndija",
+      "name": "KF Shk\u00ebndija",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/8151.png",
       "leagueKey": "soccer/uefa.europa.conf"
@@ -14754,7 +14869,7 @@
     },
     {
       "id": "21005",
-      "name": "Raków Czestochowa",
+      "name": "Rak\u00f3w Czestochowa",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/21005.png",
       "leagueKey": "soccer/uefa.europa.conf"
@@ -14852,7 +14967,7 @@
     },
     {
       "id": "9720",
-      "name": "CF Montréal",
+      "name": "CF Montr\u00e9al",
       "sport": "Soccer",
       "badgeUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/9720.png",
       "leagueKey": "soccer/usa.1"

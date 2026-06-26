@@ -85,11 +85,14 @@ export async function GET(req: NextRequest) {
   );
 
   // --- Leagues: in-memory ESPN catalog ---
+  // Tennis catalog entries are stored as leagues (no per-year ids) but must
+  // POST as type:"event" so the favorites system can call the tennis scoreboard
+  // by year-less tournament id. See Spec 05 Q3 Round 1 (B).
   const leagueResults: SearchResult[] = searchCatalogLeagues(
     q,
     sportFilter,
   ).map((l) => ({
-    type: "league",
+    type: l.sport === "Tennis" ? ("event" as const) : ("league" as const),
     externalId: l.id,
     displayName: l.name,
     sport: l.sport,

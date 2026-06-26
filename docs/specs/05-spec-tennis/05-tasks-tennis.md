@@ -125,7 +125,7 @@ Maps Spec Unit 2 (UI half) + Spec Unit 3 (expand interaction). Build the `Tourna
 - [ ] 3.10 Capture two screenshots in `docs/specs/05-spec-tennis/05-proofs/`: `05-tournament-card.png` (collapsed card on the homepage during a Slam, devtools screenshot of the rendered fixture is acceptable if no live Slam is in session) and `05-tournament-card-expanded.png` (same card expanded, showing MatchCard rows). Use the `pnpm dev` server with a fixture user that has a Tennis favorite.
 - [ ] 3.11 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`. Commit using `feat(tennis): TournamentCard + MatchCard player-vs-player + homepage mixed-feed sort` with body `Related to T3.0 in Spec 05-spec-tennis`.
 
-### [ ] 4.0 Tennis tournaments in favorites typeahead + catalog + favorites round-trip
+### [x] 4.0 Tennis tournaments in favorites typeahead + catalog + favorites round-trip
 
 Maps Spec Unit 3 (favorites half). Add the 23 marquee tournaments to `lib/espn/catalog.json` as `league`-typed catalog entries with stable year-less ids, translate a selected catalog entry into a `type: "event"` favorite POST body in the search route handler, and confirm the round-trip (add → list → render → remove). Depends on T1.0 (validator already accepts Tennis events). Commits with body `Related to T4.0 in Spec 05-spec-tennis`.
 
@@ -139,12 +139,12 @@ Maps Spec Unit 3 (favorites half). Add the 23 marquee tournaments to `lib/espn/c
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Hand-edit `lib/espn/catalog.json` to add 23 Tennis league entries. Each entry: `{ id: "tennis/{tour}/{slug}", name: <displayName>, sport: "Tennis", leagueKey: "tennis/{tour}/{slug}" }`. Keep the file sorted by sport then `leagueKey` to maintain the script's deterministic ordering invariant. Do NOT add any team entries (players are out of scope).
-- [ ] 4.2 Update `lib/espn/catalog.test.ts`: bump the league count assertion from 21 to 44; add `"Tennis"` to the sport-set assertion (now `["American Football", "Baseball", "Basketball", "Soccer", "Tennis"]`); add a Wimbledon assertion: `searchCatalogLeagues("wimbledon")` returns at least one entry with `id === "tennis/slam/wimbledon"` and `sport === "Tennis"`.
-- [ ] 4.3 In `app/api/favorites/search/route.ts`, when a Tennis catalog league entry is included in the response, set its `type` field to `"event"` (not `"league"`) AND its `externalId` to the year-less catalog id. The displayed type label in the typeahead row stays "Tournament" (or "League" if simpler — implementer's call) but the POST body the row builds carries `type: "event"`. Document this special-case branch with a comment referencing Spec 05 Q3 Round 1 (B).
-- [ ] 4.4 Add (or extend) `app/api/favorites/search/route.test.ts` to assert: when the search query matches a Tennis tournament, the returned row has `type === "event"`, `sport === "Tennis"`, and `externalId === "tennis/slam/wimbledon"` (or similar).
-- [ ] 4.5 Capture two screenshots in `docs/specs/05-spec-tennis/05-proofs/`: `05-search-tennis.png` (search results when typing "wimbledon" — Wimbledon row visible with sport "Tennis") and `05-favorite-added.png` (the Wimbledon row's "Add" button in "Added" state after a successful POST).
-- [ ] 4.6 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`. Commit using `feat(tennis): tennis tournaments in favorites typeahead with year-less event ids` with body `Related to T4.0 in Spec 05-spec-tennis`.
+- [x] 4.1 Hand-edit `lib/espn/catalog.json` to add 23 Tennis league entries. Each entry: `{ id: "tennis/{tour}/{slug}", name: <displayName>, sport: "Tennis", leagueKey: "tennis/{tour}/{slug}" }`. Keep the file sorted by sport then `leagueKey` to maintain the script's deterministic ordering invariant. Do NOT add any team entries (players are out of scope).
+- [x] 4.2 Update `lib/espn/catalog.test.ts`: bump the league count assertion from 21 to 44; add `"Tennis"` to the sport-set assertion (now `["American Football", "Baseball", "Basketball", "Soccer", "Tennis"]`); add a Wimbledon assertion: `searchCatalogLeagues("wimbledon")` returns at least one entry with `id === "tennis/slam/wimbledon"` and `sport === "Tennis"`.
+- [x] 4.3 In `app/api/favorites/search/route.ts`, when a Tennis catalog league entry is included in the response, set its `type` field to `"event"` (not `"league"`) AND its `externalId` to the year-less catalog id. The displayed type label in the typeahead row stays "Tournament" (or "League" if simpler — implementer's call) but the POST body the row builds carries `type: "event"`. Document this special-case branch with a comment referencing Spec 05 Q3 Round 1 (B).
+- [x] 4.4 Add (or extend) `app/api/favorites/search/route.test.ts` to assert: when the search query matches a Tennis tournament, the returned row has `type === "event"`, `sport === "Tennis"`, and `externalId === "tennis/slam/wimbledon"` (or similar).
+- [x] 4.5 Capture two screenshots in `docs/specs/05-spec-tennis/05-proofs/`: `05-search-tennis.png` (search results when typing "wimbledon" — Wimbledon row visible with sport "Tennis") and `05-favorite-added.png` (the Wimbledon row's "Add" button in "Added" state after a successful POST).
+- [x] 4.6 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`. Commit using `feat(tennis): tennis tournaments in favorites typeahead with year-less event ids` with body `Related to T4.0 in Spec 05-spec-tennis`.
 
 ### [ ] 5.0 Release note + proof bundle + full CI gate verification
 
