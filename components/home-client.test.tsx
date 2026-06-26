@@ -232,37 +232,56 @@ describe("HomeClient (static cases)", () => {
     };
   }
 
-  it("(T3.8a) tournament card renders between two matches at its sort-key slot", async () => {
-    // match-early kicks off at 18:00, tournament has live match at 19:30,
-    // match-late kicks off at 21:00 → order should be early, tournament, late
+  it("(T06.1) the Today tab groups team matches under league headers", async () => {
+    // Regression: the Today tab previously used a flat feed with no league
+    // headers. It must group by league like the other tabs.
     mockJson(
       envelope({
         today: [
           makeMatch({
-            id: "early",
-            kickoffUtc: "2026-06-24T18:00:00Z",
+            id: "wc-1",
+            homeTeamName: "Ecuador",
+            leagueId: "4429",
+            leagueName: "FIFA World Cup",
           }),
           makeMatch({
-            id: "late",
-            kickoffUtc: "2026-06-24T21:00:00Z",
+            id: "wc-2",
+            homeTeamName: "Japan",
+            leagueId: "4429",
+            leagueName: "FIFA World Cup",
+          }),
+        ],
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
+    );
+
+    const panel = screen.getByTestId("day-panel-today");
+    expect(
+      panel.querySelector('[data-testid="league-group-FIFA World Cup"]'),
+    ).toBeInTheDocument();
+    // The header text + count is shown.
+    expect(panel.textContent).toContain("FIFA World Cup");
+    expect(panel.textContent).toContain("(2)");
+  });
+
+  it("(T06.2) tennis renders under a 'Tennis' section header, above the league groups", async () => {
+    mockJson(
+      envelope({
+        today: [
+          makeMatch({
+            id: "wc-1",
+            homeTeamName: "Ecuador",
+            leagueId: "4429",
+            leagueName: "FIFA World Cup",
           }),
         ],
         activeTennisTournaments: {
           yesterday: [],
-          today: [
-            makeTournament({
-              matches: [
-                makeMatch({
-                  id: "tennis-live",
-                  sport: "Tennis",
-                  leagueId: "tennis/slam/wimbledon",
-                  leagueName: "Wimbledon",
-                  status: "live",
-                  kickoffUtc: "2026-06-24T19:30:00Z",
-                }),
-              ],
-            }),
-          ],
+          today: [makeTournament({ id: "tennis/slam/wimbledon" })],
           tomorrow: [],
         },
       }),
@@ -270,24 +289,23 @@ describe("HomeClient (static cases)", () => {
 
     render(<HomeClient hasFavorites={true} />);
     await waitFor(() =>
-      expect(screen.getByTestId("tournament-card")).toBeInTheDocument(),
+      expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
     );
 
     const panel = screen.getByTestId("day-panel-today");
-    const matchCards = panel.querySelectorAll('[data-testid="match-card"]');
-    const tournamentCards = panel.querySelectorAll(
-      '[data-testid="tournament-card"]',
-    );
-    expect(matchCards).toHaveLength(2);
-    expect(tournamentCards).toHaveLength(1);
+    const tennisSection = panel.querySelector('[data-testid="tennis-group"]');
+    expect(tennisSection).toBeInTheDocument();
+    expect(tennisSection?.textContent).toContain("Tennis");
+    // The tournament card lives inside the Tennis section.
+    expect(
+      tennisSection?.querySelector('[data-testid="tournament-card"]'),
+    ).toBeInTheDocument();
 
-    // Verify DOM order: early match → tournament → late match
-    const allCards = panel.querySelectorAll(
-      '[data-testid="match-card"], [data-testid="tournament-card"]',
+    // Tennis section comes before the league group in the DOM.
+    const sections = panel.querySelectorAll(
+      '[data-testid="tennis-group"], [data-testid^="league-group-"]',
     );
-    expect(allCards[0]?.getAttribute("data-testid")).toBe("match-card");
-    expect(allCards[1]?.getAttribute("data-testid")).toBe("tournament-card");
-    expect(allCards[2]?.getAttribute("data-testid")).toBe("match-card");
+    expect(sections[0]?.getAttribute("data-testid")).toBe("tennis-group");
   });
 
   it("(T3.8b) when activeTennisTournaments is [], no TournamentCard is rendered", async () => {

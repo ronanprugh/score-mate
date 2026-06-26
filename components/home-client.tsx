@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   computeDateWindow,
   getBrowserTimezone,
   type DateWindow,
 } from "@/lib/date-window";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
-import {
-  LATE_KICKOFF_SENTINEL,
-  sortKeyForTournamentCard,
-} from "@/lib/home/sort-helpers";
+import { LATE_KICKOFF_SENTINEL } from "@/lib/home/sort-helpers";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
 import type { Match } from "@/lib/sports/types";
 import { DataSourceErrorBanner } from "./data-source-error-banner";
@@ -258,15 +255,62 @@ function DayTabs({ active, onChange, counts, window }: DayTabsProps) {
   );
 }
 
-type TodayItem =
-  | { kind: "match"; m: Match }
-  | { kind: "tournament"; t: ActiveTournament };
-
 interface DayPanelProps {
   day: DayKey;
   dateLabel: string;
   matches: Match[];
   activeTennisTournaments?: ActiveTournament[];
+}
+
+/**
+ * A collapsible section with an uppercase header + count, matching the league
+ * grouping treatment. Used for both the Tennis section and each league group
+ * so all three day tabs render consistently.
+ */
+function CollapsibleSection({
+  testId,
+  title,
+  count,
+  children,
+}: {
+  testId: string;
+  title: string;
+  count: number;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      data-testid={testId}
+      open
+      className="group flex flex-col gap-1.5 [&[open]>summary>svg]:rotate-90"
+    >
+      <summary
+        className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 rounded-sm py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 outline-none hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:text-zinc-400 dark:hover:text-zinc-100"
+        title={title}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 12 12"
+          className="h-2.5 w-2.5 shrink-0 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 2.5L8 6L4 9.5" />
+        </svg>
+        <span className="truncate">{title}</span>
+        <span
+          aria-hidden="true"
+          className="shrink-0 font-normal normal-case tracking-normal text-zinc-400 dark:text-zinc-500"
+        >
+          ({count})
+        </span>
+      </summary>
+      {children}
+    </details>
+  );
 }
 
 function DayPanel({
@@ -275,60 +319,11 @@ function DayPanel({
   matches,
   activeTennisTournaments = [],
 }: DayPanelProps) {
-  // Today uses a unified flat sorted feed mixing matches and tournament cards.
-  if (day === "today") {
-    const items: TodayItem[] = [
-      ...matches.map((m): TodayItem => ({ kind: "match", m })),
-      ...activeTennisTournaments.map(
-        (t): TodayItem => ({ kind: "tournament", t }),
-      ),
-    ];
-    items.sort((a, b) => {
-      const ak =
-        a.kind === "match"
-          ? (a.m.kickoffUtc ?? LATE_KICKOFF_SENTINEL)
-          : sortKeyForTournamentCard(a.t);
-      const bk =
-        b.kind === "match"
-          ? (b.m.kickoffUtc ?? LATE_KICKOFF_SENTINEL)
-          : sortKeyForTournamentCard(b.t);
-      return ak.localeCompare(bk);
-    });
-    return (
-      <section
-        role="tabpanel"
-        id="day-panel-today"
-        aria-labelledby="day-tab-today"
-        data-testid="day-panel-today"
-        aria-label={`Today — ${dateLabel}`}
-        className="flex flex-col gap-4"
-      >
-        {items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-500">
-            No matches for today.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) =>
-              item.kind === "match" ? (
-                <MatchCard key={item.m.id} match={item.m} />
-              ) : (
-                // Tournament cards span the full row so their expandable
-                // match list has room; match cards flow 1/2/3-up like the
-                // other day tabs.
-                <div key={item.t.id} className="sm:col-span-2 lg:col-span-3">
-                  <TournamentCard tournament={item.t} />
-                </div>
-              ),
-            )}
-          </div>
-        )}
-      </section>
-    );
-  }
-
+  // All three tabs render the same way: a "Tennis" section (when present),
+  // then league-grouped team matches — each with its own header.
   const groups = groupMatchesByLeague(matches);
   const hasTennis = activeTennisTournaments.length > 0;
+  const isEmpty = matches.length === 0 && !hasTennis;
   return (
     <section
       role="tabpanel"
@@ -339,58 +334,37 @@ function DayPanel({
       className="flex flex-col gap-4"
     >
       {hasTennis && (
-        // Tennis tournament cards sit above the league-grouped team matches,
-        // full-width so their expandable match list has room.
-        <div className="flex flex-col gap-2">
-          {activeTennisTournaments.map((t) => (
-            <TournamentCard key={t.id} tournament={t} />
-          ))}
-        </div>
+        <CollapsibleSection
+          testId="tennis-group"
+          title="Tennis"
+          count={activeTennisTournaments.length}
+        >
+          {/* Full-width tournament cards so their expandable match list has room. */}
+          <div className="flex flex-col gap-2 pt-1">
+            {activeTennisTournaments.map((t) => (
+              <TournamentCard key={t.id} tournament={t} />
+            ))}
+          </div>
+        </CollapsibleSection>
       )}
-      {matches.length === 0 ? (
-        hasTennis ? null : (
-          <p className="py-6 text-center text-sm text-zinc-500">
-            No matches for {DAY_LABELS[day].toLowerCase()}.
-          </p>
-        )
+      {isEmpty ? (
+        <p className="py-6 text-center text-sm text-zinc-500">
+          No matches for {DAY_LABELS[day].toLowerCase()}.
+        </p>
       ) : (
         groups.map((g) => (
-          <details
+          <CollapsibleSection
             key={g.leagueName}
-            data-testid={`league-group-${g.leagueName}`}
-            open
-            className="group flex flex-col gap-1.5 [&[open]>summary>svg]:rotate-90"
+            testId={`league-group-${g.leagueName}`}
+            title={g.leagueName}
+            count={g.matches.length}
           >
-            <summary
-              className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 rounded-sm py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 outline-none hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:text-zinc-400 dark:hover:text-zinc-100"
-              title={g.leagueName}
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 12 12"
-                className="h-2.5 w-2.5 shrink-0 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M4 2.5L8 6L4 9.5" />
-              </svg>
-              <span className="truncate">{g.leagueName}</span>
-              <span
-                aria-hidden="true"
-                className="shrink-0 font-normal normal-case tracking-normal text-zinc-400 dark:text-zinc-500"
-              >
-                ({g.matches.length})
-              </span>
-            </summary>
             <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2 lg:grid-cols-3">
               {g.matches.map((m) => (
                 <MatchCard key={m.id} match={m} />
               ))}
             </div>
-          </details>
+          </CollapsibleSection>
         ))
       )}
     </section>
