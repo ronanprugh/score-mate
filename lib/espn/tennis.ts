@@ -430,6 +430,43 @@ type FetchFn = typeof fetch;
 export interface TennisClientOptions {
   fetchFn?: FetchFn;
   signal?: AbortSignal;
+  /**
+   * IANA timezone used to bucket competitions by the user's *local* date
+   * (consistent with the team-sport feed's `localDateOfMatch`). Defaults to
+   * `"UTC"`, which reproduces a raw UTC-date comparison.
+   */
+  tz?: string;
+}
+
+/** Result of one tournament scoreboard fetch for a single local date. */
+export interface TennisScoreboardResult {
+  /** Matches whose local date equals the requested date. */
+  matches: Match[];
+  /** Earliest competition date across the whole draw (UTC `YYYY-MM-DD`). */
+  eventStartDate?: string;
+  /** Latest competition date across the whole draw (UTC `YYYY-MM-DD`). */
+  eventEndDate?: string;
+}
+
+/**
+ * Returns the local `YYYY-MM-DD` date of a UTC ISO timestamp in `tz`.
+ * Mirrors `localDateOfMatch` so tennis buckets the same way team sports do.
+ * Falls back to the raw UTC date slice when `tz` is invalid.
+ */
+function localDateOf(iso: string, tz: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date(iso));
+    const get = (t: Intl.DateTimeFormatPartTypes) =>
+      parts.find((p) => p.type === t)?.value ?? "";
+    return `${get("year")}-${get("month")}-${get("day")}`;
+  } catch {
+    return iso.slice(0, 10);
+  }
 }
 
 async function fetchTourScoreboard(
@@ -447,21 +484,24 @@ async function fetchTourScoreboard(
 }
 
 /**
- * Returns the list of matches for one marquee tournament on one date.
- * Returns `[]` when the tournament is not currently in session.
+ * Returns the matches for one marquee tournament on one *local* date, plus
+ * the tournament's overall draw span. `matches` is empty when the tournament
+ * has no play on that local date.
  *
  * Internally calls one or two tour-level ESPN endpoints (Slams hit both
- * atp + wta), filters events by tournament name, and flattens the
- * matched events' groupings + competitions into `Match[]`.
+ * atp + wta), filters events by tournament name, derives the draw span from
+ * every round, and keeps only the competitions whose local date (in `opts.tz`)
+ * equals `date`.
  */
 export async function tennisScoreboard(
   tournamentId: string,
   date: string,
   opts: TennisClientOptions = {},
-): Promise<Match[]> {
+): Promise<TennisScoreboardResult> {
   const tournament = findMarqueeTournament(tournamentId);
-  if (!tournament) return [];
+  if (!tournament) return { matches: [] };
 
+  const tz = opts.tz ?? "UTC";
   const responses = await Promise.all(
     tournament.tourEndpoints.map((tour) =>
       fetchTourScoreboard(tour, date, opts),
@@ -469,14 +509,17 @@ export async function tennisScoreboard(
   );
 
   // ESPN's tennis scoreboard ignores the `dates=` query param and returns the
-  // event's ENTIRE draw (every round across the fortnight), so we filter
-  // competitions down to the requested date ourselves.
+  // event's ENTIRE draw (every round across the fortnight). We use the whole
+  // draw to derive the tournament's overall date span, and filter the matches
+  // down to the requested *local* date so they land on the correct day tab.
   //
   // Dedupe by match id at the same time: a Slam queries both the atp + wta
   // endpoints, and ESPN returns the identical competition set from each, so
   // every match would otherwise appear twice — producing duplicate React keys
   // and doubling the live/upcoming/done counts.
   const byId = new Map<string, Match>();
+  let eventStartDate: string | undefined;
+  let eventEndDate: string | undefined;
   for (const data of responses) {
     if (!data.events) continue;
     for (const ev of data.events) {
@@ -485,12 +528,19 @@ export async function tennisScoreboard(
       for (const g of groupings) {
         const groupingName = g.grouping?.displayName;
         for (const comp of g.competitions ?? []) {
-          if (comp.date?.slice(0, 10) !== date) continue;
+          if (!comp.date) continue;
+          // Track the overall draw span (UTC dates) across every round.
+          const utcDate = comp.date.slice(0, 10);
+          if (!eventStartDate || utcDate < eventStartDate)
+            eventStartDate = utcDate;
+          if (!eventEndDate || utcDate > eventEndDate) eventEndDate = utcDate;
+          // Keep only matches on the requested local day.
+          if (localDateOf(comp.date, tz) !== date) continue;
           const m = parseTennisCompetition(comp, tournament, groupingName);
           if (m && !byId.has(m.id)) byId.set(m.id, m);
         }
       }
     }
   }
-  return [...byId.values()];
+  return { matches: [...byId.values()], eventStartDate, eventEndDate };
 }

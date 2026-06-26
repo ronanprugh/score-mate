@@ -6,6 +6,7 @@ import {
   REVALIDATE_TOMORROW_SECONDS,
   REVALIDATE_YESTERDAY_SECONDS,
   chooseRevalidate,
+  tennisActiveCacheKey,
 } from "./cache";
 
 const DATES = {
@@ -73,15 +74,18 @@ describe("CACHE_KEY_PREFIX", () => {
     expect(CACHE_KEY_PREFIX).toBe("v7-espn-tennis");
   });
 
-  it("cachedActiveTennisTournaments key includes prefix, 'tennis-active', and date", () => {
-    const today = "2025-06-02";
-    // The key array passed to unstable_cache is [prefix, "tennis-active", today].
-    // We verify the constituent parts directly rather than calling the cached fn
-    // (which requires the Next.js runtime).
-    expect(CACHE_KEY_PREFIX).toContain("v7");
-    const expectedParts = [CACHE_KEY_PREFIX, "tennis-active", today];
-    expect(expectedParts).toContain("tennis-active");
-    expect(expectedParts).toContain(today);
-    expect(expectedParts[0]).toBe(CACHE_KEY_PREFIX);
+  it("tennisActiveCacheKey includes prefix, 'tennis-active', date, and tz", () => {
+    const key = tennisActiveCacheKey("2025-06-02", "America/New_York");
+    expect(key[0]).toBe(CACHE_KEY_PREFIX);
+    expect(key).toContain("tennis-active");
+    expect(key).toContain("2025-06-02");
+    expect(key).toContain("America/New_York");
+  });
+
+  it("tennisActiveCacheKey: different timezones produce distinct keys for the same date", () => {
+    // Bucketing depends on tz, so two timezones must not share a cache entry.
+    const ny = tennisActiveCacheKey("2025-06-02", "America/New_York");
+    const akl = tennisActiveCacheKey("2025-06-02", "Pacific/Auckland");
+    expect(ny).not.toEqual(akl);
   });
 });

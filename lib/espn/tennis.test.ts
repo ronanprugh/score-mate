@@ -161,14 +161,18 @@ function jsonResponse(body: unknown): Response {
 
 describe("tennisScoreboard", () => {
   it("returns [] when the tournamentId is unknown", async () => {
-    const result = await tennisScoreboard("tennis/atp/bogus", "2026-07-01", {
-      fetchFn: async () => jsonResponse({ events: [] }),
-    });
+    const { matches: result } = await tennisScoreboard(
+      "tennis/atp/bogus",
+      "2026-07-01",
+      {
+        fetchFn: async () => jsonResponse({ events: [] }),
+      },
+    );
     expect(result).toEqual([]);
   });
 
   it("returns [] when the tour response has no events (dormant date)", async () => {
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/atp/wimbledon",
       "2026-07-01",
       { fetchFn: async () => jsonResponse({ events: null }) },
@@ -177,7 +181,7 @@ describe("tennisScoreboard", () => {
   });
 
   it("returns [] when the tour response carries events but none match the tournament name", async () => {
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/atp/wimbledon",
       "2026-07-01",
       {
@@ -199,7 +203,7 @@ describe("tennisScoreboard", () => {
 
   it("Slam fans out to atp + wta endpoints and concatenates matches from each", async () => {
     const calls: string[] = [];
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/slam/wimbledon",
       "2026-07-01",
       {
@@ -248,7 +252,7 @@ describe("tennisScoreboard", () => {
     // Slam, so the same competition id can come back from both endpoints.
     // tennisScoreboard must collapse them to a single Match (otherwise the
     // homepage renders duplicate React keys and the live/done counts double).
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/slam/wimbledon",
       "2026-07-01",
       {
@@ -279,7 +283,7 @@ describe("tennisScoreboard", () => {
   it("filters competitions to the requested date (ESPN returns the whole draw)", async () => {
     // ESPN ignores the dates= param and returns every round of the event.
     // tennisScoreboard must keep only competitions on the requested date.
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/atp/indian-wells",
       "2026-03-12",
       {
@@ -320,7 +324,7 @@ describe("tennisScoreboard", () => {
   });
 
   it("surfaces set scores, tiebreaks, flags, draw, round, court and best-of in match.tennis", async () => {
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/atp/indian-wells",
       "2026-03-12",
       {
@@ -408,9 +412,133 @@ describe("tennisScoreboard", () => {
     ]);
   });
 
+  it("buckets competitions by local date (tz), not raw UTC", async () => {
+    // 01:30 UTC on Jul 2 is the evening of Jul 1 in America/New_York (EDT, -4).
+    const fetchFn = async () =>
+      jsonResponse(
+        makeTourResponse([
+          {
+            name: "Wimbledon",
+            competitions: [
+              {
+                id: "late",
+                state: "in",
+                homeName: "A",
+                awayName: "B",
+                date: "2026-07-02T01:30:00Z",
+              },
+            ],
+          },
+        ]),
+      );
+
+    // In New York the match belongs to Jul 1.
+    const ny1 = await tennisScoreboard("tennis/slam/wimbledon", "2026-07-01", {
+      fetchFn,
+      tz: "America/New_York",
+    });
+    expect(ny1.matches.map((m) => m.id)).toEqual(["late"]);
+
+    // ...and NOT to Jul 2 in New York.
+    const ny2 = await tennisScoreboard("tennis/slam/wimbledon", "2026-07-02", {
+      fetchFn,
+      tz: "America/New_York",
+    });
+    expect(ny2.matches).toEqual([]);
+
+    // Under UTC (default) the same match lands on Jul 2.
+    const utc = await tennisScoreboard("tennis/slam/wimbledon", "2026-07-02", {
+      fetchFn,
+    });
+    expect(utc.matches.map((m) => m.id)).toEqual(["late"]);
+  });
+
+  it("buckets correctly across the date line (Pacific/Auckland, +12)", async () => {
+    // 13:00 UTC on Jun 30 is 01:00 on Jul 1 in Auckland (NZST, +12).
+    const fetchFn = async () =>
+      jsonResponse(
+        makeTourResponse([
+          {
+            name: "Wimbledon",
+            competitions: [
+              {
+                id: "akl",
+                state: "in",
+                homeName: "A",
+                awayName: "B",
+                date: "2026-06-30T13:00:00Z",
+              },
+            ],
+          },
+        ]),
+      );
+
+    const jul1 = await tennisScoreboard("tennis/slam/wimbledon", "2026-07-01", {
+      fetchFn,
+      tz: "Pacific/Auckland",
+    });
+    expect(jul1.matches.map((m) => m.id)).toEqual(["akl"]);
+
+    const jun30 = await tennisScoreboard(
+      "tennis/slam/wimbledon",
+      "2026-06-30",
+      {
+        fetchFn,
+        tz: "Pacific/Auckland",
+      },
+    );
+    expect(jun30.matches).toEqual([]);
+  });
+
+  it("returns the tournament's overall draw span across all rounds", async () => {
+    const fetchFn = async () =>
+      jsonResponse(
+        makeTourResponse([
+          {
+            name: "BNP Paribas Open",
+            competitions: [
+              {
+                id: "r1",
+                state: "post",
+                homeName: "A",
+                awayName: "B",
+                date: "2026-03-08T18:00:00Z",
+              },
+              {
+                id: "today",
+                state: "in",
+                homeName: "C",
+                awayName: "D",
+                date: "2026-03-12T18:00:00Z",
+              },
+              {
+                id: "r3",
+                state: "pre",
+                homeName: "E",
+                awayName: "F",
+                date: "2026-03-15T18:00:00Z",
+              },
+            ],
+          },
+        ]),
+      );
+
+    const res = await tennisScoreboard(
+      "tennis/atp/indian-wells",
+      "2026-03-12",
+      {
+        fetchFn,
+      },
+    );
+    // Span covers the whole draw; matches are filtered to the requested day.
+    expect(res.eventStartDate).toBe("2026-03-08");
+    expect(res.eventEndDate).toBe("2026-03-15");
+    expect(res.matches.map((m) => m.id)).toEqual(["today"]);
+  });
+
   it("ATP 1000 hits the atp endpoint only and uses athlete display names", async () => {
     const calls: string[] = [];
-    const result = await tennisScoreboard(
+    const { matches: result } = await tennisScoreboard(
       "tennis/atp/indian-wells",
       "2026-03-10",
       {

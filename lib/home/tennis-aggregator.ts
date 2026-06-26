@@ -8,14 +8,17 @@
  */
 
 import { MARQUEE_TENNIS_TOURNAMENTS } from "@/lib/espn/tennis";
-import type { TennisTour } from "@/lib/espn/tennis";
+import type { TennisTour, TennisScoreboardResult } from "@/lib/espn/tennis";
 import type { Match } from "@/lib/sports/types";
 
-/** Fetches all matches for a single marquee tournament on a UTC date. */
+/**
+ * Fetches one marquee tournament's matches for a single local date, plus the
+ * tournament's overall draw span.
+ */
 export type TennisScoreboardFetcher = (
   tournamentId: string,
   date: string,
-) => Promise<Match[]>;
+) => Promise<TennisScoreboardResult>;
 
 /** A marquee tournament that is in-session today (has ≥1 ESPN match). */
 export interface ActiveTournament {
@@ -47,19 +50,24 @@ export async function getActiveTennisTournaments(
   const settled = await Promise.allSettled(
     MARQUEE_TENNIS_TOURNAMENTS.map(async (t) => ({
       tournament: t,
-      matches: await fetcher(t.id, today),
+      result: await fetcher(t.id, today),
     })),
   );
 
   const active: ActiveTournament[] = [];
   for (const r of settled) {
     if (r.status === "rejected") continue;
-    const { tournament, matches } = r.value;
+    const { tournament, result } = r.value;
+    const { matches } = result;
     if (matches.length === 0) continue;
 
-    const dates = matches.map((m) => m.dateUtc);
-    const startDate = dates.reduce((a, b) => (a < b ? a : b));
-    const endDate = dates.reduce((a, b) => (a > b ? a : b));
+    // Date range = the tournament's overall draw span (not this single day);
+    // fall back to the day's matches if the fetcher didn't surface a span.
+    const dayDates = matches.map((m) => m.dateUtc);
+    const startDate =
+      result.eventStartDate ?? dayDates.reduce((a, b) => (a < b ? a : b));
+    const endDate =
+      result.eventEndDate ?? dayDates.reduce((a, b) => (a > b ? a : b));
 
     active.push({
       id: tournament.id,
@@ -67,7 +75,9 @@ export async function getActiveTennisTournaments(
       tour: tournament.tour,
       startDate,
       endDate,
-      currentRound: matches[0]?.round,
+      // Prefer the real round (e.g. "Quarterfinals"); fall back to the
+      // draw/grouping name only when ESPN omits the round.
+      currentRound: matches[0]?.tennis?.round ?? matches[0]?.round,
       liveCount: matches.filter((m) => m.status === "live").length,
       upcomingCount: matches.filter((m) => m.status === "upcoming").length,
       doneCount: matches.filter((m) => m.status === "final").length,

@@ -53,7 +53,7 @@ Maps Spec Unit 1. Complete the half-finished `TennisByDay` refactor so the homep
 - [x] 1.7 Update `components/home-client.test.tsx` envelope builder/fixtures to the `TennisByDay` shape so the file type-checks (full rendering assertions land in Task 3).
 - [x] 1.8 Run `pnpm typecheck` (must be clean) and `pnpm test:ci`; commit `feat(tennis): per-day tennis in home envelope` with body `Related to T1.0 in Spec 06-spec-tennis-day-feed`.
 
-### [ ] 2.0 Local-day bucketing + accurate tournament metadata
+### [x] 2.0 Local-day bucketing + accurate tournament metadata
 
 Maps Spec Unit 2 (and the metadata half of Unit 3's data). Make `tennisScoreboard` timezone-aware so competitions are bucketed by the user's local date (not UTC), preserve Spec 05's dedupe + whole-draw safeguards, surface each tournament's overall date span, and derive `currentRound` from the real round. Commits with body `Related to T2.0 in Spec 06-spec-tennis-day-feed`.
 
@@ -66,14 +66,14 @@ Maps Spec Unit 2 (and the metadata half of Unit 3's data). Make `tennisScoreboar
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Thread timezone: extend the tennis fetcher signature so `tz` reaches it (`Fetchers.activeTennisTournaments: (day, tz) => Promise<ActiveTournament[]>`), pass the aggregator's `tz`, and include `tz` in the `cachedActiveTennisTournaments` cache key (`lib/home/cache.ts`). Keep the change **additive and tennis-only**: do not alter `eventsLeagueDay` or any team-sport fetcher/cache signature or behavior.
-- [ ] 2.2 In `lib/espn/tennis.ts`, add `tz` to `TennisClientOptions`; replace the strict UTC `comp.date.slice(0,10) === date` filter with a local-date comparison that converts each competition's UTC timestamp to its local date via `tz` (extract a small `localDateOf(iso, tz)` helper consistent with `localDateOfMatch`); default `tz` to `"UTC"`.
-- [ ] 2.3 In `lib/espn/tennis.ts`, capture the tournament's overall date span (min/max `comp.date` across the **unfiltered** draw) and return it alongside the matches (e.g. `tennisScoreboard` returns `{ matches, eventStartDate, eventEndDate }`); update `TennisScoreboardFetcher` and callers accordingly. Keep the dedupe-by-id behavior.
-- [ ] 2.4 In `lib/home/tennis-aggregator.ts`, set `ActiveTournament.startDate`/`endDate` from the returned event span; set `currentRound` from the first match's `tennis.round` (real round), falling back to `match.round` when absent.
-- [ ] 2.5 Update `lib/espn/tennis.test.ts`: add a tz-driven local-date bucketing case (UTC date ≠ local date), assert the event span is returned, and keep the dedupe + existing parse cases green. Include at least one **edge-timezone** case (a DST-observing or near-date-line zone, e.g. `America/New_York` around a late-evening UTC-rollover match) so the bucketing is proven beyond a single offset.
-- [ ] 2.6 Update `lib/home/tennis-aggregator.test.ts`: assert `startDate`/`endDate` = event span, `currentRound` = real round, and per-day match separation.
-- [ ] 2.7 Update `lib/home/cache.test.ts` to assert the tennis cache key includes the date and `tz`, and that two different `tz` values for the same date produce **distinct** cache keys (guards correctness of per-timezone bucketing).
-- [ ] 2.8 Run `pnpm test:ci`; commit `fix(tennis): local-day bucketing + event date range + real round` with body `Related to T2.0 in Spec 06-spec-tennis-day-feed`.
+- [x] 2.1 Thread timezone: extend the tennis fetcher signature so `tz` reaches it (`Fetchers.activeTennisTournaments: (day, tz) => Promise<ActiveTournament[]>`), pass the aggregator's `tz`, and include `tz` in the `cachedActiveTennisTournaments` cache key (`lib/home/cache.ts`). Keep the change **additive and tennis-only**: do not alter `eventsLeagueDay` or any team-sport fetcher/cache signature or behavior.
+- [x] 2.2 In `lib/espn/tennis.ts`, add `tz` to `TennisClientOptions`; replace the strict UTC `comp.date.slice(0,10) === date` filter with a local-date comparison that converts each competition's UTC timestamp to its local date via `tz` (extract a small `localDateOf(iso, tz)` helper consistent with `localDateOfMatch`); default `tz` to `"UTC"`.
+- [x] 2.3 In `lib/espn/tennis.ts`, capture the tournament's overall date span (min/max `comp.date` across the **unfiltered** draw) and return it alongside the matches (e.g. `tennisScoreboard` returns `{ matches, eventStartDate, eventEndDate }`); update `TennisScoreboardFetcher` and callers accordingly. Keep the dedupe-by-id behavior.
+- [x] 2.4 In `lib/home/tennis-aggregator.ts`, set `ActiveTournament.startDate`/`endDate` from the returned event span; set `currentRound` from the first match's `tennis.round` (real round), falling back to `match.round` when absent.
+- [x] 2.5 Update `lib/espn/tennis.test.ts`: add a tz-driven local-date bucketing case (UTC date ≠ local date), assert the event span is returned, and keep the dedupe + existing parse cases green. Include at least one **edge-timezone** case (a DST-observing or near-date-line zone, e.g. `America/New_York` around a late-evening UTC-rollover match) so the bucketing is proven beyond a single offset.
+- [x] 2.6 Update `lib/home/tennis-aggregator.test.ts`: assert `startDate`/`endDate` = event span, `currentRound` = real round, and per-day match separation.
+- [x] 2.7 Update `lib/home/cache.test.ts` to assert the tennis cache key includes the date and `tz`, and that two different `tz` values for the same date produce **distinct** cache keys (guards correctness of per-timezone bucketing).
+- [x] 2.8 Run `pnpm test:ci`; commit `fix(tennis): local-day bucketing + event date range + real round` with body `Related to T2.0 in Spec 06-spec-tennis-day-feed`.
 
 ### [ ] 3.0 Per-day tennis rendering and card metadata display
 

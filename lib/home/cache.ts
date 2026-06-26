@@ -86,18 +86,28 @@ function cachedScoreboard(
 
 /**
  * Wraps `getActiveTennisTournaments` in `unstable_cache` with a 1-hour TTL.
- * The fetcher passed to the inner call is the live `tennisScoreboard`.
+ * The fetcher passed to the inner call is the live `tennisScoreboard`, with
+ * `tz` bound so competitions bucket by the user's local date. `tz` is part of
+ * the cache key so distinct timezones don't share a (differently-bucketed)
+ * cache entry.
  */
+export function tennisActiveCacheKey(today: string, tz: string): string[] {
+  return [CACHE_KEY_PREFIX, "tennis-active", today, tz];
+}
+
 export function cachedActiveTennisTournaments(
   today: string,
+  tz: string,
 ): Promise<ActiveTournament[]> {
   const wrapped = unstable_cache(
-    async (d: string): Promise<ActiveTournament[]> =>
-      getActiveTennisTournaments(d, (id, date) => tennisScoreboard(id, date)),
-    [CACHE_KEY_PREFIX, "tennis-active", today],
+    async (d: string, z: string): Promise<ActiveTournament[]> =>
+      getActiveTennisTournaments(d, (id, date) =>
+        tennisScoreboard(id, date, { tz: z }),
+      ),
+    tennisActiveCacheKey(today, tz),
     { revalidate: 3600 },
   );
-  return wrapped(today);
+  return wrapped(today, tz);
 }
 
 /**
@@ -109,7 +119,8 @@ export function makeCachedFetchers(dates: DateWindow): Fetchers {
   return {
     eventsLeagueDay: (leagueKey, date) =>
       cachedScoreboard(leagueKey, date, dates),
-    activeTennisTournaments: (today) => cachedActiveTennisTournaments(today),
+    activeTennisTournaments: (today, tz) =>
+      cachedActiveTennisTournaments(today, tz),
   };
 }
 

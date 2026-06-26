@@ -52,7 +52,10 @@ export type EventsLeagueDayFetcher = (
 
 export interface Fetchers {
   eventsLeagueDay: EventsLeagueDayFetcher;
-  activeTennisTournaments: (day: string) => Promise<ActiveTournament[]>;
+  activeTennisTournaments: (
+    day: string,
+    tz: string,
+  ) => Promise<ActiveTournament[]>;
 }
 
 /** Active marquee tennis tournaments bucketed by the same local day window. */
@@ -237,9 +240,9 @@ export async function aggregateMatchesForUser(
   const [leagueSettled, tennisSettled] = await Promise.all([
     Promise.allSettled(leagueCalls),
     Promise.allSettled([
-      fetchers.activeTennisTournaments(dates.yesterday),
-      fetchers.activeTennisTournaments(dates.today),
-      fetchers.activeTennisTournaments(dates.tomorrow),
+      fetchers.activeTennisTournaments(dates.yesterday, tz),
+      fetchers.activeTennisTournaments(dates.today, tz),
+      fetchers.activeTennisTournaments(dates.tomorrow, tz),
     ]),
   ]);
 
