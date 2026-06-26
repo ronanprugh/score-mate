@@ -39,7 +39,11 @@ function envelope(
     yesterday: partial.yesterday ?? [],
     today: partial.today ?? [],
     tomorrow: partial.tomorrow ?? [],
-    activeTennisTournaments: partial.activeTennisTournaments ?? [],
+    activeTennisTournaments: partial.activeTennisTournaments ?? {
+      yesterday: [],
+      today: [],
+      tomorrow: [],
+    },
     source:
       partial.source ??
       (partial.okFailedCount !== undefined
@@ -243,20 +247,24 @@ describe("HomeClient (static cases)", () => {
             kickoffUtc: "2026-06-24T21:00:00Z",
           }),
         ],
-        activeTennisTournaments: [
-          makeTournament({
-            matches: [
-              makeMatch({
-                id: "tennis-live",
-                sport: "Tennis",
-                leagueId: "tennis/slam/wimbledon",
-                leagueName: "Wimbledon",
-                status: "live",
-                kickoffUtc: "2026-06-24T19:30:00Z",
-              }),
-            ],
-          }),
-        ],
+        activeTennisTournaments: {
+          yesterday: [],
+          today: [
+            makeTournament({
+              matches: [
+                makeMatch({
+                  id: "tennis-live",
+                  sport: "Tennis",
+                  leagueId: "tennis/slam/wimbledon",
+                  leagueName: "Wimbledon",
+                  status: "live",
+                  kickoffUtc: "2026-06-24T19:30:00Z",
+                }),
+              ],
+            }),
+          ],
+          tomorrow: [],
+        },
       }),
     );
 
@@ -286,7 +294,7 @@ describe("HomeClient (static cases)", () => {
     mockJson(
       envelope({
         today: [makeMatch({ id: "t" })],
-        activeTennisTournaments: [],
+        activeTennisTournaments: { yesterday: [], today: [], tomorrow: [] },
       }),
     );
 

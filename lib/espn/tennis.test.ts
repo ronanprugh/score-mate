@@ -243,6 +243,171 @@ describe("tennisScoreboard", () => {
     expect(result[0]!.awayTeamLogo).toBeUndefined();
   });
 
+  it("dedupes matches when atp + wta responses overlap on the same competition id", async () => {
+    // ESPN's atp and wta tennis scoreboards return overlapping events during a
+    // Slam, so the same competition id can come back from both endpoints.
+    // tennisScoreboard must collapse them to a single Match (otherwise the
+    // homepage renders duplicate React keys and the live/done counts double).
+    const result = await tennisScoreboard(
+      "tennis/slam/wimbledon",
+      "2026-07-01",
+      {
+        fetchFn: async () =>
+          jsonResponse(
+            makeTourResponse([
+              {
+                name: "Wimbledon",
+                competitions: [
+                  {
+                    id: "177461",
+                    state: "in",
+                    homeName: "Carlos Alcaraz",
+                    awayName: "Jannik Sinner",
+                    homeSets: 2,
+                    awaySets: 1,
+                  },
+                ],
+              },
+            ]),
+          ),
+      },
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]!.id).toBe("177461");
+  });
+
+  it("filters competitions to the requested date (ESPN returns the whole draw)", async () => {
+    // ESPN ignores the dates= param and returns every round of the event.
+    // tennisScoreboard must keep only competitions on the requested date.
+    const result = await tennisScoreboard(
+      "tennis/atp/indian-wells",
+      "2026-03-12",
+      {
+        fetchFn: async () =>
+          jsonResponse(
+            makeTourResponse([
+              {
+                name: "BNP Paribas Open",
+                competitions: [
+                  {
+                    id: "early-round",
+                    state: "post",
+                    homeName: "A",
+                    awayName: "B",
+                    date: "2026-03-10T18:00:00Z",
+                  },
+                  {
+                    id: "todays-match",
+                    state: "in",
+                    homeName: "C",
+                    awayName: "D",
+                    date: "2026-03-12T18:00:00Z",
+                  },
+                  {
+                    id: "later-round",
+                    state: "pre",
+                    homeName: "E",
+                    awayName: "F",
+                    date: "2026-03-14T18:00:00Z",
+                  },
+                ],
+              },
+            ]),
+          ),
+      },
+    );
+    expect(result.map((m) => m.id)).toEqual(["todays-match"]);
+  });
+
+  it("surfaces set scores, tiebreaks, flags, draw, round, court and best-of in match.tennis", async () => {
+    const result = await tennisScoreboard(
+      "tennis/atp/indian-wells",
+      "2026-03-12",
+      {
+        fetchFn: async () =>
+          jsonResponse({
+            events: [
+              {
+                name: "BNP Paribas Open",
+                groupings: [
+                  {
+                    grouping: { displayName: "Men's Singles" },
+                    competitions: [
+                      {
+                        id: "rich-1",
+                        date: "2026-03-12T18:00:00Z",
+                        status: { type: { state: "post" } },
+                        type: { text: "Men's Singles" },
+                        round: { displayName: "Quarterfinal" },
+                        format: { regulation: { periods: 3 } },
+                        venue: {
+                          fullName: "Indian Wells, USA",
+                          court: "Stadium 1",
+                        },
+                        competitors: [
+                          {
+                            id: "a",
+                            homeAway: "home",
+                            winner: true,
+                            athlete: {
+                              id: "a",
+                              displayName: "Carlos Alcaraz",
+                              flag: {
+                                href: "https://flags/esp.png",
+                                alt: "Spain",
+                              },
+                            },
+                            linescores: [
+                              { value: 6, winner: true },
+                              { value: 7, tiebreak: 5, winner: true },
+                            ],
+                          },
+                          {
+                            id: "b",
+                            homeAway: "away",
+                            winner: false,
+                            athlete: {
+                              id: "b",
+                              displayName: "Jannik Sinner",
+                              flag: {
+                                href: "https://flags/ita.png",
+                                alt: "Italy",
+                              },
+                            },
+                            linescores: [
+                              { value: 4, winner: false },
+                              { value: 6, tiebreak: 5, winner: false },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      },
+    );
+    expect(result).toHaveLength(1);
+    const t = result[0]!.tennis!;
+    expect(t.bestOf).toBe(3);
+    expect(t.draw).toBe("Men's Singles");
+    expect(t.round).toBe("Quarterfinal");
+    expect(t.court).toBe("Stadium 1");
+    expect(t.home.flagAlt).toBe("Spain");
+    expect(t.home.flagUrl).toBe("https://flags/esp.png");
+    expect(t.home.won).toBe(true);
+    expect(t.home.sets).toEqual([
+      { games: 6, won: true },
+      { games: 7, tiebreak: 5, won: true },
+    ]);
+    expect(t.away.sets).toEqual([
+      { games: 4, won: false },
+      { games: 6, tiebreak: 5, won: false },
+    ]);
+  });
+
   it("ATP 1000 hits the atp endpoint only and uses athlete display names", async () => {
     const calls: string[] = [];
     const result = await tennisScoreboard(
@@ -263,6 +428,7 @@ describe("tennisScoreboard", () => {
                     awayName: "Jannik Sinner",
                     homeSets: 2,
                     awaySets: 1,
+                    date: "2026-03-10T18:00:00Z",
                   },
                 ],
               },

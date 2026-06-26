@@ -78,6 +78,47 @@ export interface EventInstance {
   leagueNameContains?: string;
 }
 
+/** One set's score for a single tennis player. */
+export interface TennisSetScore {
+  /** Games won in this set. */
+  games: number;
+  /** Tiebreak points won, present only when the set went to a tiebreak. */
+  tiebreak?: number;
+  /** True when this player won the set. */
+  won: boolean;
+}
+
+/** Per-player tennis detail (flag + set-by-set scores). */
+export interface TennisPlayerLine {
+  /** Country flag image URL (ESPN `athlete.flag.href`). */
+  flagUrl?: string;
+  /** Country name / flag alt text (ESPN `athlete.flag.alt`). */
+  flagAlt?: string;
+  /** Per-set scores, oldest set first. */
+  sets: TennisSetScore[];
+  /** True when this player won the match (final only). */
+  won: boolean;
+}
+
+/**
+ * Tennis-specific match detail. Present only on `sport === "Tennis"` matches;
+ * team-sport matches leave it undefined. Surfaced so `TennisMatchCard` can
+ * render set-by-set scores, flags, draw/round, and court without the shared
+ * `Match` shape growing tennis concepts for every sport.
+ */
+export interface TennisMatchDetail {
+  /** Best-of N sets (3 or 5), from `format.regulation.periods`. */
+  bestOf?: number;
+  /** Draw / event type, e.g. "Men's Singles" (`type.text`). */
+  draw?: string;
+  /** Round display name, e.g. "Round 1" (`round.displayName`). */
+  round?: string;
+  /** Court within the venue, e.g. "Court 8" (`venue.court`). */
+  court?: string;
+  home: TennisPlayerLine;
+  away: TennisPlayerLine;
+}
+
 export interface Match {
   /** Provider event id (ESPN `event.id`). Used as the dedup key. */
   id: string;
@@ -119,6 +160,9 @@ export interface Match {
   awayScore?: number;
   /** Human-readable progress for live matches (e.g. "73'", "Q3 8:21", "Set 2"). */
   liveProgress?: string;
+
+  /** Tennis-only set-by-set detail; undefined for team sports. */
+  tennis?: TennisMatchDetail;
 }
 
 /**

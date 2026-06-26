@@ -7,7 +7,10 @@ import {
   type DateWindow,
 } from "@/lib/date-window";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
-import { sortKeyForTournamentCard } from "@/lib/home/aggregator";
+import {
+  LATE_KICKOFF_SENTINEL,
+  sortKeyForTournamentCard,
+} from "@/lib/home/sort-helpers";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
 import type { Match } from "@/lib/sports/types";
 import { DataSourceErrorBanner } from "./data-source-error-banner";
@@ -51,8 +54,6 @@ interface MatchGroup {
   /** Earliest kickoff in the group; used to order groups within a day. */
   earliestKickoff: string;
 }
-
-const LATE_KICKOFF_SENTINEL = "9999-12-31T23:59:59";
 
 function groupMatchesByLeague(matches: readonly Match[]): MatchGroup[] {
   const byLeague = new Map<string, Match[]>();
@@ -170,16 +171,14 @@ export function HomeClient({ hasFavorites }: Props) {
   }
 
   const { envelope, window } = state;
-  const totalMatches =
-    envelope.yesterday.length +
-    envelope.today.length +
-    envelope.tomorrow.length;
-  const showEmpty = totalMatches === 0 && hasFavorites;
+  const tennis = envelope.activeTennisTournaments;
   const counts: Record<DayKey, number> = {
-    yesterday: envelope.yesterday.length,
-    today: envelope.today.length,
-    tomorrow: envelope.tomorrow.length,
+    yesterday: envelope.yesterday.length + tennis.yesterday.length,
+    today: envelope.today.length + tennis.today.length,
+    tomorrow: envelope.tomorrow.length + tennis.tomorrow.length,
   };
+  const totalItems = counts.yesterday + counts.today + counts.tomorrow;
+  const showEmpty = totalItems === 0 && hasFavorites;
   const activeMatches: Match[] = envelope[activeDay];
   const activeDate = window[activeDay];
 
@@ -190,7 +189,7 @@ export function HomeClient({ hasFavorites }: Props) {
       )}
       {showEmpty ? (
         <NoMatchesEmptyState />
-      ) : !hasFavorites && totalMatches === 0 ? (
+      ) : !hasFavorites && totalItems === 0 ? (
         <NoFavoritesPrompt />
       ) : (
         <>
@@ -204,7 +203,7 @@ export function HomeClient({ hasFavorites }: Props) {
             day={activeDay}
             dateLabel={activeDate}
             matches={activeMatches}
-            activeTennisTournaments={envelope.activeTennisTournaments}
+            activeTennisTournaments={tennis[activeDay]}
           />
         </>
       )}
@@ -309,12 +308,17 @@ function DayPanel({
             No matches for today.
           </p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) =>
               item.kind === "match" ? (
                 <MatchCard key={item.m.id} match={item.m} />
               ) : (
-                <TournamentCard key={item.t.id} tournament={item.t} />
+                // Tournament cards span the full row so their expandable
+                // match list has room; match cards flow 1/2/3-up like the
+                // other day tabs.
+                <div key={item.t.id} className="sm:col-span-2 lg:col-span-3">
+                  <TournamentCard tournament={item.t} />
+                </div>
               ),
             )}
           </div>

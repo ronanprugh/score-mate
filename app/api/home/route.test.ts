@@ -37,7 +37,7 @@ const EMPTY_ENVELOPE = {
   yesterday: [],
   today: [],
   tomorrow: [],
-  activeTennisTournaments: [],
+  activeTennisTournaments: { yesterday: [], today: [], tomorrow: [] },
   source: { ok: true, errors: [] },
 };
 

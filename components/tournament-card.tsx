@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
-import { MatchCard } from "./match-card";
-
-const LATE_KICKOFF_SENTINEL = "9999-12-31T23:59:59";
+import { LATE_KICKOFF_SENTINEL } from "@/lib/home/sort-helpers";
+import { TennisMatchCard } from "./tennis-match-card";
 
 function formatDateRange(startDate: string, endDate: string): string {
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -93,9 +92,9 @@ export function TournamentCard({ tournament }: Props) {
         </button>
       </div>
       {isOpen && (
-        <div className="flex flex-col gap-2 pt-2">
+        <div className="grid grid-cols-1 gap-2 pt-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr))]">
           {sortedMatches.map((m) => (
-            <MatchCard key={m.id} match={m} />
+            <TennisMatchCard key={m.id} match={m} />
           ))}
         </div>
       )}

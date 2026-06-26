@@ -82,7 +82,7 @@ function fetcherFrom(
 
 function fetchersFrom(
   table: Record<string, Match[] | Error>,
-  tennisFetcher?: () => Promise<ActiveTournament[]>,
+  tennisFetcher?: (day: string) => Promise<ActiveTournament[]>,
 ): Fetchers {
   return {
     eventsLeagueDay: fetcherFrom(table),
@@ -145,7 +145,7 @@ describe("aggregateMatchesForUser", () => {
       yesterday: [],
       today: [],
       tomorrow: [],
-      activeTennisTournaments: [],
+      activeTennisTournaments: { yesterday: [], today: [], tomorrow: [] },
       source: { ok: true, errors: [] },
     });
     expect(fetcher).not.toHaveBeenCalled();
@@ -345,51 +345,75 @@ describe("aggregateMatchesForUser", () => {
     expect(env.today.map((m) => m.id)).toEqual(["dup"]);
   });
 
-  it("populates activeTennisTournaments from the tennis fetcher", async () => {
+  it("populates activeTennisTournaments per day from the tennis fetcher", async () => {
     listMock.mockResolvedValue([
       fav({ type: "team", sport: "Soccer", externalId: "359" }),
     ]);
-    const tennisTournament: ActiveTournament = {
+    const tournamentFor = (day: string): ActiveTournament => ({
       id: "tennis/slam/roland-garros",
       displayName: "Roland Garros",
       tour: "Slam",
-      startDate: DATES.today,
-      endDate: DATES.today,
+      startDate: day,
+      endDate: day,
       currentRound: "Semifinals",
       liveCount: 2,
       upcomingCount: 0,
       doneCount: 0,
       matches: [],
-    };
-    const fetchers = fetchersFrom({}, async () => [tennisTournament]);
+    });
+    const fetchers = fetchersFrom({}, async (day) => [tournamentFor(day)]);
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
-    expect(env.activeTennisTournaments).toHaveLength(1);
-    expect(env.activeTennisTournaments[0]?.id).toBe(
+    // Fetched once per local day; each day carries its own list.
+    expect(env.activeTennisTournaments.yesterday).toHaveLength(1);
+    expect(env.activeTennisTournaments.today).toHaveLength(1);
+    expect(env.activeTennisTournaments.tomorrow).toHaveLength(1);
+    expect(env.activeTennisTournaments.today[0]?.id).toBe(
       "tennis/slam/roland-garros",
     );
+    expect(env.activeTennisTournaments.today[0]?.startDate).toBe(DATES.today);
   });
 
-  it("on tennis fetcher rejection: envelope succeeds with activeTennisTournaments=[] and a source.errors entry", async () => {
+  it("isolates a single day's tennis fetch rejection: that day is [] + source.errors, other days still populate", async () => {
     listMock.mockResolvedValue([
       fav({ type: "team", sport: "Soccer", externalId: "359" }),
     ]);
-    const fetchers = fetchersFrom({}, async () => {
-      throw new Error("Tennis 503");
+    const tournament: ActiveTournament = {
+      id: "tennis/slam/wimbledon",
+      displayName: "Wimbledon",
+      tour: "Slam",
+      startDate: DATES.yesterday,
+      endDate: DATES.tomorrow,
+      currentRound: "Round 1",
+      liveCount: 0,
+      upcomingCount: 0,
+      doneCount: 1,
+      matches: [],
+    };
+    // Only the "today" fetch rejects; yesterday/tomorrow resolve normally.
+    const fetchers = fetchersFrom({}, async (day) => {
+      if (day === DATES.today) throw new Error("Tennis 503");
+      return [tournament];
     });
     const env = await aggregateMatchesForUser("user-a", DATES, fetchers);
-    expect(env.activeTennisTournaments).toEqual([]);
+    expect(env.activeTennisTournaments.today).toEqual([]);
+    expect(env.activeTennisTournaments.yesterday).toHaveLength(1);
+    expect(env.activeTennisTournaments.tomorrow).toHaveLength(1);
     expect(env.source.ok).toBe(false);
     expect(env.source.errors).toHaveLength(1);
     expect(env.source.errors[0]).toMatch(/Tennis 503/);
   });
 
-  it("EMPTY_ENVELOPE includes activeTennisTournaments field defaulting to []", async () => {
+  it("EMPTY_ENVELOPE includes activeTennisTournaments defaulting to the per-day shape", async () => {
     listMock.mockResolvedValue([]);
     const env = await aggregateMatchesForUser("user-a", DATES, {
       eventsLeagueDay: async () => [],
       activeTennisTournaments: async () => [],
     });
-    expect(env).toHaveProperty("activeTennisTournaments", []);
+    expect(env).toHaveProperty("activeTennisTournaments", {
+      yesterday: [],
+      today: [],
+      tomorrow: [],
+    });
   });
 });
 

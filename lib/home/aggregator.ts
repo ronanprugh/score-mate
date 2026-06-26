@@ -40,6 +40,9 @@ import { listFavoritesForUser } from "@/lib/favorites/queries";
 import type { Match, Sport } from "@/lib/sports/types";
 import type { FavoriteRow } from "@/db/schema/favorites";
 import type { ActiveTournament } from "./tennis-aggregator";
+import { sortByKickoff, sortKeyForTournamentCard } from "./sort-helpers";
+
+export { sortKeyForTournamentCard };
 
 /** Fetches every match for a league on a single UTC date. */
 export type EventsLeagueDayFetcher = (
@@ -49,14 +52,25 @@ export type EventsLeagueDayFetcher = (
 
 export interface Fetchers {
   eventsLeagueDay: EventsLeagueDayFetcher;
-  activeTennisTournaments: (today: string) => Promise<ActiveTournament[]>;
+  activeTennisTournaments: (day: string) => Promise<ActiveTournament[]>;
+}
+
+/** Active marquee tennis tournaments bucketed by the same local day window. */
+export interface TennisByDay {
+  yesterday: ActiveTournament[];
+  today: ActiveTournament[];
+  tomorrow: ActiveTournament[];
+}
+
+function emptyTennisByDay(): TennisByDay {
+  return { yesterday: [], today: [], tomorrow: [] };
 }
 
 export interface HomeEnvelope {
   yesterday: Match[];
   today: Match[];
   tomorrow: Match[];
-  activeTennisTournaments: ActiveTournament[];
+  activeTennisTournaments: TennisByDay;
   source: {
     /** True if every upstream call succeeded. */
     ok: boolean;
@@ -69,33 +83,9 @@ const EMPTY_ENVELOPE = (): HomeEnvelope => ({
   yesterday: [],
   today: [],
   tomorrow: [],
-  activeTennisTournaments: [],
+  activeTennisTournaments: emptyTennisByDay(),
   source: { ok: true, errors: [] },
 });
-
-const LATE_KICKOFF_SENTINEL = "9999-12-31T23:59:59";
-
-function sortByKickoff(a: Match, b: Match): number {
-  const ak = a.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-  const bk = b.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-  return ak.localeCompare(bk);
-}
-
-/**
- * Returns the sort key for a tournament card in the mixed today feed.
- * Uses the minimum `kickoffUtc` across live or upcoming matches.
- * Falls back to `LATE_KICKOFF_SENTINEL` when no live/upcoming matches
- * exist, placing the tournament below all match cards.
- */
-export function sortKeyForTournamentCard(t: ActiveTournament): string {
-  const liveOrUpcoming = t.matches.filter(
-    (m) => m.status === "live" || m.status === "upcoming",
-  );
-  if (liveOrUpcoming.length === 0) return LATE_KICKOFF_SENTINEL;
-  return liveOrUpcoming
-    .map((m) => m.kickoffUtc ?? LATE_KICKOFF_SENTINEL)
-    .reduce((a, b) => (a < b ? a : b));
-}
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -145,7 +135,7 @@ export function buildHomeEnvelope(
   dates: DateWindow,
   errors: string[] = [],
   tz: string = "UTC",
-  activeTennisTournaments: ActiveTournament[] = [],
+  activeTennisTournaments: TennisByDay = emptyTennisByDay(),
 ): HomeEnvelope {
   const enriched = matches.map(enrichMatchWithEventInstance);
   const matched = matchFavoritesAgainstMatches(favorites, enriched);
@@ -242,9 +232,15 @@ export async function aggregateMatchesForUser(
     }
   }
 
+  // Tennis is fetched for the same [yesterday, today, tomorrow] local window
+  // so each day tab can render its in-session marquee tournaments.
   const [leagueSettled, tennisSettled] = await Promise.all([
     Promise.allSettled(leagueCalls),
-    Promise.allSettled([fetchers.activeTennisTournaments(dates.today)]),
+    Promise.allSettled([
+      fetchers.activeTennisTournaments(dates.yesterday),
+      fetchers.activeTennisTournaments(dates.today),
+      fetchers.activeTennisTournaments(dates.tomorrow),
+    ]),
   ]);
 
   const errors: string[] = [];
@@ -254,31 +250,15 @@ export async function aggregateMatchesForUser(
     if (s.status === "fulfilled") {
       allMatches.push(...s.value);
     } else {
-      const reason = s.reason;
-      const message =
-        reason instanceof Error
-          ? reason.message
-          : typeof reason === "string"
-            ? reason
-            : "Unknown upstream error";
-      errors.push(message);
+      errors.push(settledErrorMessage(s.reason));
     }
   }
 
-  let activeTennisTournaments: ActiveTournament[] = [];
-  const ts = tennisSettled[0]!;
-  if (ts.status === "fulfilled") {
-    activeTennisTournaments = ts.value;
-  } else {
-    const reason = ts.reason;
-    const message =
-      reason instanceof Error
-        ? reason.message
-        : typeof reason === "string"
-          ? reason
-          : "Unknown upstream error";
-    errors.push(message);
-  }
+  const activeTennisTournaments: TennisByDay = {
+    yesterday: tournamentsOrError(tennisSettled[0]!, errors),
+    today: tournamentsOrError(tennisSettled[1]!, errors),
+    tomorrow: tournamentsOrError(tennisSettled[2]!, errors),
+  };
 
   return buildHomeEnvelope(
     favorites,
@@ -288,4 +268,23 @@ export async function aggregateMatchesForUser(
     tz,
     activeTennisTournaments,
   );
+}
+
+/** Normalizes an arbitrary rejection reason into a human-readable string. */
+function settledErrorMessage(reason: unknown): string {
+  return reason instanceof Error
+    ? reason.message
+    : typeof reason === "string"
+      ? reason
+      : "Unknown upstream error";
+}
+
+/** Unwraps a settled tennis fetch, recording the error and falling back to []. */
+function tournamentsOrError(
+  settled: PromiseSettledResult<ActiveTournament[]>,
+  errors: string[],
+): ActiveTournament[] {
+  if (settled.status === "fulfilled") return settled.value;
+  errors.push(settledErrorMessage(settled.reason));
+  return [];
 }

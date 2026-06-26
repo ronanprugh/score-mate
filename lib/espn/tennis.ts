@@ -29,7 +29,11 @@
  *   https://site.api.espn.com/apis/site/v2/sports/tennis/{atp|wta}/scoreboard?dates=YYYYMMDD
  */
 
-import type { Match } from "@/lib/sports/types";
+import type {
+  Match,
+  TennisPlayerLine,
+  TennisSetScore,
+} from "@/lib/sports/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 
@@ -241,10 +245,22 @@ export function findMarqueeTournament(id: string): MarqueeTournament | null {
 /* Raw ESPN tennis shape (subset)                                             */
 /* -------------------------------------------------------------------------- */
 
+interface RawTennisFlag {
+  href?: string;
+  alt?: string;
+}
+
 interface RawTennisAthlete {
   id?: string;
   displayName?: string;
   shortName?: string;
+  flag?: RawTennisFlag;
+}
+
+interface RawTennisLinescore {
+  value?: number;
+  tiebreak?: number;
+  winner?: boolean;
 }
 
 interface RawTennisCompetitor {
@@ -252,7 +268,7 @@ interface RawTennisCompetitor {
   homeAway?: "home" | "away";
   winner?: boolean;
   athlete?: RawTennisAthlete;
-  linescores?: { value?: number; winner?: boolean }[];
+  linescores?: RawTennisLinescore[];
 }
 
 interface RawTennisStatus {
@@ -269,7 +285,11 @@ interface RawTennisCompetition {
   status?: RawTennisStatus;
   competitors?: RawTennisCompetitor[];
   notes?: { text?: string; type?: string }[];
-  venue?: { fullName?: string };
+  venue?: { fullName?: string; court?: string };
+  type?: { text?: string; slug?: string };
+  round?: { id?: string; displayName?: string };
+  format?: { regulation?: { periods?: number } };
+  broadcast?: string;
 }
 
 interface RawTennisGrouping {
@@ -309,6 +329,27 @@ function countSetsWon(competitor: RawTennisCompetitor): number | undefined {
   const ls = competitor.linescores;
   if (!ls || ls.length === 0) return undefined;
   return ls.reduce((acc, l) => acc + (l.winner ? 1 : 0), 0);
+}
+
+/**
+ * Builds the per-player tennis line (flag + set-by-set scores) consumed by
+ * `TennisMatchCard`. Maps each ESPN linescore entry to a `TennisSetScore`
+ * (games = `value`, plus the tiebreak points when present).
+ */
+function buildTennisPlayerLine(
+  competitor: RawTennisCompetitor,
+): TennisPlayerLine {
+  const sets: TennisSetScore[] = (competitor.linescores ?? []).map((l) => ({
+    games: l.value ?? 0,
+    ...(typeof l.tiebreak === "number" ? { tiebreak: l.tiebreak } : {}),
+    won: l.winner ?? false,
+  }));
+  return {
+    flagUrl: competitor.athlete?.flag?.href,
+    flagAlt: competitor.athlete?.flag?.alt,
+    sets,
+    won: competitor.winner ?? false,
+  };
 }
 
 /**
@@ -363,12 +404,20 @@ function parseTennisCompetition(
     kickoffUtc,
     round: groupingDisplayName,
     venue: comp.venue?.fullName,
-    broadcast: undefined,
+    broadcast: comp.broadcast,
     status,
     homeScore: status === "upcoming" ? undefined : countSetsWon(home),
     awayScore: status === "upcoming" ? undefined : countSetsWon(away),
     liveProgress:
       status === "live" ? comp.status?.type?.shortDetail : undefined,
+    tennis: {
+      bestOf: comp.format?.regulation?.periods,
+      draw: comp.type?.text ?? groupingDisplayName,
+      round: comp.round?.displayName,
+      court: comp.venue?.court,
+      home: buildTennisPlayerLine(home),
+      away: buildTennisPlayerLine(away),
+    },
   };
 }
 
@@ -419,7 +468,15 @@ export async function tennisScoreboard(
     ),
   );
 
-  const matches: Match[] = [];
+  // ESPN's tennis scoreboard ignores the `dates=` query param and returns the
+  // event's ENTIRE draw (every round across the fortnight), so we filter
+  // competitions down to the requested date ourselves.
+  //
+  // Dedupe by match id at the same time: a Slam queries both the atp + wta
+  // endpoints, and ESPN returns the identical competition set from each, so
+  // every match would otherwise appear twice — producing duplicate React keys
+  // and doubling the live/upcoming/done counts.
+  const byId = new Map<string, Match>();
   for (const data of responses) {
     if (!data.events) continue;
     for (const ev of data.events) {
@@ -428,11 +485,12 @@ export async function tennisScoreboard(
       for (const g of groupings) {
         const groupingName = g.grouping?.displayName;
         for (const comp of g.competitions ?? []) {
+          if (comp.date?.slice(0, 10) !== date) continue;
           const m = parseTennisCompetition(comp, tournament, groupingName);
-          if (m) matches.push(m);
+          if (m && !byId.has(m.id)) byId.set(m.id, m);
         }
       }
     }
   }
-  return matches;
+  return [...byId.values()];
 }
