@@ -56,12 +56,14 @@ describe("sportFromLeagueKey", () => {
     ["soccer/fifa.world", "Soccer"],
     ["baseball/mlb", "Baseball"],
     ["baseball/college-baseball", "Baseball"],
+    ["tennis/atp/wimbledon", "Tennis"],
+    ["tennis/wta/wimbledon", "Tennis"],
+    ["tennis/slam/wimbledon", "Tennis"],
   ])("%s -> %s", (key, expected) => {
     expect(sportFromLeagueKey(key)).toBe(expected);
   });
 
-  it("returns null for unsupported sports (e.g. tennis, hockey)", () => {
-    expect(sportFromLeagueKey("tennis/atp")).toBeNull();
+  it("returns null for unsupported sports (e.g. hockey)", () => {
     expect(sportFromLeagueKey("hockey/nhl")).toBeNull();
   });
 });
@@ -157,7 +159,7 @@ describe("scoreboardForLeague — parses ESPN site-v2 events", () => {
   });
 
   it("returns [] for an unsupported league key", async () => {
-    const matches = await scoreboardForLeague("tennis/atp", "2026-06-29", {
+    const matches = await scoreboardForLeague("hockey/nhl", "2026-06-29", {
       fetchFn: mockJsonFetch(nflScoreboard),
     });
     expect(matches).toEqual([]);

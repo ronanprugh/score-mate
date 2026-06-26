@@ -17,14 +17,14 @@ describe("favoriteTypeSchema", () => {
 });
 
 describe("sportSchema", () => {
-  it.each(["Soccer", "American Football", "Basketball", "Baseball"])(
+  it.each(["Soccer", "American Football", "Basketball", "Baseball", "Tennis"])(
     "accepts %s",
     (s) => {
       expect(sportSchema.parse(s)).toBe(s);
     },
   );
 
-  it.each(["Hockey", "soccer", "MMA", "Tennis"])("rejects %s", (bad) => {
+  it.each(["Hockey", "soccer", "MMA"])("rejects %s", (bad) => {
     expect(() => sportSchema.parse(bad)).toThrow();
   });
 });
@@ -39,6 +39,17 @@ describe("createFavoriteSchema", () => {
 
   it("accepts a minimal valid Team favorite", () => {
     expect(createFavoriteSchema.parse(valid)).toEqual(valid);
+  });
+
+  it("accepts a Tennis Event favorite with a year-less tournament externalId (Spec 05 Q3 R1 B)", () => {
+    const parsed = createFavoriteSchema.parse({
+      type: "event" as const,
+      externalId: "tennis/slam/wimbledon",
+      displayName: "Wimbledon",
+      sport: "Tennis" as const,
+    });
+    expect(parsed.sport).toBe("Tennis");
+    expect(parsed.externalId).toBe("tennis/slam/wimbledon");
   });
 
   it("accepts an Event favorite with metadata window", () => {

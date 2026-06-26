@@ -7,13 +7,19 @@
  * client + this file change.
  */
 
-export type Sport = "Soccer" | "American Football" | "Basketball" | "Baseball";
+export type Sport =
+  | "Soccer"
+  | "American Football"
+  | "Basketball"
+  | "Baseball"
+  | "Tennis";
 
 export const SUPPORTED_SPORTS: readonly Sport[] = [
   "Soccer",
   "American Football",
   "Basketball",
   "Baseball",
+  "Tennis",
 ] as const;
 
 export type FavoriteType = "team" | "sport" | "league" | "event";

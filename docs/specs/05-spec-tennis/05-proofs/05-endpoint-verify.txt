@@ -1,0 +1,34 @@
+[verify-tennis-endpoints] step 1 — probing tour-level endpoints with today's date
+  ✓ 200   239ms 1321242B  tennis/atp/scoreboard
+  ✓ 200    66ms 1321216B  tennis/wta/scoreboard
+
+[verify-tennis-endpoints] step 2 — probing tournament name filter against historical in-session dates
+  ✓ 200 matches=  1  tennis/slam/australian-open        tour=atp date=2025-01-22 espnEventName="Australian Open"
+  ✓ 200 matches=  1  tennis/slam/australian-open        tour=wta date=2025-01-22 espnEventName="Australian Open"
+  ✓ 200 matches=  1  tennis/slam/roland-garros          tour=atp date=2025-06-02 espnEventName="Roland Garros"
+  ✓ 200 matches=  1  tennis/slam/roland-garros          tour=wta date=2025-06-02 espnEventName="Roland Garros"
+  ✓ 200 matches=  1  tennis/slam/wimbledon              tour=atp date=2025-06-30 espnEventName="Wimbledon"
+  ✓ 200 matches=  1  tennis/slam/wimbledon              tour=wta date=2025-06-30 espnEventName="Wimbledon"
+  ✓ 200 matches=  1  tennis/slam/us-open                tour=atp date=2025-09-02 espnEventName="US Open"
+  ✓ 200 matches=  1  tennis/slam/us-open                tour=wta date=2025-09-02 espnEventName="US Open"
+  ✓ 200 matches=  1  tennis/atp/indian-wells            tour=atp date=2025-03-12 espnEventName="BNP Paribas Open"
+  ✓ 200 matches=  1  tennis/atp/miami                   tour=atp date=2025-03-26 espnEventName="Miami Open presented by Itau"
+  ✓ 200 matches=  1  tennis/atp/monte-carlo             tour=atp date=2025-04-09 espnEventName="Rolex Monte-Carlo Masters"
+  ✓ 200 matches=  1  tennis/atp/madrid                  tour=atp date=2025-04-30 espnEventName="Mutua Madrid Open"
+  ✓ 200 matches=  1  tennis/atp/rome                    tour=atp date=2025-05-14 espnEventName="Internazionali BNL d'Italia"
+  ✓ 200 matches=  1  tennis/atp/canada                  tour=atp date=2025-08-06 espnEventName="National Bank Open presented by Rogers"
+  ✓ 200 matches=  1  tennis/atp/cincinnati              tour=atp date=2025-08-13 espnEventName="Cincinnati Open"
+  ✓ 200 matches=  1  tennis/atp/shanghai                tour=atp date=2025-10-08 espnEventName="Rolex Shanghai Masters"
+  ✓ 200 matches=  1  tennis/atp/paris                   tour=atp date=2025-10-29 espnEventName="Rolex Paris Masters"
+  ✓ 200 matches=  1  tennis/wta/doha                    tour=wta date=2025-02-12 espnEventName="Qatar Total Energies Open"
+  ✓ 200 matches=  1  tennis/wta/dubai                   tour=wta date=2025-02-19 espnEventName="Dubai Duty Free Tennis Championships"
+  ✓ 200 matches=  1  tennis/wta/indian-wells            tour=wta date=2025-03-12 espnEventName="BNP Paribas Open"
+  ✓ 200 matches=  1  tennis/wta/miami                   tour=wta date=2025-03-26 espnEventName="Miami Open presented by Itau"
+  ✓ 200 matches=  1  tennis/wta/madrid                  tour=wta date=2025-04-30 espnEventName="Mutua Madrid Open"
+  ✓ 200 matches=  1  tennis/wta/rome                    tour=wta date=2025-05-14 espnEventName="Internazionali BNL d'Italia"
+  ✓ 200 matches=  1  tennis/wta/canada                  tour=wta date=2025-08-06 espnEventName="National Bank Open presented by Rogers"
+  ✓ 200 matches=  1  tennis/wta/cincinnati              tour=wta date=2025-08-13 espnEventName="Cincinnati Open"
+  ✓ 200 matches=  1  tennis/wta/wuhan                   tour=wta date=2025-10-08 espnEventName="Dongfeng Voyah Wuhan Open"
+  ✓ 200 matches=  1  tennis/wta/beijing                 tour=wta date=2025-09-25 espnEventName="China Open"
+
+[verify-tennis-endpoints] done: 27 tournament/tour pairs matched, 0 failed.

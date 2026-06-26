@@ -81,6 +81,10 @@ export const SPORT_ALLOWLIST: Record<Sport, AllowlistEntry[]> = {
       label: "College World Series",
     },
   ],
+  // Tennis (Spec 05 Q8 (A)): no allowlist — the marquee tournament
+  // registry (`lib/espn/tennis.ts`) IS the allowlist. A type='sport'
+  // Tennis favorite surfaces every active marquee tournament.
+  Tennis: [],
 };
 
 /**

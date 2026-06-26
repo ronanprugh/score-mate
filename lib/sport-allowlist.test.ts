@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { matchesSportAllowlist, SPORT_ALLOWLIST } from "./sport-allowlist";
-import type { Match, Sport } from "./sports/types";
+import { SUPPORTED_SPORTS } from "./sports/types";
+import type { Match } from "./sports/types";
 
 function makeMatch(overrides: Partial<Match>): Match {
   return {
@@ -20,19 +21,19 @@ function makeMatch(overrides: Partial<Match>): Match {
 }
 
 describe("SPORT_ALLOWLIST shape", () => {
-  it("has at least one entry for each supported sport", () => {
-    const sports: Sport[] = [
-      "Soccer",
-      "American Football",
-      "Basketball",
-      "Baseball",
-    ];
-    for (const s of sports) {
-      expect(SPORT_ALLOWLIST[s].length).toBeGreaterThan(0);
+  it("every supported sport except Tennis has at least one entry; Tennis is intentionally empty per Spec 05 Q8 (A)", () => {
+    for (const s of SUPPORTED_SPORTS) {
+      if (s === "Tennis") {
+        // Spec 05 Q8 (A): the marquee tournament registry IS the allowlist
+        // for Tennis. SPORT_ALLOWLIST.Tennis stays empty by design.
+        expect(SPORT_ALLOWLIST[s]).toEqual([]);
+      } else {
+        expect(SPORT_ALLOWLIST[s].length).toBeGreaterThan(0);
+      }
     }
   });
 
-  it("every entry has either a leagueId or a leagueNameContains", () => {
+  it("every non-empty entry has either a leagueId or a leagueNameContains", () => {
     for (const entries of Object.values(SPORT_ALLOWLIST)) {
       for (const e of entries) {
         expect(Boolean(e.leagueId || e.leagueNameContains)).toBe(true);
@@ -41,9 +42,9 @@ describe("SPORT_ALLOWLIST shape", () => {
     }
   });
 
-  it("contains no Tennis allowlist but includes Baseball", () => {
-    expect((SPORT_ALLOWLIST as Record<string, unknown>).Tennis).toBeUndefined();
-    expect((SPORT_ALLOWLIST as Record<string, unknown>).Baseball).toBeDefined();
+  it("Tennis key is present (typed) but holds an empty array (Spec 05 Q8 A)", () => {
+    expect(SPORT_ALLOWLIST.Tennis).toEqual([]);
+    expect(SPORT_ALLOWLIST.Baseball.length).toBeGreaterThan(0);
   });
 });
 
