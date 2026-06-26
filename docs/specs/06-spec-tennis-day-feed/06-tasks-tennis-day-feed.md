@@ -75,7 +75,7 @@ Maps Spec Unit 2 (and the metadata half of Unit 3's data). Make `tennisScoreboar
 - [x] 2.7 Update `lib/home/cache.test.ts` to assert the tennis cache key includes the date and `tz`, and that two different `tz` values for the same date produce **distinct** cache keys (guards correctness of per-timezone bucketing).
 - [x] 2.8 Run `pnpm test:ci`; commit `fix(tennis): local-day bucketing + event date range + real round` with body `Related to T2.0 in Spec 06-spec-tennis-day-feed`.
 
-### [ ] 3.0 Per-day tennis rendering and card metadata display
+### [x] 3.0 Per-day tennis rendering and card metadata display
 
 Maps Spec Unit 3. Render one `TournamentCard` per in-session tournament on all three day tabs (split by tournament), include tennis in the day-tab counts and empty-state decision, and display the corrected round + date range on the card. Preserve the approved `TennisMatchCard` layout inside expanded cards. Commits with body `Related to T3.0 in Spec 06-spec-tennis-day-feed`.
 
@@ -88,13 +88,13 @@ Maps Spec Unit 3. Render one `TournamentCard` per in-session tournament on all t
 
 #### 3.0 Tasks
 
-- [ ] 3.1 In `components/home-client.tsx`, render `TournamentCard`s for the active day on **all** tabs: keep Today's mixed sorted feed; for Yesterday/Tomorrow render that day's tournament cards (full-width) above the league-grouped matches.
-- [ ] 3.2 Ensure the day-tab `counts` and the `showEmpty`/`NoFavoritesPrompt` decision include that day's tennis tournaments, so a day with only tennis is not shown as empty.
-- [ ] 3.3 In `components/tournament-card.tsx`, render `currentRound` (now the real round) and the date range (now the event span); confirm the expanded match list still uses the responsive multi-column grid and `TennisMatchCard`.
-- [ ] 3.4 Update `components/home-client.test.tsx`: assert tournament cards appear on Yesterday/Tomorrow when present and are absent when that day's tennis is `[]`; assert an only-tennis day renders content (not the empty state) and its tab count includes the tournament.
-- [ ] 3.5 Update `components/tournament-card.test.tsx`: assert the card shows the real round and the event date range.
-- [ ] 3.6 Capture `docs/specs/06-spec-tennis-day-feed/06-proofs/06-yesterday-tennis.png` — the Yesterday tab with an expanded tournament card showing that day's matches (devtools/fixture render acceptable if no live tournament is in session; redact any account email).
-- [ ] 3.7 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(tennis): render tournament cards on all day tabs` with body `Related to T3.0 in Spec 06-spec-tennis-day-feed`.
+- [x] 3.1 In `components/home-client.tsx`, render `TournamentCard`s for the active day on **all** tabs: keep Today's mixed sorted feed; for Yesterday/Tomorrow render that day's tournament cards (full-width) above the league-grouped matches.
+- [x] 3.2 Ensure the day-tab `counts` and the `showEmpty`/`NoFavoritesPrompt` decision include that day's tennis tournaments, so a day with only tennis is not shown as empty.
+- [x] 3.3 In `components/tournament-card.tsx`, render `currentRound` (now the real round) and the date range (now the event span); confirm the expanded match list still uses the responsive multi-column grid and `TennisMatchCard`.
+- [x] 3.4 Update `components/home-client.test.tsx`: assert tournament cards appear on Yesterday/Tomorrow when present and are absent when that day's tennis is `[]`; assert an only-tennis day renders content (not the empty state) and its tab count includes the tournament.
+- [x] 3.5 Update `components/tournament-card.test.tsx`: assert the card shows the real round and the event date range.
+- [x] 3.6 Capture `docs/specs/06-spec-tennis-day-feed/06-proofs/06-yesterday-tennis.png` — the Yesterday tab with an expanded tournament card showing that day's matches (devtools/fixture render acceptable if no live tournament is in session; redact any account email).
+- [x] 3.7 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(tennis): render tournament cards on all day tabs` with body `Related to T3.0 in Spec 06-spec-tennis-day-feed`.
 
 ### [ ] 4.0 Full CI gate verification + proof bundle
 

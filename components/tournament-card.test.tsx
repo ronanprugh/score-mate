@@ -59,6 +59,25 @@ describe("TournamentCard", () => {
     );
   });
 
+  it("(a2) surfaces the provided round and the full event date range", () => {
+    // Spec 06: currentRound is the real round (sourced from tennis.round) and
+    // the date range is the tournament's overall run, not a single day.
+    render(
+      <TournamentCard
+        tournament={makeTournament({
+          startDate: "2025-08-25",
+          endDate: "2025-09-07",
+          currentRound: "Semifinals",
+        })}
+      />,
+    );
+    expect(screen.getByTestId("tournament-round")).toHaveTextContent(
+      "Semifinals",
+    );
+    expect(screen.getByText(/Aug 25/)).toBeInTheDocument();
+    expect(screen.getByText(/Sep 7/)).toBeInTheDocument();
+  });
+
   it("(b) chevron click toggles expanded state", () => {
     render(<TournamentCard tournament={makeTournament()} />);
 

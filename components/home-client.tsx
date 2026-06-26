@@ -328,6 +328,7 @@ function DayPanel({
   }
 
   const groups = groupMatchesByLeague(matches);
+  const hasTennis = activeTennisTournaments.length > 0;
   return (
     <section
       role="tabpanel"
@@ -337,10 +338,21 @@ function DayPanel({
       aria-label={`${DAY_LABELS[day]} — ${dateLabel}`}
       className="flex flex-col gap-4"
     >
+      {hasTennis && (
+        // Tennis tournament cards sit above the league-grouped team matches,
+        // full-width so their expandable match list has room.
+        <div className="flex flex-col gap-2">
+          {activeTennisTournaments.map((t) => (
+            <TournamentCard key={t.id} tournament={t} />
+          ))}
+        </div>
+      )}
       {matches.length === 0 ? (
-        <p className="py-6 text-center text-sm text-zinc-500">
-          No matches for {DAY_LABELS[day].toLowerCase()}.
-        </p>
+        hasTennis ? null : (
+          <p className="py-6 text-center text-sm text-zinc-500">
+            No matches for {DAY_LABELS[day].toLowerCase()}.
+          </p>
+        )
       ) : (
         groups.map((g) => (
           <details

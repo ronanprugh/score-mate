@@ -18,10 +18,12 @@ function formatDateRange(startDate: string, endDate: string): string {
 
 interface Props {
   tournament: ActiveTournament;
+  /** Initial expanded state. Defaults to collapsed; fixtures may open it. */
+  defaultOpen?: boolean;
 }
 
-export function TournamentCard({ tournament }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export function TournamentCard({ tournament, defaultOpen = false }: Props) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const {
     displayName,
     startDate,

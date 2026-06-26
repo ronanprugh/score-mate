@@ -304,6 +304,90 @@ describe("HomeClient (static cases)", () => {
     );
     expect(screen.queryByTestId("tournament-card")).not.toBeInTheDocument();
   });
+
+  it("(T3.06a) renders a tournament card on the Yesterday tab when that day has tennis", async () => {
+    mockJson(
+      envelope({
+        activeTennisTournaments: {
+          yesterday: [makeTournament({ id: "tennis/slam/wimbledon" })],
+          today: [],
+          tomorrow: [],
+        },
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
+    );
+
+    // Not on Today...
+    expect(screen.queryByTestId("tournament-card")).not.toBeInTheDocument();
+
+    // ...but present after switching to Yesterday.
+    fireEvent.click(screen.getByTestId("day-tab-yesterday"));
+    const panel = screen.getByTestId("day-panel-yesterday");
+    expect(
+      panel.querySelector('[data-testid="tournament-card"]'),
+    ).toBeInTheDocument();
+  });
+
+  it("(T3.06b) renders a tournament card on the Tomorrow tab when that day has tennis", async () => {
+    mockJson(
+      envelope({
+        activeTennisTournaments: {
+          yesterday: [],
+          today: [],
+          tomorrow: [makeTournament({ id: "tennis/slam/wimbledon" })],
+        },
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-tab-tomorrow")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByTestId("day-tab-tomorrow"));
+    const panel = screen.getByTestId("day-panel-tomorrow");
+    expect(
+      panel.querySelector('[data-testid="tournament-card"]'),
+    ).toBeInTheDocument();
+  });
+
+  it("(T3.06c) a day with only tennis is not the empty state and its tab count includes the tournament", async () => {
+    mockJson(
+      envelope({
+        // No team matches anywhere; only yesterday has a tennis tournament.
+        activeTennisTournaments: {
+          yesterday: [makeTournament({ id: "tennis/slam/wimbledon" })],
+          today: [],
+          tomorrow: [],
+        },
+      }),
+    );
+
+    render(<HomeClient hasFavorites={true} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
+    );
+
+    // The global empty state must NOT be shown when tennis is present.
+    expect(screen.queryByText(/no favorites/i)).not.toBeInTheDocument();
+
+    // The Yesterday tab count includes the tournament (0 matches + 1 tennis).
+    expect(screen.getByTestId("day-tab-yesterday").textContent).toContain(
+      "· 1",
+    );
+
+    // The Yesterday panel shows the card and no "No matches" copy.
+    fireEvent.click(screen.getByTestId("day-tab-yesterday"));
+    const panel = screen.getByTestId("day-panel-yesterday");
+    expect(
+      panel.querySelector('[data-testid="tournament-card"]'),
+    ).toBeInTheDocument();
+    expect(panel.textContent).not.toMatch(/no matches/i);
+  });
 });
 
 describe("HomeClient (polling + visibility)", () => {
