@@ -13,7 +13,8 @@ vi.mock("@/lib/favorites/queries", () => ({
   deleteFavorite: vi.fn(),
 }));
 
-// FavoritesSearch is fully tested elsewhere; mock to confirm props.
+// FavoritesSearch is fully tested elsewhere; mock to confirm props (the
+// initialFavorites that preserve its "Added" state after the merge).
 vi.mock("@/components/favorites-search", () => ({
   FavoritesSearch: ({
     initialFavorites,
@@ -28,6 +29,15 @@ vi.mock("@/components/favorites-search", () => ({
         .join(",")}
     >
       FavoritesSearch
+    </div>
+  ),
+}));
+
+// FavoritesList has its own tests; mock to confirm it receives the saved rows.
+vi.mock("@/components/favorites-list", () => ({
+  FavoritesList: ({ favorites }: { favorites: Array<{ id: string }> }) => (
+    <div data-testid="favorites-list" data-count={favorites.length}>
+      FavoritesList
     </div>
   ),
 }));
@@ -51,23 +61,38 @@ const ROW = (
   createdAt: new Date(),
 });
 
-describe("FavoritesPage", () => {
+describe("FavoritesPage (unified)", () => {
   beforeEach(() => {
     authMock.mockReset();
     listMock.mockReset();
     authMock.mockResolvedValue(SESSION);
   });
 
-  it("renders the page header and the search component", async () => {
-    listMock.mockResolvedValue([]);
+  it("renders both the add section and the saved-favorites list", async () => {
+    listMock.mockResolvedValue([
+      ROW("1", "team", "133604"),
+      ROW("2", "league", "4328"),
+    ]);
     render(await FavoritesPage());
+
     expect(
-      screen.getByRole("heading", { name: /add a favorite/i, level: 1 }),
+      screen.getByRole("heading", { name: /^Favorites$/, level: 1 }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /add a favorite/i, level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /your favorites/i, level: 2 }),
+    ).toBeInTheDocument();
+
     expect(screen.getByTestId("favorites-search")).toBeInTheDocument();
+    expect(screen.getByTestId("favorites-list")).toHaveAttribute(
+      "data-count",
+      "2",
+    );
   });
 
-  it("passes the user's existing favorites as initial keys to FavoritesSearch", async () => {
+  it("preserves FavoritesSearch's 'Added' state by passing initialFavorites", async () => {
     listMock.mockResolvedValue([
       ROW("1", "team", "133604"),
       ROW("2", "league", "4328"),
@@ -79,6 +104,15 @@ describe("FavoritesPage", () => {
     expect(el).toHaveAttribute(
       "data-initial-keys",
       "team:133604,league:4328,sport:Soccer",
+    );
+  });
+
+  it("passes an empty saved list to FavoritesList when the user has none", async () => {
+    listMock.mockResolvedValue([]);
+    render(await FavoritesPage());
+    expect(screen.getByTestId("favorites-list")).toHaveAttribute(
+      "data-count",
+      "0",
     );
   });
 
