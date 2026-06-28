@@ -1,0 +1,41 @@
+== Spec 07 — Touched-Files Verification ==
+Command: git diff --name-only 60f5528..HEAD
+(60f5528 = the last Spec 06 commit, i.e. the pre-Spec-07 baseline.)
+
+Success Metric §5: no regressions to favorites; no new dependencies; no schema
+change. Changes must be limited to nav/page UI.
+
+== Changed code files (categorized) ==
+
+-- Unified Favorites (T1.0) --
+components/favorites-list.tsx            NEW — extracted saved-list grouping + empty state
+components/favorites-list.test.tsx       NEW — tests
+app/(app)/favorites/page.tsx             MODIFY — add section + saved list on one page
+app/(app)/favorites/page.test.tsx        MODIFY — both-sections + Added-state regression
+app/(app)/my-favorites/page.tsx          MODIFY — redirect("/favorites")
+app/(app)/my-favorites/page.test.tsx     MODIFY — redirect assertion
+
+-- Settings (T2.0) --
+app/(app)/settings/page.tsx              NEW — identity + sign out + app info
+app/(app)/settings/page.test.tsx         NEW — tests
+components/account-menu.tsx              MODIFY — drop file-level "use server" + async (render fix)
+
+-- Bottom nav (T3.0) --
+components/nav-icons.tsx                  NEW — inline SVG icons (house/star/sliders)
+components/bottom-nav.tsx                 MODIFY — 3 icon+label destinations; remove My Favorites
+components/bottom-nav.test.tsx            MODIFY — 3-item + icon + active + touch-target tests
+app/(app)/layout.tsx                      MODIFY — doc-comment only
+
+-- Screenshot fixture (dev-only) --
+app/dev-fixture/nav/page.tsx              NEW — renders favorites/settings/nav views for screenshots
+
+== Scope verification (Success Metric §5) ==
+- db/ changes:                                   NONE (no schema change / migration)
+- package.json dependency additions:             NONE (icons are inline SVG)
+- favorites add/remove/validate/query logic:     NONE (no edits to lib/favorites/* or app/api/favorites/*)
+- dev-fixture referenced by BottomNav/production: NONE (only the fixture route itself references it)
+
+== §5 Verdict ==
+PASS. All changes are nav/page UI plus a dev-only screenshot fixture. No DB schema,
+no new dependencies, and no favorites add/remove/validate/query logic changed. The
+dev-fixture route stays unlinked from production navigation.

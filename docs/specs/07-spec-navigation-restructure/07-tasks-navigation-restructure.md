@@ -91,7 +91,7 @@ Maps Spec Unit 3. Replace the three text-only nav items with three icon+label de
 - [x] 3.5 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-bottom-nav.png` (dev-fixture render of `BottomNav`).
 - [x] 3.6 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(nav): icon bottom nav — Home, Favorites, Settings` with body `Related to T3.0 in Spec 07-spec-navigation-restructure`.
 
-### [ ] 4.0 Full CI gate verification + proof bundle
+### [x] 4.0 Full CI gate verification + proof bundle
 
 Maps Spec Success Metrics §4–§5. Run the complete CI gate suite, capture the transcript, verify no favorites-logic/schema/dependency changes, and assemble the proof bundle. Commits with body `Related to T4.0 in Spec 07-spec-navigation-restructure`.
 
@@ -104,7 +104,7 @@ Maps Spec Success Metrics §4–§5. Run the complete CI gate suite, capture the
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`; capture the full transcript to `docs/specs/07-spec-navigation-restructure/07-proofs/07-ci-gates.txt`.
-- [ ] 4.2 Run `git diff --name-only` (vs the pre-spec baseline) and write `07-touched-files.txt`; explicitly confirm no changes under `db/`, no `package.json` dependency additions, and no edits to favorites add/remove/validate/query logic (`lib/favorites/*`, `app/api/favorites/*` route logic). Also confirm the dev-fixture route `app/dev-fixture/nav/` is **not** referenced by `components/bottom-nav.tsx` or any production route (stays dev-only).
-- [ ] 4.3 Write `07-proofs/README.md` indexing every artifact (3 screenshots, CI transcript, touched-files) mapped to its FR/metric; add task proof markdowns (`07-task-01-proofs.md` … `07-task-03-proofs.md`) with the recommended structure and inlined screenshots.
-- [ ] 4.4 Commit `docs(nav): proof bundle for Spec 07` with body `Related to T4.0 in Spec 07-spec-navigation-restructure`.
+- [x] 4.1 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci && pnpm build`; capture the full transcript to `docs/specs/07-spec-navigation-restructure/07-proofs/07-ci-gates.txt`.
+- [x] 4.2 Run `git diff --name-only` (vs the pre-spec baseline) and write `07-touched-files.txt`; explicitly confirm no changes under `db/`, no `package.json` dependency additions, and no edits to favorites add/remove/validate/query logic (`lib/favorites/*`, `app/api/favorites/*` route logic). Also confirm the dev-fixture route `app/dev-fixture/nav/` is **not** referenced by `components/bottom-nav.tsx` or any production route (stays dev-only).
+- [x] 4.3 Write `07-proofs/README.md` indexing every artifact (3 screenshots, CI transcript, touched-files) mapped to its FR/metric; add task proof markdowns (`07-task-01-proofs.md` … `07-task-03-proofs.md`) with the recommended structure and inlined screenshots.
+- [x] 4.4 Commit `docs(nav): proof bundle for Spec 07` with body `Related to T4.0 in Spec 07-spec-navigation-restructure`.
