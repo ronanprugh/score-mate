@@ -1,5 +1,3 @@
-"use server";
-
 import { signOut } from "@/auth";
 
 async function signOutAction() {
@@ -13,14 +11,13 @@ type Props = {
 };
 
 /**
- * Minimal account menu for the authenticated home. Renders the user's
- * display name (or email as a fallback) and a Sign-out button wired to a
- * server action.
+ * Account block for the Settings page. Renders the user's display name (or
+ * email as a fallback) and a Sign-out button wired to a server action.
  *
- * Server-action wrapper around `signOut` is the recommended Auth.js v5
- * pattern (no client-side `signIn`/`signOut` needed for this use case).
+ * Sync server component containing an inline `"use server"` action — the
+ * recommended Auth.js v5 pattern (no client-side `signIn`/`signOut` needed).
  */
-export async function AccountMenu({ email, name }: Props) {
+export function AccountMenu({ email, name }: Props) {
   const displayName = name ?? email;
   return (
     <section

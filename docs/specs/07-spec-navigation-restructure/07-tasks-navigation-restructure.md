@@ -54,7 +54,7 @@ Maps Spec Unit 1. Merge the search/add screen and the saved-favorites list into 
 - [x] 1.7 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-favorites-unified.png` (dev-fixture render of the unified page / `FavoritesList` acceptable; redact any email). Note in the proof doc that the screenshot is a dev-fixture render and that authenticated-route behavior is covered by the route tests.
 - [x] 1.8 Run `pnpm typecheck && pnpm test:ci`; commit `feat(nav): unified Favorites page + /my-favorites redirect` with body `Related to T1.0 in Spec 07-spec-navigation-restructure`.
 
-### [ ] 2.0 Settings page with working sign-out
+### [x] 2.0 Settings page with working sign-out
 
 Maps Spec Unit 2. Add a `/settings` route in the authenticated `(app)` group that surfaces the user's signed-in identity and a working Sign-out action (reusing the existing `AccountMenu` / Auth.js `signOut` server action), plus a basic app-info line. Restores the currently-unreachable sign-out path. No account-management features. Commits with body `Related to T2.0 in Spec 07-spec-navigation-restructure`.
 
@@ -66,11 +66,11 @@ Maps Spec Unit 2. Add a `/settings` route in the authenticated `(app)` group tha
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create `app/(app)/settings/page.tsx`: server component; call `auth()`, guard null session; render `<AccountMenu email={session.user.email} name={session.user.name} />` plus an app-info line (app name + one-line descriptor). Set `metadata.title` to `"Settings · ScoreMate"`. Use the existing page layout patterns (`max-w-md`, safe-area padding).
-- [ ] 2.2 Adjust `components/account-menu.tsx` styling only if needed so it reads well as the primary Settings section; keep the `signOut` server action wiring unchanged.
-- [ ] 2.3 Create `app/(app)/settings/page.test.tsx`: mock `auth()` to return a session; assert the display name/email render, a Sign-out `form`/button is present, and the app-info line is present.
-- [ ] 2.4 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-settings.png` (dev-fixture render of `AccountMenu` + app info acceptable; use a placeholder email). Note in the proof doc that it is a dev-fixture render and that authenticated-route behavior is covered by `settings/page.test.tsx`.
-- [ ] 2.5 Run `pnpm typecheck && pnpm test:ci`; commit `feat(nav): settings page with sign-out` with body `Related to T2.0 in Spec 07-spec-navigation-restructure`.
+- [x] 2.1 Create `app/(app)/settings/page.tsx`: server component; call `auth()`, guard null session; render `<AccountMenu email={session.user.email} name={session.user.name} />` plus an app-info line (app name + one-line descriptor). Set `metadata.title` to `"Settings · ScoreMate"`. Use the existing page layout patterns (`max-w-md`, safe-area padding).
+- [x] 2.2 Adjust `components/account-menu.tsx` styling only if needed so it reads well as the primary Settings section; keep the `signOut` server action wiring unchanged.
+- [x] 2.3 Create `app/(app)/settings/page.test.tsx`: mock `auth()` to return a session; assert the display name/email render, a Sign-out `form`/button is present, and the app-info line is present.
+- [x] 2.4 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-settings.png` (dev-fixture render of `AccountMenu` + app info acceptable; use a placeholder email). Note in the proof doc that it is a dev-fixture render and that authenticated-route behavior is covered by `settings/page.test.tsx`.
+- [x] 2.5 Run `pnpm typecheck && pnpm test:ci`; commit `feat(nav): settings page with sign-out` with body `Related to T2.0 in Spec 07-spec-navigation-restructure`.
 
 ### [ ] 3.0 Redesigned bottom navigation
 
