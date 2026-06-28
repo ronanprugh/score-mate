@@ -4,6 +4,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock as unknown as typeof fetch;
 
+const refreshMock = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: refreshMock }),
+}));
+
 import { FavoriteAddButton } from "./favorite-add-button";
 
 const PAYLOAD = {
@@ -14,7 +19,10 @@ const PAYLOAD = {
 };
 
 describe("FavoriteAddButton", () => {
-  beforeEach(() => fetchMock.mockReset());
+  beforeEach(() => {
+    fetchMock.mockReset();
+    refreshMock.mockReset();
+  });
 
   it("renders an enabled 'Add' button when initialAdded is false", () => {
     render(<FavoriteAddButton payload={PAYLOAD} initialAdded={false} />);
@@ -53,6 +61,19 @@ describe("FavoriteAddButton", () => {
         body: JSON.stringify(PAYLOAD),
       }),
     );
+    // Refreshes the page's server components so the saved list updates
+    // immediately on the unified Favorites page (no manual refresh).
+    expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("does not refresh when the add fails", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 429 } as Response);
+    render(<FavoriteAddButton payload={PAYLOAD} initialAdded={false} />);
+    fireEvent.click(screen.getByRole("button"));
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+    expect(refreshMock).not.toHaveBeenCalled();
   });
 
   it("rolls back and shows a non-technical error on 429", async () => {

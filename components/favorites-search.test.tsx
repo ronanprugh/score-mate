@@ -4,6 +4,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock as unknown as typeof fetch;
 
+// FavoritesSearch renders FavoriteAddButton, which uses the router to refresh
+// the page on a successful add.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
 import { FavoritesSearch } from "./favorites-search";
 
 const TYPE_RESULTS = {
@@ -112,7 +118,7 @@ describe("FavoritesSearch", () => {
     );
 
     const arsenalBtn = screen.getByRole("button", {
-      name: /remove Arsenal from favorites — use the My Favorites screen/i,
+      name: /arsenal is in your favorites/i,
     });
     expect(arsenalBtn).toHaveTextContent(/added/i);
     expect(arsenalBtn).toBeDisabled();

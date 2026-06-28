@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { FavoriteType, Sport } from "@/lib/sports/types";
 
 export interface FavoritePayload {
@@ -30,6 +31,7 @@ type Status = "idle" | "pending" | "added" | "error";
  * 44×44 touch target via `min-h-11 min-w-11`.
  */
 export function FavoriteAddButton({ payload, initialAdded }: Props) {
+  const router = useRouter();
   const [status, setStatus] = useState<Status>(initialAdded ? "added" : "idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +57,9 @@ export function FavoriteAddButton({ payload, initialAdded }: Props) {
         throw new Error("Couldn't add this favorite. Please try again.");
       }
       setStatus("added");
+      // Revalidate the page's server components so the "Your favorites" list
+      // shows the new favorite immediately (no manual refresh needed).
+      router.refresh();
     } catch (e) {
       setStatus("idle");
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -73,7 +78,7 @@ export function FavoriteAddButton({ payload, initialAdded }: Props) {
         aria-pressed={isAdded}
         aria-label={
           isAdded
-            ? `Remove ${payload.displayName} from favorites — use the My Favorites screen`
+            ? `${payload.displayName} is in your favorites`
             : `Add ${payload.displayName} to favorites`
         }
         className={[
