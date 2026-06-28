@@ -72,7 +72,7 @@ Maps Spec Unit 2. Add a `/settings` route in the authenticated `(app)` group tha
 - [x] 2.4 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-settings.png` (dev-fixture render of `AccountMenu` + app info acceptable; use a placeholder email). Note in the proof doc that it is a dev-fixture render and that authenticated-route behavior is covered by `settings/page.test.tsx`.
 - [x] 2.5 Run `pnpm typecheck && pnpm test:ci`; commit `feat(nav): settings page with sign-out` with body `Related to T2.0 in Spec 07-spec-navigation-restructure`.
 
-### [ ] 3.0 Redesigned bottom navigation
+### [x] 3.0 Redesigned bottom navigation
 
 Maps Spec Unit 3. Replace the three text-only nav items with three icon+label destinations — Home (`/home`), Favorites (`/favorites`), Settings (`/settings`) — using inline SVG icons (no new dependency). Remove the "My Favorites" item. Preserve active-state styling, `aria-current`, prefix-based active matching, ≥44px touch targets, and safe-area insets. Depends on T1.0 + T2.0. Commits with body `Related to T3.0 in Spec 07-spec-navigation-restructure`.
 
@@ -84,12 +84,12 @@ Maps Spec Unit 3. Replace the three text-only nav items with three icon+label de
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Create `components/nav-icons.tsx`: three small inline-SVG icon components (Home, Favorites, Settings), outline style, `aria-hidden="true"`, sized ~20–24px, inheriting `currentColor`.
-- [ ] 3.2 Update `components/bottom-nav.tsx`: set `NAV_ITEMS` to Home(`/home`)/Favorites(`/favorites`)/Settings(`/settings`) with an `icon` per item; render the icon above the label in a vertical stack; remove "My Favorites". Keep the `pathname === href || pathname.startsWith(href + "/")` active logic, `aria-current`, active styling, `min-h-11`/`min-w-11`, and safe-area insets.
-- [ ] 3.3 Update `components/bottom-nav.test.tsx`: assert exactly 3 items with correct hrefs + labels, each renders an `svg`, the active item has `aria-current="page"` (mock `usePathname`), a nested `/favorites/x` path keeps Favorites active, and each item has `min-h-11`.
-- [ ] 3.4 Update the `app/(app)/layout.tsx` doc-comment that lists "Home / Favorites / My Favorites" to reflect the new destinations (comment only; no behavior change).
-- [ ] 3.5 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-bottom-nav.png` (dev-fixture render of `BottomNav`).
-- [ ] 3.6 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(nav): icon bottom nav — Home, Favorites, Settings` with body `Related to T3.0 in Spec 07-spec-navigation-restructure`.
+- [x] 3.1 Create `components/nav-icons.tsx`: three small inline-SVG icon components (Home, Favorites, Settings), outline style, `aria-hidden="true"`, sized ~20–24px, inheriting `currentColor`.
+- [x] 3.2 Update `components/bottom-nav.tsx`: set `NAV_ITEMS` to Home(`/home`)/Favorites(`/favorites`)/Settings(`/settings`) with an `icon` per item; render the icon above the label in a vertical stack; remove "My Favorites". Keep the `pathname === href || pathname.startsWith(href + "/")` active logic, `aria-current`, active styling, `min-h-11`/`min-w-11`, and safe-area insets.
+- [x] 3.3 Update `components/bottom-nav.test.tsx`: assert exactly 3 items with correct hrefs + labels, each renders an `svg`, the active item has `aria-current="page"` (mock `usePathname`), a nested `/favorites/x` path keeps Favorites active, and each item has `min-h-11`.
+- [x] 3.4 Update the `app/(app)/layout.tsx` doc-comment that lists "Home / Favorites / My Favorites" to reflect the new destinations (comment only; no behavior change).
+- [x] 3.5 Capture `docs/specs/07-spec-navigation-restructure/07-proofs/07-bottom-nav.png` (dev-fixture render of `BottomNav`).
+- [x] 3.6 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`; commit `feat(nav): icon bottom nav — Home, Favorites, Settings` with body `Related to T3.0 in Spec 07-spec-navigation-restructure`.
 
 ### [ ] 4.0 Full CI gate verification + proof bundle
 

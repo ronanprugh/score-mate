@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { BottomNav } from "@/components/bottom-nav";
 
 /**
- * Shared layout for all signed-in screens (Home / Favorites / My Favorites).
+ * Shared layout for all signed-in screens (Home / Favorites / Settings).
  *
  * - Authoritative auth gate: redirects to /signin when there's no session
  *   (the edge middleware also runs a cookie-presence check; this is the

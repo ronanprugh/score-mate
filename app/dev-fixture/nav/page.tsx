@@ -11,6 +11,7 @@ import type { FavoriteRow } from "@/db/schema/favorites";
 import { FavoritesSearch } from "@/components/favorites-search";
 import { FavoritesList } from "@/components/favorites-list";
 import { AccountMenu } from "@/components/account-menu";
+import { BottomNav } from "@/components/bottom-nav";
 
 const row = (
   id: string,
@@ -87,6 +88,17 @@ export default async function NavFixture({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
+
+  // The bottom nav is `position: fixed`; for a focused screenshot, override it
+  // to static flow so the three icon+label destinations capture reliably.
+  if (view === "nav") {
+    return (
+      <div className="p-4 [&_nav]:!static">
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
     <main className="flex flex-1 flex-col px-5 pt-6">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 pt-4">

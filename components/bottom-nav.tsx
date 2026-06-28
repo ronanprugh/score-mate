@@ -2,23 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ComponentType } from "react";
+import { HomeIcon, FavoritesIcon, SettingsIcon } from "./nav-icons";
 
 interface NavItem {
   href: string;
   label: string;
+  Icon: ComponentType<{ className?: string }>;
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/home", label: "Home" },
-  { href: "/favorites", label: "Favorites" },
-  { href: "/my-favorites", label: "My Favorites" },
+  { href: "/home", label: "Home", Icon: HomeIcon },
+  { href: "/favorites", label: "Favorites", Icon: FavoritesIcon },
+  { href: "/settings", label: "Settings", Icon: SettingsIcon },
 ];
 
 /**
- * Mobile-first bottom navigation. Thumb-reachable on phones; switches to a
- * subtle top variant at `md:`+. Active route gets a visually distinct
- * treatment (different bg + text color). Every item meets the 44×44 px
- * touch-target rule via `min-h-11`.
+ * Mobile-first bottom navigation. Three thumb-reachable destinations, each an
+ * inline-SVG icon above its label. Active route gets a visually distinct
+ * treatment (different bg + text color) and `aria-current="page"`; nested
+ * routes (e.g. `/favorites/123`) keep their tab active. Every item meets the
+ * 44×44 px touch-target rule via `min-h-11`/`min-w-11`.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -33,22 +37,22 @@ export function BottomNav() {
       ].join(" ")}
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+        {NAV_ITEMS.map(({ href, label, Icon }) => {
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
           return (
-            <li key={item.href} className="flex-1">
+            <li key={href} className="flex-1">
               <Link
-                href={item.href}
+                href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={[
-                  "flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium",
+                  "flex min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1 text-xs font-medium",
                   isActive
                     ? "bg-foreground text-background"
                     : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900",
                 ].join(" ")}
               >
-                {item.label}
+                <Icon className="h-6 w-6" />
+                {label}
               </Link>
             </li>
           );
