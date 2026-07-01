@@ -5,6 +5,7 @@ import {
   findMarqueeTournament,
   tennisScoreboard,
 } from "./tennis";
+import tennisScoreboardFixture from "./__fixtures__/tennis-scoreboard.json";
 
 const TENNIS_ID_REGEX = /^tennis\/(atp|wta|slam)\/[a-z0-9-]+$/;
 
@@ -583,5 +584,28 @@ describe("tennisScoreboard", () => {
       },
     });
     for (const url of calls) expect(url).toContain("dates=20260701");
+  });
+
+  it("parses the tournament seed from curatedRank.current, leaving it undefined when unseeded", async () => {
+    // Spec 08 T1.0: the ESPN scoreboard exposes no world ranking — only
+    // competitor.curatedRank.current (the tournament seed). Verified against a
+    // committed sample of the real payload shape.
+    const { matches } = await tennisScoreboard(
+      "tennis/atp/indian-wells",
+      "2026-03-12",
+      { fetchFn: async () => jsonResponse(tennisScoreboardFixture) },
+    );
+
+    const seededVsSeeded = matches.find((m) => m.id === "seeded-vs-seeded")!;
+    expect(seededVsSeeded.tennis!.home.seed).toBe(1);
+    expect(seededVsSeeded.tennis!.away.seed).toBe(4);
+
+    const seededVsUnseeded = matches.find(
+      (m) => m.id === "seeded-vs-unseeded",
+    )!;
+    expect(seededVsUnseeded.tennis!.home.seed).toBe(5);
+    // Unseeded competitor has no curatedRank → seed stays undefined (no sentinel
+    // at the parse layer).
+    expect(seededVsUnseeded.tennis!.away.seed).toBeUndefined();
   });
 });

@@ -94,6 +94,12 @@ export interface TennisPlayerLine {
   flagUrl?: string;
   /** Country name / flag alt text (ESPN `athlete.flag.alt`). */
   flagAlt?: string;
+  /**
+   * Tournament seed from ESPN `competitor.curatedRank.current`; lower = better.
+   * Undefined when the player is unseeded (the scoreboard exposes no world
+   * ranking — only this per-event seed). Consumed by tennis match-priority.
+   */
+  seed?: number;
   /** Per-set scores, oldest set first. */
   sets: TennisSetScore[];
   /** True when this player won the match (final only). */

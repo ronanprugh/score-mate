@@ -263,12 +263,18 @@ interface RawTennisLinescore {
   winner?: boolean;
 }
 
+/** ESPN's per-competitor seed wrapper (`curatedRank.current` = tournament seed). */
+interface RawTennisCuratedRank {
+  current?: number;
+}
+
 interface RawTennisCompetitor {
   id?: string;
   homeAway?: "home" | "away";
   winner?: boolean;
   athlete?: RawTennisAthlete;
   linescores?: RawTennisLinescore[];
+  curatedRank?: RawTennisCuratedRank;
 }
 
 interface RawTennisStatus {
@@ -347,6 +353,10 @@ function buildTennisPlayerLine(
   return {
     flagUrl: competitor.athlete?.flag?.href,
     flagAlt: competitor.athlete?.flag?.alt,
+    // Tournament seed (ESPN's only ranking signal); undefined when unseeded.
+    ...(typeof competitor.curatedRank?.current === "number"
+      ? { seed: competitor.curatedRank.current }
+      : {}),
     sets,
     won: competitor.winner ?? false,
   };
