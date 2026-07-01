@@ -16,6 +16,11 @@ function makeMatch(overrides: Partial<Match> & Pick<Match, "id">): Match {
     dateUtc: "2025-07-04",
     kickoffUtc: "2025-07-04T13:00:00Z",
     status: "upcoming",
+    tennis: {
+      draw: "Men's Singles",
+      home: { sets: [], won: false },
+      away: { sets: [], won: false },
+    },
     ...overrides,
   };
 }
@@ -46,22 +51,17 @@ describe("TournamentCard", () => {
     render(<TournamentCard tournament={makeTournament()} />);
 
     expect(screen.getByText("Wimbledon")).toBeInTheDocument();
-    // Date range: "Jun 30 – Jul 13"
     expect(screen.getByText(/Jun 30/)).toBeInTheDocument();
     expect(screen.getByText(/Jul 13/)).toBeInTheDocument();
-    // currentRound
     expect(screen.getByTestId("tournament-round")).toHaveTextContent(
       "Quarterfinals",
     );
-    // counts line
     expect(screen.getByTestId("tournament-counts")).toHaveTextContent(
       "2 live · 4 upcoming · 1 done",
     );
   });
 
   it("(a2) surfaces the provided round and the full event date range", () => {
-    // Spec 06: currentRound is the real round (sourced from tennis.round) and
-    // the date range is the tournament's overall run, not a single day.
     render(
       <TournamentCard
         tournament={makeTournament({
@@ -78,7 +78,7 @@ describe("TournamentCard", () => {
     expect(screen.getByText(/Sep 7/)).toBeInTheDocument();
   });
 
-  it("(b) chevron click toggles expanded state", () => {
+  it("(b) chevron click toggles the card's expanded state", () => {
     render(<TournamentCard tournament={makeTournament()} />);
 
     const btn = screen.getByRole("button", { name: /expand/i });
@@ -91,38 +91,62 @@ describe("TournamentCard", () => {
     expect(btn).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("(c) expanded state renders one match-card per match", () => {
-    render(<TournamentCard tournament={makeTournament()} />);
-
+  it("(c) expanded card renders discipline sections (collapsed) with label + count, not a flat match list", () => {
+    const tournament = makeTournament({
+      matches: [
+        makeMatch({ id: "ms1", tennis: singles("Men's Singles") }),
+        makeMatch({ id: "ms2", tennis: singles("Men's Singles") }),
+        makeMatch({ id: "ws1", tennis: singles("Women's Singles") }),
+      ],
+    });
+    render(<TournamentCard tournament={tournament} />);
     fireEvent.click(screen.getByRole("button", { name: /expand/i }));
 
-    const matchCards = screen.getAllByTestId("match-card");
-    expect(matchCards).toHaveLength(2);
+    // Two sections; sections start collapsed so no match-cards are visible yet.
+    const sections = screen.getAllByTestId("match-group");
+    expect(sections).toHaveLength(2);
+    expect(screen.getByText("Men's Singles")).toBeInTheDocument();
+    expect(screen.getByText("Women's Singles")).toBeInTheDocument();
+    expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
+
+    // Men's Singles count is 2.
+    const mens = screen.getByRole("button", { name: /^Men's Singles/ });
+    expect(mens).toHaveTextContent("2");
   });
 
-  it("(c) expanded matches are in chronological kickoffUtc order", () => {
+  it("(c2) a section expands to reveal its match cards", () => {
     render(<TournamentCard tournament={makeTournament()} />);
     fireEvent.click(screen.getByRole("button", { name: /expand/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Men's Singles/ }));
+    expect(screen.getAllByTestId("match-card")).toHaveLength(2);
+  });
 
-    // m2 kicks off at 11:00, m1 at 13:00 — m2 should come first
-    const matchCards = screen.getAllByTestId("match-card");
-    expect(matchCards[0]).toHaveAttribute("data-status", "upcoming");
-    // Both are upcoming; we verify ordering via aria-label content
-    expect(matchCards[0]?.getAttribute("aria-label")).toContain(
-      "Carlos Alcaraz",
-    );
-    expect(matchCards[1]?.getAttribute("aria-label")).toContain(
-      "Carlos Alcaraz",
-    );
-    // m2 at 11:00 is earlier, so card 0 corresponds to m2 (earlier kickoff)
-    // Both have identical players in this fixture, so just check count
-    expect(matchCards).toHaveLength(2);
+  it("(c3) omits disciplines with zero matches", () => {
+    const tournament = makeTournament({
+      matches: [makeMatch({ id: "ms1", tennis: singles("Men's Singles") })],
+    });
+    render(<TournamentCard tournament={tournament} />);
+    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
+    expect(screen.getAllByTestId("match-group")).toHaveLength(1);
+    expect(screen.queryByText("Women's Singles")).toBeNull();
+  });
+
+  it("(c4) renders no section body when no match is classifiable", () => {
+    const tournament = makeTournament({
+      matches: [
+        makeMatch({ id: "j1", tennis: singles("Boys' Singles") }),
+        makeMatch({ id: "j2", tennis: singles("Wheelchair Men's Singles") }),
+      ],
+    });
+    render(<TournamentCard tournament={tournament} />);
+    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
+    expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
+    expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
   });
 
   it("(d) collapsed-row root meets min-h-11", () => {
     render(<TournamentCard tournament={makeTournament()} />);
     const card = screen.getByTestId("tournament-card");
-    // The inner header div carries min-h-11
     const header = card.querySelector(".min-h-11");
     expect(header).not.toBeNull();
   });
@@ -156,3 +180,12 @@ describe("TournamentCard", () => {
     expect(btn2).toHaveAttribute("aria-expanded", "true");
   });
 });
+
+/** Builds a tennis detail block for the given draw. */
+function singles(draw: string): Match["tennis"] {
+  return {
+    draw,
+    home: { sets: [], won: false },
+    away: { sets: [], won: false },
+  };
+}

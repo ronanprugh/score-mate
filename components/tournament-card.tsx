@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
-import { LATE_KICKOFF_SENTINEL } from "@/lib/home/sort-helpers";
-import { TennisMatchCard } from "./tennis-match-card";
+import { groupMatches } from "@/lib/home/tennis-priority";
+import { MatchGroupSection } from "./match-group-section";
 
 function formatDateRange(startDate: string, endDate: string): string {
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -18,7 +18,12 @@ function formatDateRange(startDate: string, endDate: string): string {
 
 interface Props {
   tournament: ActiveTournament;
-  /** Initial expanded state. Defaults to collapsed; fixtures may open it. */
+  /**
+   * Initial expanded state of the card body. Defaults to collapsed; fixtures may
+   * open it. (Kept after Spec 08: this toggles the card open to reveal the
+   * per-discipline section dropdowns, which are themselves independently
+   * collapsed.)
+   */
   defaultOpen?: boolean;
 }
 
@@ -35,11 +40,9 @@ export function TournamentCard({ tournament, defaultOpen = false }: Props) {
     matches,
   } = tournament;
 
-  const sortedMatches = [...matches].sort((a, b) => {
-    const ak = a.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-    const bk = b.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-    return ak.localeCompare(bk);
-  });
+  // Split matches into discipline/gender sections (Spec 08); each is sorted by
+  // match priority and rendered as its own collapsible dropdown.
+  const sections = groupMatches(matches);
 
   return (
     <article
@@ -93,10 +96,14 @@ export function TournamentCard({ tournament, defaultOpen = false }: Props) {
           </svg>
         </button>
       </div>
-      {isOpen && (
-        <div className="grid grid-cols-1 gap-2 pt-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr))]">
-          {sortedMatches.map((m) => (
-            <TennisMatchCard key={m.id} match={m} />
+      {isOpen && sections.length > 0 && (
+        <div className="flex flex-col gap-1 pt-2">
+          {sections.map((s) => (
+            <MatchGroupSection
+              key={s.key}
+              label={s.label}
+              matches={s.matches}
+            />
           ))}
         </div>
       )}
