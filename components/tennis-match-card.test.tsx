@@ -58,6 +58,33 @@ describe("TennisMatchCard", () => {
     expect(document.querySelector(".bg-zinc-100")).toBeNull();
   });
 
+  it("shows each player's seed next to their name when present", () => {
+    const match = makeMatch({
+      tennis: {
+        ...makeMatch().tennis!,
+        home: { ...makeMatch().tennis!.home, seed: 1 },
+        away: { ...makeMatch().tennis!.away, seed: 14 },
+      },
+    });
+    render(<TennisMatchCard match={match} />);
+    const seeds = screen.getAllByTestId("player-seed");
+    expect(seeds.map((s) => s.textContent)).toEqual(["(1)", "(14)"]);
+  });
+
+  it("omits the seed for an unseeded player", () => {
+    const match = makeMatch({
+      tennis: {
+        ...makeMatch().tennis!,
+        home: { ...makeMatch().tennis!.home, seed: 3 },
+        away: { ...makeMatch().tennis!.away }, // no seed
+      },
+    });
+    render(<TennisMatchCard match={match} />);
+    const seeds = screen.getAllByTestId("player-seed");
+    expect(seeds).toHaveLength(1);
+    expect(seeds[0]).toHaveTextContent("(3)");
+  });
+
   it("renders games per set for each player", () => {
     render(<TennisMatchCard match={makeMatch()} />);
     const card = screen.getByTestId("match-card");
