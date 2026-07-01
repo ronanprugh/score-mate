@@ -53,6 +53,7 @@ function PlayerRow({
         </span>
         {typeof line.seed === "number" ? (
           <span
+            data-testid="player-seed"
             className="shrink-0 text-[11px] tabular-nums text-zinc-400 dark:text-zinc-500"
             aria-label={`Seed ${line.seed}`}
           >
