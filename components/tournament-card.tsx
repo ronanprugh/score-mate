@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
-import { LATE_KICKOFF_SENTINEL } from "@/lib/home/sort-helpers";
-import { TennisMatchCard } from "./tennis-match-card";
+import { groupMatches } from "@/lib/home/tennis-priority";
+import { MatchGroupSection } from "./match-group-section";
 
 function formatDateRange(startDate: string, endDate: string): string {
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -18,12 +17,9 @@ function formatDateRange(startDate: string, endDate: string): string {
 
 interface Props {
   tournament: ActiveTournament;
-  /** Initial expanded state. Defaults to collapsed; fixtures may open it. */
-  defaultOpen?: boolean;
 }
 
-export function TournamentCard({ tournament, defaultOpen = false }: Props) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+export function TournamentCard({ tournament }: Props) {
   const {
     displayName,
     startDate,
@@ -35,11 +31,9 @@ export function TournamentCard({ tournament, defaultOpen = false }: Props) {
     matches,
   } = tournament;
 
-  const sortedMatches = [...matches].sort((a, b) => {
-    const ak = a.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-    const bk = b.kickoffUtc ?? LATE_KICKOFF_SENTINEL;
-    return ak.localeCompare(bk);
-  });
+  // Split matches into discipline/gender sections (Spec 08); each is sorted by
+  // match priority and rendered as its own collapsible dropdown.
+  const sections = groupMatches(matches);
 
   return (
     <article
@@ -69,34 +63,15 @@ export function TournamentCard({ tournament, defaultOpen = false }: Props) {
         >
           {liveCount} live · {upcomingCount} upcoming · {doneCount} done
         </span>
-        <button
-          type="button"
-          onClick={() => setIsOpen((v) => !v)}
-          aria-expanded={isOpen}
-          aria-label={isOpen ? "Collapse matches" : "Expand matches"}
-          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 12 12"
-            className={[
-              "h-3 w-3 transition-transform",
-              isOpen ? "rotate-180" : "",
-            ].join(" ")}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M2 4.5L6 8L10 4.5" />
-          </svg>
-        </button>
       </div>
-      {isOpen && (
-        <div className="grid grid-cols-1 gap-2 pt-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr))]">
-          {sortedMatches.map((m) => (
-            <TennisMatchCard key={m.id} match={m} />
+      {sections.length > 0 && (
+        <div className="flex flex-col gap-1 pt-2">
+          {sections.map((s) => (
+            <MatchGroupSection
+              key={s.key}
+              label={s.label}
+              matches={s.matches}
+            />
           ))}
         </div>
       )}

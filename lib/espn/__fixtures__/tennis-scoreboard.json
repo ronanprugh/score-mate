@@ -1,0 +1,108 @@
+{
+  "_note": "Trimmed public sample of the ESPN tennis scoreboard (site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard), captured 2026-07-01. Retains only fields the parser reads plus competitor.curatedRank (the tournament seed — ESPN exposes no world ranking). One competitor is intentionally unseeded (no curatedRank).",
+  "events": [
+    {
+      "id": "600001",
+      "name": "BNP Paribas Open",
+      "shortName": "BNP Paribas Open",
+      "groupings": [
+        {
+          "grouping": {
+            "id": "1",
+            "slug": "mens-singles",
+            "displayName": "Men's Singles"
+          },
+          "competitions": [
+            {
+              "id": "seeded-vs-seeded",
+              "date": "2026-03-12T18:00:00Z",
+              "status": { "type": { "state": "pre" } },
+              "type": { "text": "Men's Singles", "slug": "mens-singles" },
+              "round": { "displayName": "Round of 32" },
+              "format": { "regulation": { "periods": 3 } },
+              "venue": {
+                "fullName": "Indian Wells, USA",
+                "court": "Stadium 1"
+              },
+              "competitors": [
+                {
+                  "id": "alcaraz",
+                  "homeAway": "home",
+                  "winner": false,
+                  "curatedRank": { "current": 1 },
+                  "athlete": {
+                    "id": "alcaraz",
+                    "displayName": "Carlos Alcaraz",
+                    "flag": {
+                      "href": "https://a.espncdn.com/i/teamlogos/countries/500/esp.png",
+                      "alt": "Spain"
+                    }
+                  },
+                  "linescores": []
+                },
+                {
+                  "id": "sinner",
+                  "homeAway": "away",
+                  "winner": false,
+                  "curatedRank": { "current": 4 },
+                  "athlete": {
+                    "id": "sinner",
+                    "displayName": "Jannik Sinner",
+                    "flag": {
+                      "href": "https://a.espncdn.com/i/teamlogos/countries/500/ita.png",
+                      "alt": "Italy"
+                    }
+                  },
+                  "linescores": []
+                }
+              ]
+            },
+            {
+              "id": "seeded-vs-unseeded",
+              "date": "2026-03-12T20:00:00Z",
+              "status": { "type": { "state": "pre" } },
+              "type": { "text": "Men's Singles", "slug": "mens-singles" },
+              "round": { "displayName": "Round of 32" },
+              "format": { "regulation": { "periods": 3 } },
+              "venue": {
+                "fullName": "Indian Wells, USA",
+                "court": "Stadium 2"
+              },
+              "competitors": [
+                {
+                  "id": "draper",
+                  "homeAway": "home",
+                  "winner": false,
+                  "curatedRank": { "current": 5 },
+                  "athlete": {
+                    "id": "draper",
+                    "displayName": "Jack Draper",
+                    "flag": {
+                      "href": "https://a.espncdn.com/i/teamlogos/countries/500/gbr.png",
+                      "alt": "Great Britain"
+                    }
+                  },
+                  "linescores": []
+                },
+                {
+                  "id": "qualifier",
+                  "homeAway": "away",
+                  "winner": false,
+                  "athlete": {
+                    "id": "qualifier",
+                    "displayName": "Local Qualifier",
+                    "flag": {
+                      "href": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
+                      "alt": "United States"
+                    }
+                  },
+                  "linescores": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
