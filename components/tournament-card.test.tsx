@@ -78,20 +78,7 @@ describe("TournamentCard", () => {
     expect(screen.getByText(/Sep 7/)).toBeInTheDocument();
   });
 
-  it("(b) chevron click toggles the card's expanded state", () => {
-    render(<TournamentCard tournament={makeTournament()} />);
-
-    const btn = screen.getByRole("button", { name: /expand/i });
-    expect(btn).toHaveAttribute("aria-expanded", "false");
-
-    fireEvent.click(btn);
-    expect(btn).toHaveAttribute("aria-expanded", "true");
-
-    fireEvent.click(btn);
-    expect(btn).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it("(c) expanded card renders discipline sections (collapsed) with label + count, not a flat match list", () => {
+  it("(b) renders discipline sections (collapsed) with label + count, without a card-level toggle", () => {
     const tournament = makeTournament({
       matches: [
         makeMatch({ id: "ms1", tennis: singles("Men's Singles") }),
@@ -100,11 +87,14 @@ describe("TournamentCard", () => {
       ],
     });
     render(<TournamentCard tournament={tournament} />);
-    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
 
-    // Two sections; sections start collapsed so no match-cards are visible yet.
-    const sections = screen.getAllByTestId("match-group");
-    expect(sections).toHaveLength(2);
+    // No card-level expand/collapse control any more.
+    expect(
+      screen.queryByRole("button", { name: /expand|collapse/i }),
+    ).toBeNull();
+
+    // Two sections render immediately; sections start collapsed (no match cards).
+    expect(screen.getAllByTestId("match-group")).toHaveLength(2);
     expect(screen.getByText("Men's Singles")).toBeInTheDocument();
     expect(screen.getByText("Women's Singles")).toBeInTheDocument();
     expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
@@ -114,9 +104,8 @@ describe("TournamentCard", () => {
     expect(mens).toHaveTextContent("2");
   });
 
-  it("(c2) a section expands to reveal its match cards", () => {
+  it("(c) a section expands to reveal its match cards", () => {
     render(<TournamentCard tournament={makeTournament()} />);
-    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
     fireEvent.click(screen.getByRole("button", { name: /^Men's Singles/ }));
     expect(screen.getAllByTestId("match-card")).toHaveLength(2);
   });
@@ -126,7 +115,6 @@ describe("TournamentCard", () => {
       matches: [makeMatch({ id: "ms1", tennis: singles("Men's Singles") })],
     });
     render(<TournamentCard tournament={tournament} />);
-    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
     expect(screen.getAllByTestId("match-group")).toHaveLength(1);
     expect(screen.queryByText("Women's Singles")).toBeNull();
   });
@@ -139,23 +127,19 @@ describe("TournamentCard", () => {
       ],
     });
     render(<TournamentCard tournament={tournament} />);
-    fireEvent.click(screen.getByRole("button", { name: /expand/i }));
     expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
     expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
   });
 
-  it("(d) collapsed-row root meets min-h-11", () => {
+  it("(d) header row meets min-h-11", () => {
     render(<TournamentCard tournament={makeTournament()} />);
     const card = screen.getByTestId("tournament-card");
     const header = card.querySelector(".min-h-11");
     expect(header).not.toBeNull();
   });
 
-  it("(e) two cards can be expanded independently", () => {
-    const t1 = makeTournament({
-      id: "tennis/slam/wimbledon",
-      displayName: "Wimbledon",
-    });
+  it("(e) sections in two cards expand independently", () => {
+    const t1 = makeTournament({ id: "tennis/slam/wimbledon" });
     const t2 = makeTournament({
       id: "tennis/slam/us-open",
       displayName: "US Open",
@@ -169,15 +153,12 @@ describe("TournamentCard", () => {
       </>,
     );
 
-    const [btn1, btn2] = screen.getAllByRole("button", { name: /expand/i });
-
-    fireEvent.click(btn1!);
-    expect(btn1).toHaveAttribute("aria-expanded", "true");
-    expect(btn2).toHaveAttribute("aria-expanded", "false");
-
-    fireEvent.click(btn2!);
-    expect(btn1).toHaveAttribute("aria-expanded", "true");
-    expect(btn2).toHaveAttribute("aria-expanded", "true");
+    const [sec1, sec2] = screen.getAllByRole("button", {
+      name: /^Men's Singles/,
+    });
+    fireEvent.click(sec1!);
+    expect(sec1).toHaveAttribute("aria-expanded", "true");
+    expect(sec2).toHaveAttribute("aria-expanded", "false");
   });
 });
 

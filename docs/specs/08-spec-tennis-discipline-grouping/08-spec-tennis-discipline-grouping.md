@@ -91,7 +91,8 @@ This feature restructures the expanded tournament card into **discipline + gende
 
 ## Design Considerations
 
-- Keep the existing tournament-card header exactly as-is; only the expanded body changes from a flat grid to a stack of section dropdowns.
+- Keep the existing tournament-card header (name/date/round/counts) as-is; the body changes from a flat grid to a stack of section dropdowns.
+- **Post-implementation UX decision:** the card-level expand/collapse chevron was removed — the section dropdowns render directly under the header (single level of disclosure; only the sections themselves collapse). The `defaultOpen` prop was dropped accordingly.
 - Each section dropdown mirrors the existing card's collapse affordance (chevron button, `aria-expanded`, rotate transition) for visual consistency.
 - Section labels: "Men's Singles", "Women's Singles", "Men's Doubles", "Women's Doubles", "Mixed Doubles", each with a small match count (e.g. "Men's Singles · 32"), consistent with the existing counts styling (`text-xs text-zinc-500`).
 - "Show more" is a full-width, ≥44px-tall text button beneath the visible matches (e.g. "Show more (27)"), styled like existing subtle controls; it disappears when exhausted.

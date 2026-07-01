@@ -192,7 +192,7 @@ export default function TennisDayFixture() {
       <p className="mb-3 text-[10px] uppercase tracking-wide text-zinc-500">
         Today · Jun 29 — Spec 08 fixture (32 + 32 draw)
       </p>
-      <TournamentCard tournament={WIMBLEDON} defaultOpen />
+      <TournamentCard tournament={WIMBLEDON} />
     </main>
   );
 }
