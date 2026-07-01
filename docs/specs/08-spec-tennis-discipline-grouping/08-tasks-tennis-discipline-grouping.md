@@ -47,7 +47,7 @@ Tasks for [08-spec-tennis-discipline-grouping.md](08-spec-tennis-discipline-grou
 - [x] 1.5 Add tests in `lib/espn/tennis.test.ts` (create the file if absent) that parse the fixture and assert: (a) a seeded competitor yields the expected `seed`; (b) an unseeded competitor yields `seed === undefined`.
 - [x] 1.6 Run `pnpm typecheck` and `pnpm test:ci lib/espn/tennis.test.ts`; commit (`feat(tennis): parse player tournament seed`).
 
-### [ ] 2.0 Implement ranking-weighted priority + discipline/gender grouping logic (pure lib)
+### [x] 2.0 Implement ranking-weighted priority + discipline/gender grouping logic (pure lib)
 
 #### 2.0 Proof Artifact(s)
 
@@ -57,13 +57,13 @@ Tasks for [08-spec-tennis-discipline-grouping.md](08-spec-tennis-discipline-grou
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create `lib/home/tennis-priority.ts` with exported constants: `UNRANKED_SENTINEL = 9999`, `INITIAL_VISIBLE = 5`, `SHOW_MORE_STEP = 5`, a `SectionKey` union (`mens-singles | womens-singles | mens-doubles | womens-doubles | mixed-doubles`), and an ordered `SECTION_ORDER` with display labels.
-- [ ] 2.2 Implement `classifyDraw(draw: string | undefined): SectionKey | null` — case-insensitive parse of `match.tennis.draw`; return the matching key or `null` for unclassifiable/missing draws (wheelchair, juniors, qualifying, etc.).
-- [ ] 2.3 Implement `sideRank(match, side)` — singles: the player's `seed ?? UNRANKED_SENTINEL`; doubles/mixed: arithmetic mean of the pair's two singles `seed` values (each `?? UNRANKED_SENTINEL`). (Document that a single "side" maps to `tennis.home`/`tennis.away`; doubles partner seeds come from the parsed player lines.)
-- [ ] 2.4 Implement `matchPriority(match): number` = `(bestRank*2 + adjustedSecondRank)/3` where `bestRank = min(sideRankHome, sideRankAway)`, `otherRank = max(...)`, `adjustedSecondRank = bestRank <= 100 ? Math.min(100, otherRank) : otherRank`.
-- [ ] 2.5 Implement `compareMatches(a, b)` — priority ascending, then earliest `kickoffUtc` (nulls last), then `id`; and `groupMatches(matches): { key, label, matches }[]` that classifies, drops `null`, sorts each group with `compareMatches`, and returns non-empty groups in `SECTION_ORDER`.
-- [ ] 2.6 Write `lib/home/tennis-priority.test.ts` covering: the five worked priority values (2.0 proof), the `102.5` doubles-average case, classification into all five keys + exclusion of an unclassifiable draw, ties broken by kickoff then id, and empty-group omission from `groupMatches`.
-- [ ] 2.7 Run `pnpm test:ci lib/home/tennis-priority.test.ts` and `pnpm typecheck`; commit (`feat(tennis): match priority + discipline grouping`).
+- [x] 2.1 Create `lib/home/tennis-priority.ts` with exported constants: `UNRANKED_SENTINEL = 9999`, `INITIAL_VISIBLE = 5`, `SHOW_MORE_STEP = 5`, a `SectionKey` union (`mens-singles | womens-singles | mens-doubles | womens-doubles | mixed-doubles`), and an ordered `SECTION_ORDER` with display labels.
+- [x] 2.2 Implement `classifyDraw(draw: string | undefined): SectionKey | null` — case-insensitive parse of `match.tennis.draw`; return the matching key or `null` for unclassifiable/missing draws (wheelchair, juniors, qualifying, etc.).
+- [x] 2.3 Implement `sideRank(match, side)` — singles: the player's `seed ?? UNRANKED_SENTINEL`; doubles/mixed: arithmetic mean of the pair's two singles `seed` values (each `?? UNRANKED_SENTINEL`). (Document that a single "side" maps to `tennis.home`/`tennis.away`; doubles partner seeds come from the parsed player lines.)
+- [x] 2.4 Implement `matchPriority(match): number` = `(bestRank*2 + adjustedSecondRank)/3` where `bestRank = min(sideRankHome, sideRankAway)`, `otherRank = max(...)`, `adjustedSecondRank = bestRank <= 100 ? Math.min(100, otherRank) : otherRank`.
+- [x] 2.5 Implement `compareMatches(a, b)` — priority ascending, then earliest `kickoffUtc` (nulls last), then `id`; and `groupMatches(matches): { key, label, matches }[]` that classifies, drops `null`, sorts each group with `compareMatches`, and returns non-empty groups in `SECTION_ORDER`.
+- [x] 2.6 Write `lib/home/tennis-priority.test.ts` covering: the five worked priority values (2.0 proof), the `102.5` doubles-average case, classification into all five keys + exclusion of an unclassifiable draw, ties broken by kickoff then id, and empty-group omission from `groupMatches`.
+- [x] 2.7 Run `pnpm test:ci lib/home/tennis-priority.test.ts` and `pnpm typecheck`; commit (`feat(tennis): match priority + discipline grouping`).
 
 ### [ ] 3.0 Render grouped dropdown sections with top-5 / show-more / live pinning (UI)
 
