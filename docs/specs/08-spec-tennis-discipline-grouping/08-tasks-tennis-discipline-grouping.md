@@ -83,7 +83,7 @@ Tasks for [08-spec-tennis-discipline-grouping.md](08-spec-tennis-discipline-grou
 - [x] 3.6 Update `components/tournament-card.test.tsx` for the grouped structure: assert sections render with labels + counts, an empty discipline yields no section, a tournament with zero classifiable draws renders no body sections (empty-body edge case), and header assertions ((a)/(a2) date/round/counts) still pass. Remove/replace the obsolete flat-list cases ((c) "one match-card per match", chronological order) with section-scoped equivalents.
 - [x] 3.7 Run `pnpm test:ci` (full suite) and `pnpm typecheck`; commit (`feat(tennis): grouped discipline sections with show-more`).
 
-### [ ] 4.0 Update dev fixture, capture screenshots, and pass all quality gates
+### [x] 4.0 Update dev fixture, capture screenshots, and pass all quality gates
 
 #### 4.0 Proof Artifact(s)
 
@@ -93,8 +93,8 @@ Tasks for [08-spec-tennis-discipline-grouping.md](08-spec-tennis-discipline-grou
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Extend `app/dev-fixture/tennis-day/page.tsx`: build a fixture tournament with a Men's Singles and Women's Singles draw of ~32 matches each (with varied `rank` values incl. some unranked), at least one Men's/Women's/Mixed Doubles match, and at least one `status === "live"` match. Keep it dev-only (no nav link).
-- [ ] 4.2 Start the dev server, open `/dev-fixture/tennis-day`, and capture the two screenshots (collapsed sections + expanded section truncated to 5 with "Show more"; and a live match pinned first). Save under `docs/specs/08-spec-tennis-discipline-grouping/08-proofs/`.
-- [ ] 4.3 Run the full gate set — `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test:ci`, `pnpm build` — and fix any failures.
-- [ ] 4.4 Commit (`docs(tennis): proof bundle for Spec 08` + any `feat` fixes); ensure the proof screenshots are committed.
+- [x] 4.1 Extend `app/dev-fixture/tennis-day/page.tsx`: build a fixture tournament with a Men's Singles and Women's Singles draw of ~32 matches each (with varied `rank` values incl. some unranked), at least one Men's/Women's/Mixed Doubles match, and at least one `status === "live"` match. Keep it dev-only (no nav link).
+- [x] 4.2 Start the dev server, open `/dev-fixture/tennis-day`, and capture the two screenshots (collapsed sections + expanded section truncated to 5 with "Show more"; and a live match pinned first). Save under `docs/specs/08-spec-tennis-discipline-grouping/08-proofs/`.
+- [x] 4.3 Run the full gate set — `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test:ci`, `pnpm build` — and fix any failures.
+- [x] 4.4 Commit (`docs(tennis): proof bundle for Spec 08` + any `feat` fixes); ensure the proof screenshots are committed.
 ```
