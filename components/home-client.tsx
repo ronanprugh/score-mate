@@ -6,6 +6,7 @@ import {
   getBrowserTimezone,
   type DateWindow,
 } from "@/lib/date-window";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 import type { HomeEnvelope } from "@/lib/home/aggregator";
 import { LATE_KICKOFF_SENTINEL } from "@/lib/home/sort-helpers";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
@@ -97,7 +98,8 @@ export function HomeClient({ hasFavorites }: Props) {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
-      const url = `/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}&tz=${encodeURIComponent(tz)}`;
+      // fetch() is not basePath-aware, so the /ScoreMate prefix is explicit.
+      const url = `${APP_BASE_PATH}/api/home?dates=${window.yesterday},${window.today},${window.tomorrow}&tz=${encodeURIComponent(tz)}`;
       fetch(url, { signal: controller.signal })
         .then(async (res) => {
           if (!res.ok) throw new Error(`Home fetch failed (${res.status})`);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 
 interface Props {
   favoriteId: string;
@@ -26,8 +27,9 @@ export function FavoriteRemoveButton({ favoriteId, displayName }: Props) {
     setError(null);
     setStatus("pending");
     try {
+      // fetch() is not basePath-aware, so the /ScoreMate prefix is explicit.
       const res = await fetch(
-        `/api/favorites/${encodeURIComponent(favoriteId)}`,
+        `${APP_BASE_PATH}/api/favorites/${encodeURIComponent(favoriteId)}`,
         {
           method: "DELETE",
         },

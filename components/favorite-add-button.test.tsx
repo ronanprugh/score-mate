@@ -55,7 +55,7 @@ describe("FavoriteAddButton", () => {
       expect(screen.getByRole("button")).toHaveTextContent(/added/i);
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/favorites",
+      "/ScoreMate/api/favorites",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify(PAYLOAD),

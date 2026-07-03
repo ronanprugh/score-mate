@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 import type { FavoriteType, Sport } from "@/lib/sports/types";
 
 export interface FavoritePayload {
@@ -43,7 +44,8 @@ export function FavoriteAddButton({ payload, initialAdded }: Props) {
       // badgeUrl is render-only; the server schema is strict and rejects it.
       const { badgeUrl: _badgeUrl, ...body } = payload;
       void _badgeUrl;
-      const res = await fetch("/api/favorites", {
+      // fetch() is not basePath-aware, so the /ScoreMate prefix is explicit.
+      const res = await fetch(`${APP_BASE_PATH}/api/favorites`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteAddButton, type FavoritePayload } from "./favorite-add-button";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 import type { FavoriteType } from "@/lib/sports/types";
 
 interface InitialFavoriteKey {
@@ -61,9 +62,13 @@ export function FavoritesSearch({ initialFavorites }: Props) {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
-      fetch(`/api/favorites/search?q=${encodeURIComponent(trimmed)}`, {
-        signal: controller.signal,
-      })
+      // fetch() is not basePath-aware, so the /ScoreMate prefix is explicit.
+      fetch(
+        `${APP_BASE_PATH}/api/favorites/search?q=${encodeURIComponent(trimmed)}`,
+        {
+          signal: controller.signal,
+        },
+      )
         .then(async (res) => {
           if (!res.ok) {
             throw new Error(`Search failed (${res.status})`);
