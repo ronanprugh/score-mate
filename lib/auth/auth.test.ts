@@ -22,9 +22,18 @@ describe("Auth.js configuration", () => {
     expect(ids).toContain("resend");
   });
 
-  it("routes users to the spec-mandated custom pages", () => {
-    expect(authConfig.pages?.signIn).toBe("/signin");
-    expect(authConfig.pages?.verifyRequest).toBe("/check-email");
-    expect(authConfig.pages?.error).toBe("/auth/error");
+  it("routes users to the spec-mandated custom pages (basePath-prefixed)", () => {
+    // Auth.js appends page paths to the bare origin, so they must carry the
+    // Next.js basePath prefix explicitly.
+    expect(authConfig.pages?.signIn).toBe("/ScoreMate/signin");
+    expect(authConfig.pages?.verifyRequest).toBe("/ScoreMate/check-email");
+    expect(authConfig.pages?.error).toBe("/ScoreMate/auth/error");
+  });
+
+  it("leaves the Auth.js basePath at its /api/auth default", () => {
+    // @auth/core uses basePath both to parse incoming (basePath-stripped)
+    // request paths and to build absolute callback URLs, so it must stay at
+    // the default — auth is served at the domain root via rewrites instead.
+    expect(authConfig).not.toHaveProperty("basePath");
   });
 });

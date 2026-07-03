@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 
 /**
  * Static portion of the Auth.js configuration. Pulled into its own module so
@@ -31,6 +32,12 @@ export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 const ALLOW_ACCOUNT_LINKING = true;
 
 export const authConfig = {
+  // Auth.js `basePath` is intentionally left at its `/api/auth` default:
+  // Next.js strips the app's `/ScoreMate` basePath before the route handler
+  // runs, and @auth/core uses this one value both to parse those stripped
+  // request paths AND to build absolute URLs (Google redirect_uri, magic-link
+  // callbacks). Auth endpoints are therefore served at the domain ROOT
+  // (`/api/auth/*`) — see the rewrites in next.config.ts.
   session: {
     strategy: "database",
     maxAge: SESSION_MAX_AGE_SECONDS,
@@ -50,9 +57,11 @@ export const authConfig = {
       // verifying the link proves email ownership.
     }),
   ],
+  // Auth.js appends these directly to the bare origin (no Next.js basePath),
+  // so the /ScoreMate prefix must be explicit.
   pages: {
-    signIn: "/signin",
-    verifyRequest: "/check-email",
-    error: "/auth/error",
+    signIn: `${APP_BASE_PATH}/signin`,
+    verifyRequest: `${APP_BASE_PATH}/check-email`,
+    error: `${APP_BASE_PATH}/auth/error`,
   },
 } satisfies NextAuthConfig;

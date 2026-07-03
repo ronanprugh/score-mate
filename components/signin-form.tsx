@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signIn } from "next-auth/react";
+import { SessionProvider, signIn } from "next-auth/react";
+import { APP_BASE_PATH, AUTH_BASE_PATH } from "@/lib/auth/constants";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -12,8 +13,21 @@ type Status = "idle" | "sending" | "sent" | "error";
  *
  * Both buttons satisfy the spec's 44×44px touch-target rule via the Tailwind
  * `min-h-11 min-w-11` utilities (`h-11` = 2.75rem ≈ 44px).
+ *
+ * The `SessionProvider` wrapper exists solely to point the `next-auth/react`
+ * client at the basePath-prefixed auth handler — its bundled default is
+ * `/api/auth`, which resolves to the wrong app when served behind the
+ * ronanprugh.com proxy (see lib/auth/constants.ts).
  */
 export function SigninForm() {
+  return (
+    <SessionProvider basePath={AUTH_BASE_PATH}>
+      <SigninFormInner />
+    </SessionProvider>
+  );
+}
+
+function SigninFormInner() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -22,7 +36,9 @@ export function SigninForm() {
   async function handleGoogle() {
     setErrorMessage(null);
     startTransition(async () => {
-      await signIn("google", { callbackUrl: "/home" });
+      // Relative callbackUrls are resolved against the bare origin by
+      // Auth.js, so the /ScoreMate prefix must be explicit.
+      await signIn("google", { callbackUrl: `${APP_BASE_PATH}/home` });
     });
   }
 
@@ -34,7 +50,7 @@ export function SigninForm() {
     const result = await signIn("resend", {
       email,
       redirect: false,
-      callbackUrl: "/home",
+      callbackUrl: `${APP_BASE_PATH}/home`,
     });
     if (result?.error) {
       setStatus("error");

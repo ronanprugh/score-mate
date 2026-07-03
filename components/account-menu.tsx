@@ -1,8 +1,11 @@
 import { signOut } from "@/auth";
+import { APP_BASE_PATH } from "@/lib/auth/constants";
 
 async function signOutAction() {
   "use server";
-  await signOut({ redirectTo: "/signin" });
+  // Auth.js resolves relative redirectTo values against the bare origin
+  // (no Next.js basePath), so the /ScoreMate prefix must be explicit.
+  await signOut({ redirectTo: `${APP_BASE_PATH}/signin` });
 }
 
 type Props = {

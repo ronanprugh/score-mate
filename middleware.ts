@@ -24,7 +24,9 @@ export function middleware(req: NextRequest) {
   );
 
   if (!hasSessionCookie) {
-    const url = new URL("/signin", req.url);
+    // Raw URL construction bypasses the Next.js basePath, so prefix it
+    // explicitly (req.nextUrl.basePath holds the configured "/ScoreMate").
+    const url = new URL(`${req.nextUrl.basePath}/signin`, req.url);
     // Preserve the originally-requested path so the user lands back here
     // after signing in.
     url.searchParams.set("callbackUrl", req.nextUrl.pathname);

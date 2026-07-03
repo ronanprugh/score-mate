@@ -1,10 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-// Mock next-auth/react before importing the form.
+// Mock next-auth/react before importing the form. SessionProvider is
+// rendered by SigninForm purely to set the client basePath, so a
+// pass-through stub is sufficient here.
 const signInMock = vi.fn();
 vi.mock("next-auth/react", () => ({
   signIn: (...args: unknown[]) => signInMock(...args),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 import { SigninForm } from "@/components/signin-form";
@@ -37,7 +40,7 @@ describe("Sign-in form", () => {
     }
   });
 
-  it("calls signIn('google', { callbackUrl: '/home' }) when the Google CTA is clicked", async () => {
+  it("calls signIn('google') with a basePath-prefixed callbackUrl when the Google CTA is clicked", async () => {
     signInMock.mockResolvedValue(undefined);
     render(<SigninForm />);
     fireEvent.click(
@@ -45,7 +48,7 @@ describe("Sign-in form", () => {
     );
     await waitFor(() => {
       expect(signInMock).toHaveBeenCalledWith("google", {
-        callbackUrl: "/home",
+        callbackUrl: "/ScoreMate/home",
       });
     });
   });
@@ -71,7 +74,7 @@ describe("Sign-in form", () => {
     expect(signInMock).toHaveBeenCalledWith("resend", {
       email: "test@example.com",
       redirect: false,
-      callbackUrl: "/home",
+      callbackUrl: "/ScoreMate/home",
     });
   });
 
