@@ -268,11 +268,22 @@ interface RawTennisCuratedRank {
   current?: number;
 }
 
+/**
+ * Doubles competitors carry no single `athlete`; instead a `roster` holds the
+ * pair's combined name plus one `athletes` entry per partner. Singles omit it.
+ */
+interface RawTennisRoster {
+  displayName?: string;
+  shortDisplayName?: string;
+  athletes?: RawTennisAthlete[];
+}
+
 interface RawTennisCompetitor {
   id?: string;
   homeAway?: "home" | "away";
   winner?: boolean;
   athlete?: RawTennisAthlete;
+  roster?: RawTennisRoster;
   linescores?: RawTennisLinescore[];
   curatedRank?: RawTennisCuratedRank;
 }
@@ -338,6 +349,41 @@ function countSetsWon(competitor: RawTennisCompetitor): number | undefined {
 }
 
 /**
+ * A competitor's display name. Singles carry a single `athlete`; doubles pairs
+ * carry a `roster` whose `displayName` is the combined "A / B" label.
+ */
+function competitorName(c: RawTennisCompetitor): string | undefined {
+  return (
+    c.athlete?.displayName ??
+    c.athlete?.shortName ??
+    c.roster?.displayName ??
+    c.roster?.shortDisplayName
+  );
+}
+
+function competitorShortName(c: RawTennisCompetitor): string | undefined {
+  return c.athlete?.shortName ?? c.roster?.shortDisplayName;
+}
+
+/** Stable competitor id (doubles use a compound `id` like `3540-10685`). */
+function competitorId(c: RawTennisCompetitor): string | undefined {
+  return c.id ?? c.athlete?.id;
+}
+
+/**
+ * The flag to show on a competitor's row. Singles use the athlete's flag.
+ * Doubles have one flag per partner and only a single flag slot on the card, so
+ * we show it only when both partners share a country; mixed pairs get no flag.
+ */
+function resolveFlag(c: RawTennisCompetitor): RawTennisFlag | undefined {
+  if (c.athlete?.flag) return c.athlete.flag;
+  const partners = c.roster?.athletes ?? [];
+  const first = partners[0]?.flag;
+  if (first && partners.every((a) => a.flag?.alt === first.alt)) return first;
+  return undefined;
+}
+
+/**
  * Builds the per-player tennis line (flag + set-by-set scores) consumed by
  * `TennisMatchCard`. Maps each ESPN linescore entry to a `TennisSetScore`
  * (games = `value`, plus the tiebreak points when present).
@@ -350,9 +396,10 @@ function buildTennisPlayerLine(
     ...(typeof l.tiebreak === "number" ? { tiebreak: l.tiebreak } : {}),
     won: l.winner ?? false,
   }));
+  const flag = resolveFlag(competitor);
   return {
-    flagUrl: competitor.athlete?.flag?.href,
-    flagAlt: competitor.athlete?.flag?.alt,
+    flagUrl: flag?.href,
+    flagAlt: flag?.alt,
     // Tournament seed (ESPN's only ranking signal); undefined when unseeded.
     ...(typeof competitor.curatedRank?.current === "number"
       ? { seed: competitor.curatedRank.current }
@@ -360,6 +407,20 @@ function buildTennisPlayerLine(
     sets,
     won: competitor.winner ?? false,
   };
+}
+
+/**
+ * Best-of-N sets for a competition. ESPN's `format.regulation.periods` is
+ * unreliable — it reports `5` for every draw (women's, doubles, best-of-3
+ * 250-level events), so it cannot be trusted. The actual rule is simple: only
+ * men's singles at a Grand Slam is best-of-5; every other draw is best-of-3.
+ */
+function deriveBestOf(
+  tournament: MarqueeTournament,
+  comp: RawTennisCompetition,
+): number {
+  const slug = comp.type?.slug;
+  return tournament.tour === "Slam" && slug === "mens-singles" ? 5 : 3;
 }
 
 /**
@@ -383,12 +444,12 @@ function parseTennisCompetition(
   const home = competitors.find((c) => c.homeAway === "home") ?? competitors[0];
   const away = competitors.find((c) => c.homeAway === "away") ?? competitors[1];
   if (!home || !away) return null;
-  const homeId = home.id ?? home.athlete?.id;
-  const awayId = away.id ?? away.athlete?.id;
+  const homeId = competitorId(home);
+  const awayId = competitorId(away);
   if (!homeId || !awayId) return null;
 
-  const homeName = home.athlete?.displayName ?? home.athlete?.shortName;
-  const awayName = away.athlete?.displayName ?? away.athlete?.shortName;
+  const homeName = competitorName(home);
+  const awayName = competitorName(away);
   if (!homeName || !awayName) return null;
 
   const kickoffUtc = comp.date ?? null;
@@ -402,11 +463,11 @@ function parseTennisCompetition(
     sport: "Tennis",
     homeTeamId: homeId,
     homeTeamName: homeName,
-    homeTeamShortName: home.athlete?.shortName,
+    homeTeamShortName: competitorShortName(home),
     homeTeamLogo: undefined,
     awayTeamId: awayId,
     awayTeamName: awayName,
-    awayTeamShortName: away.athlete?.shortName,
+    awayTeamShortName: competitorShortName(away),
     awayTeamLogo: undefined,
     leagueId: tournament.id,
     leagueName: tournament.displayName,
@@ -421,7 +482,7 @@ function parseTennisCompetition(
     liveProgress:
       status === "live" ? comp.status?.type?.shortDetail : undefined,
     tennis: {
-      bestOf: comp.format?.regulation?.periods,
+      bestOf: deriveBestOf(tournament, comp),
       draw: comp.type?.text ?? groupingDisplayName,
       round: comp.round?.displayName,
       court: comp.venue?.court,

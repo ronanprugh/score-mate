@@ -51,6 +51,14 @@ function PlayerRow({
         >
           {name}
         </span>
+        {typeof line.seed === "number" ? (
+          <span
+            className="shrink-0 text-[11px] tabular-nums text-zinc-400 dark:text-zinc-500"
+            aria-label={`Seed ${line.seed}`}
+          >
+            ({line.seed})
+          </span>
+        ) : null}
       </div>
       {Array.from({ length: numSets }, (_, i) => {
         const set = line.sets[i];
