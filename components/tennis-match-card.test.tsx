@@ -122,6 +122,23 @@ describe("TennisMatchCard", () => {
     expect(screen.getByAltText("Portugal")).toBeInTheDocument();
   });
 
+  it("renders the tournament seed next to a player's name when present", () => {
+    const match = makeMatch({
+      tennis: {
+        bestOf: 5,
+        draw: "Men's Singles",
+        round: "Round 1",
+        home: { seed: 2, won: true, sets: [{ games: 6, won: true }] },
+        away: { won: false, sets: [{ games: 3, won: false }] },
+      },
+    });
+    render(<TennisMatchCard match={match} />);
+    // Seeded player shows "(2)"; unseeded player gets no seed marker.
+    expect(screen.getByText("(2)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Seed 2")).toBeInTheDocument();
+    expect(screen.queryByText("(0)")).not.toBeInTheDocument();
+  });
+
   it("shows a live indicator and progress for live matches", () => {
     render(
       <TennisMatchCard

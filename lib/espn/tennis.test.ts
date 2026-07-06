@@ -608,4 +608,212 @@ describe("tennisScoreboard", () => {
     // at the parse layer).
     expect(seededVsUnseeded.tennis!.away.seed).toBeUndefined();
   });
+
+  it("parses doubles competitions from competitor.roster (no single athlete)", async () => {
+    // ESPN represents a doubles pair with a `roster` object (combined name +
+    // one athlete per partner) instead of a single `athlete`, so relying on
+    // `competitor.athlete` alone silently dropped every doubles match.
+    const { matches } = await tennisScoreboard(
+      "tennis/slam/wimbledon",
+      "2026-07-10",
+      {
+        fetchFn: async () =>
+          jsonResponse({
+            events: [
+              {
+                name: "Wimbledon",
+                groupings: [
+                  {
+                    grouping: { displayName: "Men's Doubles" },
+                    competitions: [
+                      {
+                        id: "doubles-1",
+                        date: "2026-07-10T13:00:00Z",
+                        status: { type: { state: "post" } },
+                        type: { text: "Men's Doubles", slug: "mens-doubles" },
+                        competitors: [
+                          {
+                            id: "3540-10685",
+                            homeAway: "home",
+                            winner: true,
+                            curatedRank: { current: 5 },
+                            roster: {
+                              displayName: "Harri Heliovaara / Henry Patten",
+                              shortDisplayName: "H. Heliovaara / H. Patten",
+                              athletes: [
+                                {
+                                  displayName: "Harri Heliovaara",
+                                  flag: { alt: "Finland" },
+                                },
+                                {
+                                  displayName: "Henry Patten",
+                                  flag: { alt: "Great Britain" },
+                                },
+                              ],
+                            },
+                            linescores: [{ value: 6, winner: true }],
+                          },
+                          {
+                            id: "1-2",
+                            homeAway: "away",
+                            winner: false,
+                            roster: {
+                              displayName: "Player A / Player B",
+                              athletes: [
+                                {
+                                  displayName: "Player A",
+                                  flag: { alt: "Spain" },
+                                },
+                                {
+                                  displayName: "Player B",
+                                  flag: { alt: "Spain" },
+                                },
+                              ],
+                            },
+                            linescores: [{ value: 4, winner: false }],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      },
+    );
+
+    const m = matches.find((x) => x.id === "doubles-1");
+    expect(m).toBeDefined();
+    expect(m!.homeTeamName).toBe("Harri Heliovaara / Henry Patten");
+    expect(m!.awayTeamName).toBe("Player A / Player B");
+    // Team seed carries from curatedRank; best-of-3 for a Slam doubles draw.
+    expect(m!.tennis!.home.seed).toBe(5);
+    expect(m!.tennis!.bestOf).toBe(3);
+    // Mixed-nationality pair → no single flag; same-country pair → shared flag.
+    expect(m!.tennis!.home.flagAlt).toBeUndefined();
+    expect(m!.tennis!.away.flagAlt).toBe("Spain");
+  });
+
+  it("derives best-of from draw + tour, ignoring ESPN's unreliable format.periods", async () => {
+    // ESPN reports format.regulation.periods = 5 for every draw (women's,
+    // doubles, best-of-3 250s). Best-of-5 is exclusively men's singles at a
+    // Grand Slam; everything else is best-of-3.
+    const fetchFn = async () =>
+      jsonResponse({
+        events: [
+          {
+            name: "Wimbledon",
+            groupings: [
+              {
+                grouping: { displayName: "Men's Singles" },
+                competitions: [
+                  {
+                    id: "mens-singles",
+                    date: "2026-07-10T13:00:00Z",
+                    status: { type: { state: "in" } },
+                    type: { text: "Men's Singles", slug: "mens-singles" },
+                    format: { regulation: { periods: 5 } },
+                    competitors: [
+                      {
+                        id: "a",
+                        homeAway: "home",
+                        athlete: { id: "a", displayName: "A" },
+                      },
+                      {
+                        id: "b",
+                        homeAway: "away",
+                        athlete: { id: "b", displayName: "B" },
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                grouping: { displayName: "Women's Singles" },
+                competitions: [
+                  {
+                    id: "womens-singles",
+                    date: "2026-07-10T13:00:00Z",
+                    status: { type: { state: "in" } },
+                    type: { text: "Women's Singles", slug: "womens-singles" },
+                    format: { regulation: { periods: 5 } },
+                    competitors: [
+                      {
+                        id: "c",
+                        homeAway: "home",
+                        athlete: { id: "c", displayName: "C" },
+                      },
+                      {
+                        id: "d",
+                        homeAway: "away",
+                        athlete: { id: "d", displayName: "D" },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+    const { matches } = await tennisScoreboard(
+      "tennis/slam/wimbledon",
+      "2026-07-10",
+      {
+        fetchFn,
+      },
+    );
+    expect(matches.find((m) => m.id === "mens-singles")!.tennis!.bestOf).toBe(
+      5,
+    );
+    expect(matches.find((m) => m.id === "womens-singles")!.tennis!.bestOf).toBe(
+      3,
+    );
+  });
+
+  it("keeps best-of-3 for men's singles outside the Grand Slams", async () => {
+    const { matches } = await tennisScoreboard(
+      "tennis/atp/rome",
+      "2026-05-15",
+      {
+        fetchFn: async () =>
+          jsonResponse({
+            events: [
+              {
+                name: "Internazionali BNL d'Italia",
+                groupings: [
+                  {
+                    grouping: { displayName: "Men's Singles" },
+                    competitions: [
+                      {
+                        id: "atp-1000",
+                        date: "2026-05-15T13:00:00Z",
+                        status: { type: { state: "in" } },
+                        type: { text: "Men's Singles", slug: "mens-singles" },
+                        format: { regulation: { periods: 5 } },
+                        competitors: [
+                          {
+                            id: "a",
+                            homeAway: "home",
+                            athlete: { id: "a", displayName: "A" },
+                          },
+                          {
+                            id: "b",
+                            homeAway: "away",
+                            athlete: { id: "b", displayName: "B" },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      },
+    );
+    expect(matches[0]!.tennis!.bestOf).toBe(3);
+  });
 });
