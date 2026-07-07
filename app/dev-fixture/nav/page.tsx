@@ -6,6 +6,7 @@
  * Views (via `?view=`):
  *   - `favorites` (default) — the unified Favorites layout
  *   - `settings`            — the Settings account block + app info
+ *   - `teams`               — the Teams empty state + four-item bottom nav
  */
 import type { FavoriteRow } from "@/db/schema/favorites";
 import { FavoritesSearch } from "@/components/favorites-search";
@@ -82,6 +83,28 @@ function SettingsView() {
   );
 }
 
+function TeamsEmptyView() {
+  return (
+    <section
+      role="status"
+      data-testid="teams-empty-prompt"
+      className="mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg border border-zinc-200 px-6 py-10 text-center dark:border-zinc-800"
+    >
+      <h2 className="text-lg font-semibold">Follow a team or player</h2>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        Favorite a team or player and their last and next match will show up
+        here.
+      </p>
+      <a
+        href="/favorites"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
+      >
+        Add a team or player
+      </a>
+    </section>
+  );
+}
+
 export default async function NavFixture({
   searchParams,
 }: {
@@ -90,10 +113,21 @@ export default async function NavFixture({
   const { view } = await searchParams;
 
   // The bottom nav is `position: fixed`; for a focused screenshot, override it
-  // to static flow so the three icon+label destinations capture reliably.
+  // to static flow so the icon+label destinations capture reliably.
   if (view === "nav") {
     return (
       <div className="p-4 [&_nav]:!static">
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // The Teams empty state above the four-item bottom nav, rendered static so
+  // both are visible in a single screenshot.
+  if (view === "teams") {
+    return (
+      <div className="flex flex-col gap-8 p-4 [&_nav]:!static">
+        <TeamsEmptyView />
         <BottomNav />
       </div>
     );

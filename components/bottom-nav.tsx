@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
-import { HomeIcon, FavoritesIcon, SettingsIcon } from "./nav-icons";
+import { HomeIcon, TeamsIcon, FavoritesIcon, SettingsIcon } from "./nav-icons";
 
 interface NavItem {
   href: string;
@@ -13,12 +13,13 @@ interface NavItem {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { href: "/home", label: "Home", Icon: HomeIcon },
+  { href: "/teams", label: "Teams", Icon: TeamsIcon },
   { href: "/favorites", label: "Favorites", Icon: FavoritesIcon },
   { href: "/settings", label: "Settings", Icon: SettingsIcon },
 ];
 
 /**
- * Mobile-first bottom navigation. Three thumb-reachable destinations, each an
+ * Mobile-first bottom navigation. Four thumb-reachable destinations, each an
  * inline-SVG icon above its label. Active route gets a visually distinct
  * treatment (different bg + text color) and `aria-current="page"`; nested
  * routes (e.g. `/favorites/123`) keep their tab active. Every item meets the

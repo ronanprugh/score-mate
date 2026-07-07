@@ -41,6 +41,18 @@ export function FavoritesIcon({ className }: IconProps) {
   );
 }
 
+/** People — Teams. */
+export function TeamsIcon({ className }: IconProps) {
+  return (
+    <svg {...svgProps(className)}>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3.5 19v-1a5.5 5.5 0 0 1 11 0v1" />
+      <path d="M16 5.2a3 3 0 0 1 0 5.6" />
+      <path d="M17 13.4a5.5 5.5 0 0 1 3.5 5.1V19" />
+    </svg>
+  );
+}
+
 /** Sliders — Settings. */
 export function SettingsIcon({ className }: IconProps) {
   return (

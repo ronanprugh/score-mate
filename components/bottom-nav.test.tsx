@@ -9,17 +9,19 @@ vi.mock("next/navigation", () => ({
 import { BottomNav } from "./bottom-nav";
 
 describe("BottomNav", () => {
-  it("renders the three destinations in order: Home, Favorites, Settings", () => {
+  it("renders the four destinations in order: Home, Teams, Favorites, Settings", () => {
     usePathnameMock.mockReturnValue("/home");
     render(<BottomNav />);
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(4);
     expect(links[0]).toHaveTextContent(/home/i);
     expect(links[0]).toHaveAttribute("href", "/home");
-    expect(links[1]).toHaveTextContent(/^favorites$/i);
-    expect(links[1]).toHaveAttribute("href", "/favorites");
-    expect(links[2]).toHaveTextContent(/settings/i);
-    expect(links[2]).toHaveAttribute("href", "/settings");
+    expect(links[1]).toHaveTextContent(/^teams$/i);
+    expect(links[1]).toHaveAttribute("href", "/teams");
+    expect(links[2]).toHaveTextContent(/^favorites$/i);
+    expect(links[2]).toHaveAttribute("href", "/favorites");
+    expect(links[3]).toHaveTextContent(/settings/i);
+    expect(links[3]).toHaveAttribute("href", "/settings");
   });
 
   it("no longer renders a 'My Favorites' destination", () => {
@@ -58,6 +60,9 @@ describe("BottomNav", () => {
     const settingsLink = screen.getByRole("link", { name: /settings/i });
     expect(settingsLink).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /home/i })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(screen.getByRole("link", { name: /^teams$/i })).not.toHaveAttribute(
       "aria-current",
     );
     expect(
