@@ -9,14 +9,17 @@
  * and the affected entity carrying null matches — the UI degrades gracefully
  * rather than failing the whole page.
  *
- * NOTE: player favorites carry no match data yet — the ESPN athlete-schedule
- * wiring lands in Task 4.0, so the player branch returns null matches for now.
+ * Team schedules come from the site-v2 per-team endpoint; player schedules
+ * come from the core-API athlete eventlog (best-effort — see `athleteSchedule`)
+ * and fall back to null matches ("Match data unavailable") when ESPN has no
+ * usable data for the athlete.
  */
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
-import { teamScheduleForLeague } from "@/lib/espn/client";
+import { athleteSchedule, teamScheduleForLeague } from "@/lib/espn/client";
+import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import type { FavoriteRow } from "@/db/schema/favorites";
 import type { Match } from "@/lib/sports/types";
@@ -63,9 +66,7 @@ async function buildEntity(
   errors: string[],
 ): Promise<TeamEntity> {
   if (fav.type === "player") {
-    // Player schedule wiring lands in Task 4.0; return null matches for now so
-    // the card degrades gracefully to "Match data unavailable".
-    return {
+    const playerBase: TeamEntity = {
       favoriteId: fav.id,
       displayName: fav.displayName,
       type: "player",
@@ -73,6 +74,29 @@ async function buildEntity(
       lastMatch: null,
       nextMatch: null,
     };
+    // Athlete lookups are per-league; use the sport's primary league key.
+    const primaryLeagueKey = leagueKeysForSport(fav.sport)[0];
+    if (!primaryLeagueKey) {
+      errors.push(`No league key for sport: ${fav.sport}`);
+      return playerBase;
+    }
+    try {
+      const { lastMatch, nextMatch } = await athleteSchedule(
+        primaryLeagueKey,
+        fav.externalId,
+      );
+      // athleteSchedule never throws, but a graceful null result for a player
+      // ESPN has no data on shouldn't flip source.ok — the card just shows
+      // "Match data unavailable".
+      return { ...playerBase, lastMatch, nextMatch };
+    } catch (e) {
+      errors.push(
+        e instanceof Error
+          ? e.message
+          : `Athlete schedule failed for ${fav.displayName}`,
+      );
+      return playerBase;
+    }
   }
 
   const base: TeamEntity = {

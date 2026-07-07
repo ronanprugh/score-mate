@@ -74,4 +74,54 @@ describe("EntityCard", () => {
       screen.queryByText("Match data unavailable"),
     ).not.toBeInTheDocument();
   });
+
+  it("renders match rows for a player entity with last+next data", () => {
+    render(
+      <EntityCard
+        entity={makeEntity({
+          type: "player",
+          displayName: "LeBron James",
+          sport: "Basketball",
+          lastMatch: {
+            opponentName: "Houston Rockets",
+            date: "2026-03-17",
+            score: "120-110",
+            kickoffUtc: "2026-03-17T01:30:00Z",
+            leagueName: "NBA",
+          },
+          nextMatch: {
+            opponentName: "Boston Celtics",
+            date: "2026-03-20",
+            kickoffUtc: "2026-03-20T00:00:00Z",
+            leagueName: "NBA",
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText("LeBron James")).toBeInTheDocument();
+    expect(screen.getByText(/Houston Rockets/)).toBeInTheDocument();
+    expect(screen.getByText(/Boston Celtics/)).toBeInTheDocument();
+    expect(
+      screen.queryByText("Match data unavailable"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows 'Match data unavailable' for a player entity with no ESPN data", () => {
+    render(
+      <EntityCard
+        entity={makeEntity({
+          type: "player",
+          displayName: "Obscure Athlete",
+          sport: "Tennis",
+          lastMatch: null,
+          nextMatch: null,
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Match data unavailable")).toBeInTheDocument();
+    expect(screen.queryByText(/No recent match/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No upcoming match/)).not.toBeInTheDocument();
+  });
 });

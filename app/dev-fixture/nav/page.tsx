@@ -7,7 +7,9 @@
  *   - `favorites` (default) — the unified Favorites layout
  *   - `settings`            — the Settings account block + app info
  *   - `teams`               — the Teams empty state + four-item bottom nav
- *   - `teams-cards`         — the Teams page with populated entity cards
+ *   - `teams-cards`         — the Teams page with populated team entity cards
+ *   - `player-cards`        — the Teams page with player entity cards
+ *                             (one with data, one graceful fallback)
  */
 import type { FavoriteRow } from "@/db/schema/favorites";
 import { FavoritesSearch } from "@/components/favorites-search";
@@ -143,10 +145,40 @@ const FIXTURE_ENTITIES: TeamEntity[] = [
   },
 ];
 
-function TeamsCardsView() {
+const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
+  {
+    favoriteId: "p1",
+    displayName: "LeBron James",
+    type: "player",
+    sport: "Basketball",
+    lastMatch: {
+      opponentName: "Houston Rockets",
+      date: "2026-03-17",
+      kickoffUtc: "2026-03-17T01:30:00Z",
+      leagueName: "NBA",
+    },
+    nextMatch: {
+      opponentName: "Boston Celtics",
+      date: "2026-03-20",
+      kickoffUtc: "2026-03-20T00:00:00Z",
+      leagueName: "NBA",
+    },
+  },
+  {
+    // A player ESPN has no usable schedule data for → graceful fallback.
+    favoriteId: "p2",
+    displayName: "Carlos Alcaraz",
+    type: "player",
+    sport: "Tennis",
+    lastMatch: null,
+    nextMatch: null,
+  },
+];
+
+function CardsGrid({ entities }: { entities: TeamEntity[] }) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {FIXTURE_ENTITIES.map((entity) => (
+      {entities.map((entity) => (
         <EntityCard key={entity.favoriteId} entity={entity} />
       ))}
     </div>
@@ -160,11 +192,13 @@ export default async function NavFixture({
 }) {
   const { view } = await searchParams;
 
-  if (view === "teams-cards") {
+  if (view === "teams-cards" || view === "player-cards") {
+    const entities =
+      view === "player-cards" ? FIXTURE_PLAYER_ENTITIES : FIXTURE_ENTITIES;
     return (
       <main className="flex flex-1 flex-col px-5 pt-6">
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 pt-4">
-          <TeamsCardsView />
+          <CardsGrid entities={entities} />
         </div>
         <div className="[&_nav]:!static">
           <BottomNav />

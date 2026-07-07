@@ -26,8 +26,11 @@ import type {
   Sport,
   Team,
 } from "@/lib/sports/types";
+import { findSupportedLeague } from "@/lib/espn/leagues";
+import type { EntityMatch } from "@/lib/teams/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
+const CORE_BASE = "https://sports.core.api.espn.com/v2/sports";
 
 /* -------------------------------------------------------------------------- */
 /* Sport <-> URL segment mapping                                              */
@@ -406,6 +409,121 @@ export async function searchAthletes(
       .map((a) => ({ id: String(a.id), displayName: a.displayName! }));
   } catch {
     return [];
+  }
+}
+
+interface CoreEventLogResponse {
+  events?: {
+    items?: {
+      event?: { $ref?: string };
+      teamId?: string;
+      played?: boolean;
+    }[];
+  } | null;
+}
+
+interface CoreEvent {
+  date?: string;
+  name?: string;
+  competitions?: {
+    competitors?: { id?: string; homeAway?: "home" | "away" }[];
+  }[];
+}
+
+/**
+ * Derives the opponent name for a core event relative to the followed
+ * athlete's `teamId`. ESPN core event `name`s are formatted "{Away} at
+ * {Home}"; we split on that and pick the side the athlete is NOT on, using
+ * the inline competitor `homeAway` matched by `teamId` (no extra fetch).
+ */
+function opponentFromCoreEvent(ev: CoreEvent, teamId: string): string {
+  const name = (ev.name ?? "").trim();
+  const sep = name.includes(" at ")
+    ? " at "
+    : name.includes(" vs ")
+      ? " vs "
+      : null;
+  if (!sep) return name;
+  const [away, home] = name.split(sep).map((s) => s.trim());
+  const mine = ev.competitions?.[0]?.competitors?.find((c) => c.id === teamId);
+  if (mine?.homeAway === "home") return away ?? "";
+  if (mine?.homeAway === "away") return home ?? "";
+  return home ?? away ?? "";
+}
+
+function coreEventToEntityMatch(
+  ev: CoreEvent,
+  teamId: string,
+  leagueName: string,
+): EntityMatch | null {
+  if (!ev.date) return null;
+  return {
+    opponentName: opponentFromCoreEvent(ev, teamId) || "Opponent",
+    date: ev.date.slice(0, 10),
+    kickoffUtc: ev.date,
+    leagueName,
+  };
+}
+
+/**
+ * Returns an athlete's most-recent completed and next upcoming match.
+ *
+ * SPIKE FINDINGS (Task 4.1): the site-v2 `athletes/{id}/eventlog` and
+ * `athletes?search=` endpoints both 404. The working source is the core API:
+ *   GET {CORE_BASE}/{sport}/leagues/{league}/athletes/{id}/eventlog
+ * which returns `events.items[]`, each with `{ event: {$ref}, teamId,
+ * played }` — but NO inline date/opponent/score. Items are season-ordered,
+ * so the last `played:true` item is the most recent match and the first
+ * `played:false` item is the next. Resolving each item's `event.$ref` yields
+ * inline `date` and `name` ("{Away} at {Home}"), from which we derive the
+ * opponent. Scores live behind further `$ref` hops (competitor → score), so
+ * they are intentionally omitted here — a best-effort date+opponent for v1.
+ * Individual sports (e.g. Tennis) have a different eventlog shape and fall
+ * through to the graceful `{ null, null }` outcome. Any fetch/parse error
+ * anywhere returns `{ lastMatch: null, nextMatch: null }` — never throws.
+ */
+export async function athleteSchedule(
+  leagueKey: string,
+  athleteId: string,
+  opts: ClientOptions = {},
+): Promise<{ lastMatch: EntityMatch | null; nextMatch: EntityMatch | null }> {
+  const empty = { lastMatch: null, nextMatch: null };
+  try {
+    const [sportPath, leaguePath] = leagueKey.split("/");
+    if (!sportPath || !leaguePath) return empty;
+    const leagueName = findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
+    const url = `${CORE_BASE}/${sportPath}/leagues/${leaguePath}/athletes/${encodeURIComponent(
+      athleteId,
+    )}/eventlog?limit=50&lang=en&region=us`;
+    const log = await fetchJson<CoreEventLogResponse>(url, opts);
+    const items = log.events?.items ?? [];
+    if (items.length === 0) return empty;
+
+    const played = items.filter((i) => i.played && i.event?.$ref);
+    const upcoming = items.filter((i) => i.played === false && i.event?.$ref);
+    const lastItem = played[played.length - 1];
+    const nextItem = upcoming[0];
+
+    const resolve = async (
+      item: (typeof items)[number] | undefined,
+    ): Promise<EntityMatch | null> => {
+      const ref = item?.event?.$ref;
+      if (!ref) return null;
+      // Core `$ref`s come back as http:// — upgrade to https to avoid a redirect.
+      const ev = await fetchJson<CoreEvent>(
+        ref.replace(/^http:/, "https:"),
+        opts,
+      );
+      return coreEventToEntityMatch(ev, item?.teamId ?? "", leagueName);
+    };
+
+    const [lastMatch, nextMatch] = await Promise.all([
+      resolve(lastItem),
+      resolve(nextItem),
+    ]);
+    return { lastMatch, nextMatch };
+  } catch {
+    return empty;
   }
 }
 

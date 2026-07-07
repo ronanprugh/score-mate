@@ -20,9 +20,12 @@ vi.mock("@/lib/espn/catalog", () => ({
 }));
 
 const teamScheduleMock = vi.fn();
+const athleteScheduleMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
   teamScheduleForLeague: (leagueKey: string, teamId: string) =>
     teamScheduleMock(leagueKey, teamId),
+  athleteSchedule: (leagueKey: string, athleteId: string) =>
+    athleteScheduleMock(leagueKey, athleteId),
 }));
 
 import { GET } from "./route";
@@ -37,6 +40,20 @@ function teamFavorite(over: Record<string, unknown> = {}) {
     externalId: "133602",
     displayName: "Arsenal",
     sport: "Soccer",
+    metadata: null,
+    createdAt: new Date("2026-06-01T00:00:00Z"),
+    ...over,
+  };
+}
+
+function playerFavorite(over: Record<string, unknown> = {}) {
+  return {
+    id: "fav-p1",
+    userId: "user-a",
+    type: "player",
+    externalId: "1966",
+    displayName: "LeBron James",
+    sport: "Basketball",
     metadata: null,
     createdAt: new Date("2026-06-01T00:00:00Z"),
     ...over,
@@ -66,6 +83,7 @@ describe("GET /api/teams", () => {
     listFavoritesMock.mockReset();
     findCatalogTeamByIdMock.mockReset();
     teamScheduleMock.mockReset();
+    athleteScheduleMock.mockReset();
   });
 
   it("returns 401 when there is no session", async () => {
@@ -172,5 +190,59 @@ describe("GET /api/teams", () => {
     });
     expect(body.source.ok).toBe(false);
     expect(body.source.errors).toContain("ESPN 500");
+  });
+
+  it("returns last/next matches for a player favorite when athleteSchedule resolves", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteScheduleMock.mockResolvedValue({
+      lastMatch: {
+        opponentName: "Houston Rockets",
+        date: "2026-03-17",
+        kickoffUtc: "2026-03-17T01:30:00Z",
+        leagueName: "NBA",
+      },
+      nextMatch: {
+        opponentName: "Boston Celtics",
+        date: "2026-03-20",
+        kickoffUtc: "2026-03-20T00:00:00Z",
+        leagueName: "NBA",
+      },
+    });
+
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as TeamsEnvelope;
+
+    expect(body.entities).toHaveLength(1);
+    const entity = body.entities[0]!;
+    expect(entity).toMatchObject({
+      favoriteId: "fav-p1",
+      displayName: "LeBron James",
+      type: "player",
+      sport: "Basketball",
+    });
+    expect(entity.lastMatch).toMatchObject({ opponentName: "Houston Rockets" });
+    expect(entity.nextMatch).toMatchObject({ opponentName: "Boston Celtics" });
+    expect(body.source.ok).toBe(true);
+    // Athlete lookup uses the sport's primary league key (basketball/nba).
+    expect(athleteScheduleMock).toHaveBeenCalledWith("basketball/nba", "1966");
+  });
+
+  it("returns a null-match player entity and source.ok=false when athleteSchedule throws", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteScheduleMock.mockRejectedValue(new Error("ESPN athlete 500"));
+
+    const res = await GET();
+    const body = (await res.json()) as TeamsEnvelope;
+
+    expect(body.entities[0]).toMatchObject({
+      type: "player",
+      lastMatch: null,
+      nextMatch: null,
+    });
+    expect(body.source.ok).toBe(false);
+    expect(body.source.errors).toContain("ESPN athlete 500");
   });
 });
