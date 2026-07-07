@@ -74,15 +74,18 @@ async function buildEntity(
       lastMatch: null,
       nextMatch: null,
     };
-    // Athlete lookups are per-league; use the sport's primary league key.
-    const primaryLeagueKey = leagueKeysForSport(fav.sport)[0];
-    if (!primaryLeagueKey) {
+    // Athlete lookups are per-league. Prefer the athlete's own league captured
+    // at favorite time (e.g. soccer/usa.1 for Messi, tennis/wta for Gauff);
+    // fall back to the sport's primary league for older favorites.
+    const leagueKey =
+      fav.metadata?.leagueKey ?? leagueKeysForSport(fav.sport)[0];
+    if (!leagueKey) {
       errors.push(`No league key for sport: ${fav.sport}`);
       return playerBase;
     }
     try {
       const { lastMatch, nextMatch } = await athleteSchedule(
-        primaryLeagueKey,
+        leagueKey,
         fav.externalId,
       );
       // athleteSchedule never throws, but a graceful null result for a player
@@ -108,7 +111,12 @@ async function buildEntity(
     nextMatch: null,
   };
 
-  const catalogTeam = findCatalogTeamById(fav.externalId);
+  // Disambiguate by sport + name: ESPN team ids collide across sports/leagues.
+  const catalogTeam = findCatalogTeamById(
+    fav.externalId,
+    fav.sport,
+    fav.displayName,
+  );
   if (!catalogTeam) {
     errors.push(`Unknown team in catalog: ${fav.externalId}`);
     return base;

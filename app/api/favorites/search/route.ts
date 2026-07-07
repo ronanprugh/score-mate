@@ -21,7 +21,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { searchCatalogLeagues, searchCatalogTeams } from "@/lib/espn/catalog";
 import { searchAthletes } from "@/lib/espn/client";
-import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { searchEventsCatalog } from "@/lib/events-catalog";
 import {
   SUPPORTED_SPORTS,
@@ -40,7 +39,16 @@ interface SearchResult {
     startDate?: string;
     endDate?: string;
     leagueNameContains?: string;
+    leagueKey?: string;
   };
+}
+
+// ESPN's global search already returns marquee players first by relevance, so
+// we preserve that order and only DEMOTE college/practice players (whose
+// surnames often collide with a star's — e.g. "messi" → college "Messinger").
+// Array.sort is stable, so pro players keep ESPN's relevance order.
+function leagueRank(leagueKey: string): number {
+  return leagueKey.includes("college") ? 1 : 0;
 }
 
 const PER_CATEGORY_CAP = 10;
@@ -119,33 +127,28 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // --- Players: live ESPN athlete search, fanned out one call per sport ---
-  // ESPN's athlete search is per-league, so we query the primary league key
-  // for each supported sport (querying every league per sport would multiply
-  // latency). `searchAthletes` already suppresses its own errors, returning
-  // [] — a failing sport simply contributes no players.
-  const playerResults: SearchResult[] = [];
+  // --- Players: one global ESPN athlete search, ranked + deduped ---
+  // `searchAthletes` hits ESPN's global player index and suppresses its own
+  // errors (returning []). We drop athletes whose sport is filtered out, rank
+  // pro leagues above college/minor, dedupe by athlete id, and carry each
+  // athlete's real `leagueKey` in metadata so the Teams route can look up the
+  // right league schedule.
   const seenAthleteIds = new Set<string>();
-  const athleteBatches = await Promise.all(
-    SUPPORTED_SPORTS.filter((s) => !sportFilter || s === sportFilter).map(
-      async (sport) => {
-        const primaryLeagueKey = leagueKeysForSport(sport)[0];
-        if (!primaryLeagueKey) return [];
-        const athletes = await searchAthletes(primaryLeagueKey, q);
-        return athletes.map((athlete) => ({ sport, athlete }));
-      },
-    ),
-  );
-  for (const { sport, athlete } of athleteBatches.flat()) {
-    if (seenAthleteIds.has(athlete.id)) continue;
-    seenAthleteIds.add(athlete.id);
-    playerResults.push({
-      type: "player",
-      externalId: athlete.id,
-      displayName: athlete.displayName,
-      sport,
-    });
-  }
+  const playerResults: SearchResult[] = (await searchAthletes(q))
+    .filter((a) => !sportFilter || a.sport === sportFilter)
+    .sort((a, b) => leagueRank(a.leagueKey) - leagueRank(b.leagueKey))
+    .filter((a) => {
+      if (seenAthleteIds.has(a.id)) return false;
+      seenAthleteIds.add(a.id);
+      return true;
+    })
+    .map((a) => ({
+      type: "player" as const,
+      externalId: a.id,
+      displayName: a.displayName,
+      sport: a.sport,
+      metadata: { leagueKey: a.leagueKey },
+    }));
 
   // Cap each section so the result list stays scannable on a phone.
   const cap = (xs: SearchResult[]) => xs.slice(0, PER_CATEGORY_CAP);

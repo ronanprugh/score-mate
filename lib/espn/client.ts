@@ -31,6 +31,7 @@ import type { EntityMatch } from "@/lib/teams/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 const CORE_BASE = "https://sports.core.api.espn.com/v2/sports";
+const WEB_SEARCH_BASE = "https://site.web.api.espn.com/apis/common/v3/search";
 
 /* -------------------------------------------------------------------------- */
 /* Sport <-> URL segment mapping                                              */
@@ -78,10 +79,6 @@ export function buildLeagueTeamsUrl(leagueKey: string): string {
   // ESPN paginates teams at 25/page for some leagues. `limit=1000` keeps
   // the response a single call for the leagues we ship.
   return `${SITE_BASE}/${leagueKey}/teams?limit=1000`;
-}
-
-export function buildAthleteSearchUrl(leagueKey: string, q: string): string {
-  return `${SITE_BASE}/${leagueKey}/athletes?search=${encodeURIComponent(q)}&limit=25`;
 }
 
 export function buildTeamScheduleUrl(
@@ -386,27 +383,56 @@ export async function leagueTeams(
   return entries.map((e) => parseTeam(e.team, sport));
 }
 
+export interface AthleteSearchResult {
+  id: string;
+  displayName: string;
+  /** Our internal sport (mapped from ESPN's `{sport}` segment). */
+  sport: Sport;
+  /** ESPN `{sport}/{league}` key (e.g. `basketball/nba`, `tennis/wta`). */
+  leagueKey: string;
+}
+
 /**
- * Searches athletes within a league by name. ESPN's `/athletes?search=` is
- * undocumented and its shape varies by sport, so this is defensive: it reads
- * the common `athletes[]` array, maps each entry to `{ id, displayName }`,
- * and returns `[]` on any fetch/parse error (the caller fans out across
- * sports and suppresses per-call failures).
+ * Searches athletes by name across ESPN's global player index.
+ *
+ * NOTE: the per-league site-v2 `/athletes?search=` endpoint returns 404, so
+ * this uses the working global search — `site.web.api.espn.com/apis/common/v3/
+ * search?query=&type=player` — which returns `items[]` of
+ * `{ id, sport, league, displayName }`. We keep only players whose `{sport}`
+ * segment maps to a supported sport (dropping MMA/olympics/etc.), returning
+ * each athlete's actual `leagueKey` so the Teams route can query the right
+ * league. Returns `[]` on any fetch/parse error.
  */
 export async function searchAthletes(
-  leagueKey: string,
   q: string,
   opts: ClientOptions = {},
-): Promise<{ id: string; displayName: string }[]> {
+): Promise<AthleteSearchResult[]> {
   try {
-    const url = buildAthleteSearchUrl(leagueKey, q);
+    const url = `${WEB_SEARCH_BASE}?query=${encodeURIComponent(q)}&limit=50&type=player`;
     const data = await fetchJson<{
-      athletes?: { id?: string | number; displayName?: string }[] | null;
+      items?:
+        | {
+            id?: string | number;
+            sport?: string;
+            league?: string | null;
+            displayName?: string;
+          }[]
+        | null;
     }>(url, opts);
-    if (!data.athletes) return [];
-    return data.athletes
-      .filter((a) => a.id != null && a.displayName)
-      .map((a) => ({ id: String(a.id), displayName: a.displayName! }));
+    const items = data.items ?? [];
+    const out: AthleteSearchResult[] = [];
+    for (const it of items) {
+      if (it.id == null || !it.displayName || !it.sport || !it.league) continue;
+      const sport = SPORT_FROM_SEGMENT[it.sport];
+      if (!sport) continue; // drop unsupported sports (mma, olympics, …)
+      out.push({
+        id: String(it.id),
+        displayName: it.displayName,
+        sport,
+        leagueKey: `${it.sport}/${it.league}`,
+      });
+    }
+    return out;
   } catch {
     return [];
   }

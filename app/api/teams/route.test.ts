@@ -16,7 +16,8 @@ vi.mock("@/lib/favorites/queries", () => ({
 
 const findCatalogTeamByIdMock = vi.fn();
 vi.mock("@/lib/espn/catalog", () => ({
-  findCatalogTeamById: (id: string) => findCatalogTeamByIdMock(id),
+  findCatalogTeamById: (id: string, sport?: string, displayName?: string) =>
+    findCatalogTeamByIdMock(id, sport, displayName),
 }));
 
 const teamScheduleMock = vi.fn();
@@ -147,6 +148,12 @@ describe("GET /api/teams", () => {
     expect(entity.nextMatch?.score).toBeUndefined();
     expect(body.source.ok).toBe(true);
     expect(teamScheduleMock).toHaveBeenCalledWith("soccer/eng.1", "133602");
+    // The catalog lookup is disambiguated by sport + name (ESPN ids collide).
+    expect(findCatalogTeamByIdMock).toHaveBeenCalledWith(
+      "133602",
+      "Soccer",
+      "Arsenal",
+    );
   });
 
   it("returns a null-match entity and source.ok=false when the team is not in the catalog", async () => {
@@ -225,8 +232,26 @@ describe("GET /api/teams", () => {
     expect(entity.lastMatch).toMatchObject({ opponentName: "Houston Rockets" });
     expect(entity.nextMatch).toMatchObject({ opponentName: "Boston Celtics" });
     expect(body.source.ok).toBe(true);
-    // Athlete lookup uses the sport's primary league key (basketball/nba).
+    // With no stored leagueKey, the lookup falls back to the sport's primary
+    // league key (basketball/nba).
     expect(athleteScheduleMock).toHaveBeenCalledWith("basketball/nba", "1966");
+  });
+
+  it("uses the player's stored leagueKey metadata when present (e.g. soccer/usa.1)", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([
+      playerFavorite({
+        externalId: "45843",
+        displayName: "Lionel Messi",
+        sport: "Soccer",
+        metadata: { leagueKey: "soccer/usa.1" },
+      }),
+    ]);
+    athleteScheduleMock.mockResolvedValue({ lastMatch: null, nextMatch: null });
+
+    await GET();
+    // The athlete's actual league is used, not Soccer's primary (soccer/eng.1).
+    expect(athleteScheduleMock).toHaveBeenCalledWith("soccer/usa.1", "45843");
   });
 
   it("returns a null-match player entity and source.ok=false when athleteSchedule throws", async () => {

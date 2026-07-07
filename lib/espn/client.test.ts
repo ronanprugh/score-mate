@@ -12,6 +12,7 @@ import {
   fetchEventCoreDetail,
   leagueTeams,
   scoreboardForLeague,
+  searchAthletes,
   sportFromLeagueKey,
 } from "./client";
 
@@ -43,6 +44,53 @@ describe("ESPN URL builders", () => {
     expect(buildTeamScheduleUrl("soccer/eng.1", "359")).toBe(
       "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/359/schedule",
     );
+  });
+});
+
+describe("searchAthletes — global player search", () => {
+  const payload = {
+    items: [
+      {
+        id: 1966,
+        sport: "basketball",
+        league: "nba",
+        displayName: "LeBron James",
+      },
+      { id: 3626, sport: "tennis", league: "wta", displayName: "Coco Gauff" },
+      // Unsupported sport → dropped.
+      { id: 999, sport: "mma", league: null, displayName: "Some Fighter" },
+      // Missing league → dropped.
+      { id: 888, sport: "basketball", league: null, displayName: "No League" },
+    ],
+  };
+
+  it("maps items to {id, displayName, sport, leagueKey}, dropping unsupported/incomplete", async () => {
+    const results = await searchAthletes("x", {
+      fetchFn: mockJsonFetch(payload),
+    });
+    expect(results).toEqual([
+      {
+        id: "1966",
+        displayName: "LeBron James",
+        sport: "Basketball",
+        leagueKey: "basketball/nba",
+      },
+      {
+        id: "3626",
+        displayName: "Coco Gauff",
+        sport: "Tennis",
+        leagueKey: "tennis/wta",
+      },
+    ]);
+  });
+
+  it("returns [] on a fetch error (never throws)", async () => {
+    const results = await searchAthletes("x", {
+      fetchFn: async () => {
+        throw new Error("network");
+      },
+    });
+    expect(results).toEqual([]);
   });
 });
 
