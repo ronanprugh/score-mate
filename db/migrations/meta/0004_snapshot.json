@@ -1,6 +1,6 @@
 {
-  "id": "7bc9475a-17ad-4d6a-bb17-d0c8f53c0850",
-  "prevId": "c59edc37-fa67-4f88-a574-ff6792593676",
+  "id": "09754dd4-e1a8-4bbc-abe5-557a59bd47f8",
+  "prevId": "7bc9475a-17ad-4d6a-bb17-d0c8f53c0850",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -376,7 +376,8 @@
         "team",
         "sport",
         "league",
-        "event"
+        "event",
+        "player"
       ]
     }
   },

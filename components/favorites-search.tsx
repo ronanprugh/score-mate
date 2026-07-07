@@ -25,6 +25,7 @@ const TYPE_LABEL: Record<FavoriteType, string> = {
   sport: "Sport",
   league: "League",
   event: "Event",
+  player: "Player",
 };
 
 const DEBOUNCE_MS = 300;

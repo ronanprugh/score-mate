@@ -77,7 +77,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
 
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-today")).toBeInTheDocument(),
@@ -128,7 +128,7 @@ describe("HomeClient (static cases)", () => {
         ],
       }),
     );
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     // Switch to yesterday tab
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
@@ -157,7 +157,7 @@ describe("HomeClient (static cases)", () => {
         tomorrow: [makeMatch({ id: "m", homeTeamName: "M-home" })],
       }),
     );
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() => expect(screen.getByText("T-home")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("day-tab-yesterday"));
     expect(screen.getByTestId("day-tab-yesterday")).toHaveAttribute(
@@ -170,7 +170,7 @@ describe("HomeClient (static cases)", () => {
 
   it("each tab is a 44 px tap target", async () => {
     mockJson(envelope({ today: [makeMatch({ id: "t" })] }));
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-today")).toBeInTheDocument(),
     );
@@ -182,7 +182,7 @@ describe("HomeClient (static cases)", () => {
 
   it("shows the no-matches empty state when user has favorites but no matches", async () => {
     mockJson(envelope({}));
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("no-matches-empty")).toBeInTheDocument(),
     );
@@ -190,10 +190,23 @@ describe("HomeClient (static cases)", () => {
 
   it("shows the no-favorites prompt when user has no favorites", async () => {
     mockJson(envelope({}));
-    render(<HomeClient hasFavorites={false} />);
+    render(<HomeClient hasFavorites={false} hasLeagueFavorites={false} />);
     await waitFor(() =>
       expect(screen.getByTestId("no-favorites-prompt")).toBeInTheDocument(),
     );
+  });
+
+  it("shows the Teams-only prompt (with a /teams link) when the user only follows teams and has no matches", async () => {
+    mockJson(envelope({}));
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={false} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("teams-only-prompt")).toBeInTheDocument(),
+    );
+    const link = screen.getByRole("link", { name: /teams/i });
+    expect(link).toHaveAttribute("href", "/teams");
+    // The generic empty states must not appear in this case.
+    expect(screen.queryByTestId("no-favorites-prompt")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("no-matches-empty")).not.toBeInTheDocument();
   });
 
   it("renders the data-source error banner when source.ok is false", async () => {
@@ -203,7 +216,7 @@ describe("HomeClient (static cases)", () => {
         okFailedCount: 2,
       }),
     );
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(
         screen.getByTestId("data-source-error-banner"),
@@ -254,7 +267,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
     );
@@ -287,7 +300,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
     );
@@ -316,7 +329,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-panel-today")).toBeInTheDocument(),
     );
@@ -334,7 +347,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
     );
@@ -361,7 +374,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-tomorrow")).toBeInTheDocument(),
     );
@@ -385,7 +398,7 @@ describe("HomeClient (static cases)", () => {
       }),
     );
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() =>
       expect(screen.getByTestId("day-tab-yesterday")).toBeInTheDocument(),
     );
@@ -451,7 +464,7 @@ describe("HomeClient (polling + visibility)", () => {
       json: async () => liveEnvelope(),
     } as Response);
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     vi.useFakeTimers();
@@ -472,7 +485,7 @@ describe("HomeClient (polling + visibility)", () => {
       json: async () => finalEnvelope(),
     } as Response);
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     vi.useFakeTimers();
@@ -489,7 +502,7 @@ describe("HomeClient (polling + visibility)", () => {
       json: async () => liveEnvelope(),
     } as Response);
 
-    render(<HomeClient hasFavorites={true} />);
+    render(<HomeClient hasFavorites={true} hasLeagueFavorites={true} />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     vi.useFakeTimers();
@@ -529,7 +542,9 @@ describe("HomeClient (polling + visibility)", () => {
       });
     });
 
-    const { unmount } = render(<HomeClient hasFavorites={true} />);
+    const { unmount } = render(
+      <HomeClient hasFavorites={true} hasLeagueFavorites={true} />,
+    );
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(capturedSignal).not.toBeNull();
     expect(capturedSignal!.aborted).toBe(false);

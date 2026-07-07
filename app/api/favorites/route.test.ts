@@ -128,7 +128,7 @@ describe("POST /api/favorites", () => {
   it("returns 400 on a malformed payload (unknown type)", async () => {
     authMock.mockResolvedValue(SESSION);
     const res = await POST(
-      makePostRequest({ ...VALID_PAYLOAD, type: "player" }) as never,
+      makePostRequest({ ...VALID_PAYLOAD, type: "coach" }) as never,
     );
     expect(res.status).toBe(400);
     const body = await res.json();

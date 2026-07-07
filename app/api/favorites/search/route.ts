@@ -4,21 +4,24 @@
  * Powers the typeahead on the Favorites screen. Substring-matches the
  * query against (a) the committed ESPN team/league catalog
  * (`lib/espn/catalog.json`), (b) the hand-curated events catalog
- * (`lib/events-catalog.ts`), and (c) the supported-sport names. All four
- * sources combine into a single type-labeled result list.
+ * (`lib/events-catalog.ts`), and (c) the supported-sport names, then (d)
+ * fans out a live ESPN athlete search (one call per sport) for players.
+ * All sources combine into a single type-labeled result list.
  *
  * Each result is `{ type, externalId, displayName, sport, metadata? }` —
  * exactly the shape POST /api/favorites accepts. The client sends a result
  * back unchanged via FavoriteAddButton.
  *
- * Auth-gated. No upstream network calls (the catalog is committed), so
- * `Promise.allSettled` isn't needed — the search is deterministic and
- * cache-free.
+ * Auth-gated. The catalog sources are deterministic and cache-free; the
+ * athlete fan-out suppresses its own per-call failures (a failing sport just
+ * contributes no players), so a partial upstream outage never fails search.
  */
 
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { searchCatalogLeagues, searchCatalogTeams } from "@/lib/espn/catalog";
+import { searchAthletes } from "@/lib/espn/client";
+import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { searchEventsCatalog } from "@/lib/events-catalog";
 import {
   SUPPORTED_SPORTS,
@@ -116,6 +119,34 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // --- Players: live ESPN athlete search, fanned out one call per sport ---
+  // ESPN's athlete search is per-league, so we query the primary league key
+  // for each supported sport (querying every league per sport would multiply
+  // latency). `searchAthletes` already suppresses its own errors, returning
+  // [] — a failing sport simply contributes no players.
+  const playerResults: SearchResult[] = [];
+  const seenAthleteIds = new Set<string>();
+  const athleteBatches = await Promise.all(
+    SUPPORTED_SPORTS.filter((s) => !sportFilter || s === sportFilter).map(
+      async (sport) => {
+        const primaryLeagueKey = leagueKeysForSport(sport)[0];
+        if (!primaryLeagueKey) return [];
+        const athletes = await searchAthletes(primaryLeagueKey, q);
+        return athletes.map((athlete) => ({ sport, athlete }));
+      },
+    ),
+  );
+  for (const { sport, athlete } of athleteBatches.flat()) {
+    if (seenAthleteIds.has(athlete.id)) continue;
+    seenAthleteIds.add(athlete.id);
+    playerResults.push({
+      type: "player",
+      externalId: athlete.id,
+      displayName: athlete.displayName,
+      sport,
+    });
+  }
+
   // Cap each section so the result list stays scannable on a phone.
   const cap = (xs: SearchResult[]) => xs.slice(0, PER_CATEGORY_CAP);
   const results: SearchResult[] = [
@@ -123,6 +154,7 @@ export async function GET(req: NextRequest) {
     ...cap(eventResults),
     ...cap(leagueResults),
     ...cap(teamResults),
+    ...cap(playerResults),
   ];
 
   return NextResponse.json({ results });

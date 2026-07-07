@@ -6,12 +6,18 @@
  * Views (via `?view=`):
  *   - `favorites` (default) — the unified Favorites layout
  *   - `settings`            — the Settings account block + app info
+ *   - `teams`               — the Teams empty state + four-item bottom nav
+ *   - `teams-cards`         — the Teams page with populated team entity cards
+ *   - `player-cards`        — the Teams page with player entity cards
+ *                             (one with data, one graceful fallback)
  */
 import type { FavoriteRow } from "@/db/schema/favorites";
 import { FavoritesSearch } from "@/components/favorites-search";
 import { FavoritesList } from "@/components/favorites-list";
 import { AccountMenu } from "@/components/account-menu";
 import { BottomNav } from "@/components/bottom-nav";
+import { EntityCard } from "@/components/entity-card";
+import type { TeamEntity } from "@/lib/teams/types";
 
 const row = (
   id: string,
@@ -82,6 +88,103 @@ function SettingsView() {
   );
 }
 
+function TeamsEmptyView() {
+  return (
+    <section
+      role="status"
+      data-testid="teams-empty-prompt"
+      className="mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg border border-zinc-200 px-6 py-10 text-center dark:border-zinc-800"
+    >
+      <h2 className="text-lg font-semibold">Follow a team or player</h2>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        Favorite a team or player and their last and next match will show up
+        here.
+      </p>
+      <a
+        href="/favorites"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
+      >
+        Add a team or player
+      </a>
+    </section>
+  );
+}
+
+const FIXTURE_ENTITIES: TeamEntity[] = [
+  {
+    favoriteId: "e1",
+    displayName: "Arsenal",
+    type: "team",
+    sport: "Soccer",
+    lastMatch: {
+      opponentName: "Chelsea",
+      date: "2026-06-20",
+      score: "2-1",
+      kickoffUtc: "2026-06-20T15:00:00Z",
+      leagueName: "English Premier League",
+    },
+    nextMatch: {
+      opponentName: "Tottenham",
+      date: "2026-06-28",
+      kickoffUtc: "2026-06-28T14:00:00Z",
+      leagueName: "English Premier League",
+    },
+  },
+  {
+    favoriteId: "e2",
+    displayName: "Kansas City Chiefs",
+    type: "team",
+    sport: "American Football",
+    lastMatch: null,
+    nextMatch: {
+      opponentName: "Denver Broncos",
+      date: "2026-09-14",
+      kickoffUtc: "2026-09-14T20:20:00Z",
+      leagueName: "NFL",
+    },
+  },
+];
+
+const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
+  {
+    favoriteId: "p1",
+    displayName: "LeBron James",
+    type: "player",
+    sport: "Basketball",
+    lastMatch: {
+      opponentName: "Houston Rockets",
+      date: "2026-03-17",
+      kickoffUtc: "2026-03-17T01:30:00Z",
+      leagueName: "NBA",
+    },
+    nextMatch: {
+      opponentName: "Boston Celtics",
+      date: "2026-03-20",
+      kickoffUtc: "2026-03-20T00:00:00Z",
+      leagueName: "NBA",
+    },
+  },
+  {
+    // A player ESPN has no usable schedule data for → graceful fallback.
+    favoriteId: "p2",
+    displayName: "Carlos Alcaraz",
+    type: "player",
+    sport: "Tennis",
+    lastMatch: null,
+    nextMatch: null,
+  },
+];
+
+function CardsGrid({ entities }: { entities: TeamEntity[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {entities.map((entity) => (
+        <EntityCard key={entity.favoriteId} entity={entity} />
+      ))}
+    </div>
+  );
+}
+
 export default async function NavFixture({
   searchParams,
 }: {
@@ -89,11 +192,37 @@ export default async function NavFixture({
 }) {
   const { view } = await searchParams;
 
+  if (view === "teams-cards" || view === "player-cards") {
+    const entities =
+      view === "player-cards" ? FIXTURE_PLAYER_ENTITIES : FIXTURE_ENTITIES;
+    return (
+      <main className="flex flex-1 flex-col px-5 pt-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 pt-4">
+          <CardsGrid entities={entities} />
+        </div>
+        <div className="[&_nav]:!static">
+          <BottomNav />
+        </div>
+      </main>
+    );
+  }
+
   // The bottom nav is `position: fixed`; for a focused screenshot, override it
-  // to static flow so the three icon+label destinations capture reliably.
+  // to static flow so the icon+label destinations capture reliably.
   if (view === "nav") {
     return (
       <div className="p-4 [&_nav]:!static">
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // The Teams empty state above the four-item bottom nav, rendered static so
+  // both are visible in a single screenshot.
+  if (view === "teams") {
+    return (
+      <div className="flex flex-col gap-8 p-4 [&_nav]:!static">
+        <TeamsEmptyView />
         <BottomNav />
       </div>
     );

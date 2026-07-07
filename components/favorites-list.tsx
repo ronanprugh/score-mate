@@ -3,6 +3,7 @@ import type { FavoriteType } from "@/lib/sports/types";
 import { FavoriteRemoveButton } from "@/components/favorite-remove-button";
 
 const SECTION_ORDER: readonly FavoriteType[] = [
+  "player",
   "team",
   "league",
   "sport",
@@ -10,6 +11,7 @@ const SECTION_ORDER: readonly FavoriteType[] = [
 ];
 
 const SECTION_LABEL: Record<FavoriteType, string> = {
+  player: "Players",
   team: "Teams",
   league: "Leagues",
   sport: "Sports",
@@ -22,6 +24,7 @@ function groupByType(rows: FavoriteRow[]): Record<FavoriteType, FavoriteRow[]> {
     sport: [],
     league: [],
     event: [],
+    player: [],
   };
   for (const r of rows) out[r.type].push(r);
   return out;

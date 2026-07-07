@@ -107,11 +107,24 @@ describe("planLeagueKeys", () => {
     expect(new Set(keys)).toEqual(new Set(leagueKeysForSport("Basketball")));
   });
 
-  it("a Team favorite (Soccer) expands to all 14 Soccer leagues", () => {
+  it("excludes Team favorites — a Soccer team no longer expands to its leagues (Spec 09)", () => {
     const favs: FavoriteRow[] = [
       fav({ type: "team", sport: "Soccer", externalId: "359" }),
     ];
-    expect(planLeagueKeys(favs)).toHaveLength(14);
+    // Team favorites live on the Teams tab, not the home feed.
+    expect(planLeagueKeys(favs)).toEqual([]);
+  });
+
+  it("a mixed list plans only the league/sport favorites, ignoring the team", () => {
+    const favs: FavoriteRow[] = [
+      fav({ type: "team", sport: "Basketball", externalId: "team-1" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
+    ];
+    // Only the Soccer sport favorite contributes; the Basketball team is
+    // excluded, so no Basketball leagues appear.
+    expect(new Set(planLeagueKeys(favs))).toEqual(
+      new Set(leagueKeysForSport("Soccer")),
+    );
   });
 
   it("an Event favorite contributes its catalog leagueId (subsumed if same sport's leagues already present)", () => {
@@ -151,9 +164,25 @@ describe("aggregateMatchesForUser", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("fans out exactly (leagueKeys × 5 dates) calls — one Basketball Team favorite → 15 calls", async () => {
+  it("returns an empty envelope (no fetcher calls) for a teams-only user (Spec 09)", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Basketball", externalId: "13" }),
+      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+    ]);
+    const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
+    const env = await aggregateMatchesForUser("user-a", DATES, {
+      eventsLeagueDay: fetcher,
+      activeTennisTournaments: async () => [],
+    });
+    expect(env.yesterday).toEqual([]);
+    expect(env.today).toEqual([]);
+    expect(env.tomorrow).toEqual([]);
+    // No league fan-out happens for a user whose only favorite is a team.
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("fans out exactly (leagueKeys × 5 dates) calls — one Basketball Sport favorite → 15 calls", async () => {
+    listMock.mockResolvedValue([
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
     ]);
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
@@ -174,7 +203,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("widens the UTC fetch window by ±1 day (5 dates per league)", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Basketball", externalId: "13" }),
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
     ]);
     const fetcher = vi.fn<EventsLeagueDayFetcher>(async () => []);
     await aggregateMatchesForUser("user-a", DATES, {
@@ -195,7 +224,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("partitions matches by local date, sorts by kickoff, dedupes by id", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Basketball", externalId: "13" }),
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
     ]);
     const yesterdayLate = match({
       id: "y-late",
@@ -232,7 +261,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("partial-failure: a rejected upstream yields source.ok=false plus successful data", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Basketball", externalId: "13" }),
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
     ]);
     const liveMatch = match({
       id: "t-bball",
@@ -258,7 +287,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("ignores matches whose local date falls outside the [y/t/t] window", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
     ]);
     const outOfWindow = match({
       id: "out-of-window",
@@ -279,7 +308,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("buckets by LOCAL date — a UTC-tomorrow match that's locally today goes to `today`", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
     ]);
     // Kicks off 01:00 UTC on 2026-06-23 → 21:00 ET on 2026-06-22.
     const lateNight = match({
@@ -321,9 +350,9 @@ describe("aggregateMatchesForUser", () => {
     expect(keys).toContain("soccer/fifa.world");
   });
 
-  it("dedupes a match claimed by two favorites (Team + League) — appears exactly once", async () => {
+  it("dedupes a match claimed by two favorites (Sport + League) — appears exactly once", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
       fav({
         id: "f-2",
         type: "league",
@@ -347,7 +376,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("populates activeTennisTournaments per day from the tennis fetcher", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
     ]);
     const tournamentFor = (day: string): ActiveTournament => ({
       id: "tennis/slam/roland-garros",
@@ -375,7 +404,7 @@ describe("aggregateMatchesForUser", () => {
 
   it("isolates a single day's tennis fetch rejection: that day is [] + source.errors, other days still populate", async () => {
     listMock.mockResolvedValue([
-      fav({ type: "team", sport: "Soccer", externalId: "359" }),
+      fav({ type: "sport", sport: "Soccer", externalId: "Soccer" }),
     ]);
     const tournament: ActiveTournament = {
       id: "tennis/slam/wimbledon",

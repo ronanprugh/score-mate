@@ -11,7 +11,7 @@ describe("favoriteTypeSchema", () => {
     expect(favoriteTypeSchema.parse(t)).toBe(t);
   });
 
-  it.each(["TEAM", "favorite", "player", "", null, 42])("rejects %p", (bad) => {
+  it.each(["TEAM", "favorite", "coach", "", null, 42])("rejects %p", (bad) => {
     expect(() => favoriteTypeSchema.parse(bad)).toThrow();
   });
 });
@@ -66,7 +66,7 @@ describe("createFavoriteSchema", () => {
 
   it("rejects an unknown type", () => {
     expect(() =>
-      createFavoriteSchema.parse({ ...valid, type: "player" }),
+      createFavoriteSchema.parse({ ...valid, type: "coach" }),
     ).toThrow();
   });
 

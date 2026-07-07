@@ -1,0 +1,1 @@
+ALTER TYPE "public"."favorite_type" ADD VALUE IF NOT EXISTS 'player';

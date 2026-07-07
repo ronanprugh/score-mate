@@ -35,6 +35,7 @@ export const favoriteTypeEnum = pgEnum("favorite_type", [
   "sport",
   "league",
   "event",
+  "player",
 ]);
 
 export interface FavoriteMetadata {
