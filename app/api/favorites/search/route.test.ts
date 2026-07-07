@@ -8,15 +8,17 @@ vi.mock("@/auth", () => ({
 // Mock the live ESPN athlete search so tests never hit the network. Defaults
 // to no players; individual tests override it. Only `searchAthletes` is used
 // by the route, so stubbing it alone is enough.
-const searchAthletesMock = vi.fn<
-  (
-    leagueKey: string,
-    q: string,
-  ) => Promise<{ id: string; displayName: string }[]>
->(async () => []);
+interface AthleteSearchResult {
+  id: string;
+  displayName: string;
+  sport: string;
+  leagueKey: string;
+}
+const searchAthletesMock = vi.fn<(q: string) => Promise<AthleteSearchResult[]>>(
+  async () => [],
+);
 vi.mock("@/lib/espn/client", () => ({
-  searchAthletes: (leagueKey: string, q: string) =>
-    searchAthletesMock(leagueKey, q),
+  searchAthletes: (q: string) => searchAthletesMock(q),
 }));
 
 import { GET } from "./route";
@@ -225,31 +227,75 @@ describe("GET /api/favorites/search — player results", () => {
     searchAthletesMock.mockResolvedValue([]);
   });
 
-  it("includes a type=player result when the athlete search returns a match", async () => {
-    // Only the Basketball primary league resolves a match; other sports 404.
-    searchAthletesMock.mockImplementation(async (leagueKey: string) =>
-      leagueKey === "basketball/nba"
-        ? [{ id: "1966", displayName: "LeBron James" }]
-        : [],
-    );
+  it("includes a type=player result (with leagueKey metadata) from the athlete search", async () => {
+    searchAthletesMock.mockResolvedValue([
+      {
+        id: "1966",
+        displayName: "LeBron James",
+        sport: "Basketball",
+        leagueKey: "basketball/nba",
+      },
+    ]);
 
     const results = await searchAs("?q=lebron");
     const player = results.find((r) => r.type === "player");
     expect(player).toBeDefined();
-    expect(player!.type).toBe("player");
     expect(player!.externalId).toBe("1966");
     expect(player!.displayName).toBe("LeBron James");
     expect(player!.sport).toBe("Basketball");
+    // The athlete's real league is carried so the Teams route can use it.
+    expect(player!.metadata?.leagueKey).toBe("basketball/nba");
+    expect(searchAthletesMock).toHaveBeenCalledWith("lebron");
   });
 
-  it("dedupes a player id returned by more than one sport's league", async () => {
-    // Same athlete id surfaces from two different sports' primary leagues.
+  it("ranks pro-league athletes above college/minor and dedupes by id", async () => {
     searchAthletesMock.mockResolvedValue([
-      { id: "dup", displayName: "Ambiguous Athlete" },
+      {
+        id: "college-1",
+        displayName: "LeBron Thomas",
+        sport: "Basketball",
+        leagueKey: "basketball/mens-college-basketball",
+      },
+      {
+        id: "1966",
+        displayName: "LeBron James",
+        sport: "Basketball",
+        leagueKey: "basketball/nba",
+      },
+      // duplicate id — must collapse to one.
+      {
+        id: "1966",
+        displayName: "LeBron James",
+        sport: "Basketball",
+        leagueKey: "basketball/nba",
+      },
     ]);
 
-    const results = await searchAs("?q=ambiguous");
+    const results = await searchAs("?q=lebron");
+    const players = results.filter((r) => r.type === "player");
+    // NBA player surfaces first; the duplicate collapsed.
+    expect(players.map((p) => p.externalId)).toEqual(["1966", "college-1"]);
+  });
+
+  it("honors the sport filter for player results", async () => {
+    searchAthletesMock.mockResolvedValue([
+      {
+        id: "b1",
+        displayName: "Baller",
+        sport: "Basketball",
+        leagueKey: "basketball/nba",
+      },
+      {
+        id: "s1",
+        displayName: "Striker",
+        sport: "Soccer",
+        leagueKey: "soccer/eng.1",
+      },
+    ]);
+
+    const results = await searchAs("?q=x&sport=Soccer");
     const players = results.filter((r) => r.type === "player");
     expect(players).toHaveLength(1);
+    expect(players[0]!.externalId).toBe("s1");
   });
 });

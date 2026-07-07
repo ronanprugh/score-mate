@@ -51,6 +51,13 @@ export interface FavoriteMetadata {
    * per-tournament child league rows.
    */
   leagueNameContains?: string;
+  /**
+   * ESPN `{sport}/{league}` key captured when a `player` favorite is saved,
+   * so the Teams route can query the athlete's actual league (e.g.
+   * `soccer/usa.1`, `tennis/wta`) rather than guessing the sport's primary
+   * league. Only set for player favorites.
+   */
+  leagueKey?: string;
 }
 
 export const favorites = pgTable(

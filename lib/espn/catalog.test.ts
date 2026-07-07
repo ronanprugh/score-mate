@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALL_CATALOG_LEAGUES,
   ALL_CATALOG_TEAMS,
+  findCatalogTeamById,
   searchCatalogLeagues,
   searchCatalogTeams,
 } from "./catalog";
@@ -26,6 +27,45 @@ describe("ESPN catalog shape", () => {
     for (const t of ALL_CATALOG_TEAMS) {
       expect(t.leagueKey).toMatch(/^(football|basketball|baseball|soccer)\//);
     }
+  });
+});
+
+describe("findCatalogTeamById — disambiguation (ESPN ids collide across sports)", () => {
+  it("resolves the right team when the id maps to a different team in other sports", () => {
+    // id `9` = Green Bay Packers (NFL), Golden State Warriors (NBA), Arizona
+    // State (college), Minnesota Twins (MLB) — all share id 9.
+    const packers = findCatalogTeamById(
+      "9",
+      "American Football",
+      "Green Bay Packers",
+    );
+    expect(packers?.name).toBe("Green Bay Packers");
+    expect(packers?.leagueKey).toBe("football/nfl");
+
+    // id `4` = Chicago Bulls (NBA) but also collides with an NFL team.
+    const bulls = findCatalogTeamById("4", "Basketball", "Chicago Bulls");
+    expect(bulls?.name).toBe("Chicago Bulls");
+    expect(bulls?.leagueKey).toBe("basketball/nba");
+  });
+
+  it("disambiguates same-sport, different-league id collisions via displayName", () => {
+    // Within American Football, id `9` is BOTH the Packers (nfl) and Arizona
+    // State (college-football); the name breaks the tie.
+    const asu = findCatalogTeamById(
+      "9",
+      "American Football",
+      "Arizona State Sun Devils",
+    );
+    expect(asu?.leagueKey).toBe("football/college-football");
+  });
+
+  it("falls back gracefully when name doesn't match but sport is unique", () => {
+    const bySport = findCatalogTeamById("4", "Basketball", "Nonexistent Name");
+    expect(bySport?.sport).toBe("Basketball");
+  });
+
+  it("returns null for an id absent from the catalog", () => {
+    expect(findCatalogTeamById("no-such-id", "Soccer", "Nobody")).toBeNull();
   });
 });
 

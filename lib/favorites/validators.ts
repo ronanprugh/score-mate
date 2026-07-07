@@ -24,6 +24,11 @@ export const favoriteMetadataSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .optional(),
     leagueNameContains: z.string().min(1).max(64).optional(),
+    leagueKey: z
+      .string()
+      .regex(/^[a-z]+\/[a-z0-9._-]+$/i)
+      .max(64)
+      .optional(),
   })
   .strict();
 

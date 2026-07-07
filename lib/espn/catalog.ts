@@ -69,12 +69,34 @@ export function searchCatalogTeams(
 
 /**
  * Resolves a committed catalog team by its ESPN team id. Used by the
- * `/api/teams` route to recover a team favorite's `leagueKey` (needed to
- * call the ESPN team-schedule endpoint) from its stored `externalId`.
- * Returns `null` when the id is not in the catalog.
+ * `/api/teams` route to recover a team favorite's `leagueKey` and badge from
+ * its stored `externalId`.
+ *
+ * IMPORTANT: ESPN team ids are NOT globally unique — the same id maps to a
+ * different team in nearly every other sport/league (e.g. id `9` is the Green
+ * Bay Packers in the NFL, the Golden State Warriors in the NBA, and Arizona
+ * State in college). Matching on id alone returns whichever collides first,
+ * producing the wrong badge and the wrong schedule. Callers therefore pass the
+ * favorite's `sport` and `displayName` to disambiguate; we narrow by id, then
+ * (when provided) sport, then exact name, falling back gracefully if a filter
+ * would eliminate every candidate.
  */
-export function findCatalogTeamById(id: string): CatalogTeam | null {
-  return ALL_CATALOG_TEAMS.find((t) => t.id === id) ?? null;
+export function findCatalogTeamById(
+  id: string,
+  sport?: Sport,
+  displayName?: string,
+): CatalogTeam | null {
+  let candidates = ALL_CATALOG_TEAMS.filter((t) => t.id === id);
+  if (candidates.length === 0) return null;
+  if (sport) {
+    const bySport = candidates.filter((t) => t.sport === sport);
+    if (bySport.length > 0) candidates = bySport;
+  }
+  if (displayName && candidates.length > 1) {
+    const byName = candidates.filter((t) => t.name === displayName);
+    if (byName.length > 0) candidates = byName;
+  }
+  return candidates[0] ?? null;
 }
 
 /**
