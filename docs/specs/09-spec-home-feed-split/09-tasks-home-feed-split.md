@@ -66,7 +66,7 @@ Spec: [`09-spec-home-feed-split.md`](./09-spec-home-feed-split.md)
 
 ---
 
-### [ ] 2.0 Team entity cards, `/api/teams` endpoint & home-feed exclusion
+### [x] 2.0 Team entity cards, `/api/teams` endpoint & home-feed exclusion
 
 **Demoable:** The Teams page shows one entity card per followed team, each displaying a Last match row and a Next match row. The Home page no longer shows team-type matches.
 
@@ -79,36 +79,36 @@ Spec: [`09-spec-home-feed-split.md`](./09-spec-home-feed-split.md)
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create `lib/teams/types.ts`. Define and export:
+- [x] 2.1 Create `lib/teams/types.ts`. Define and export:
   ```ts
   interface EntityMatch { opponentName: string; date: string; score?: string; kickoffUtc?: string | null; leagueName: string; }
   interface TeamEntity { favoriteId: string; displayName: string; type: "team" | "player"; sport: Sport; badgeUrl?: string; lastMatch: EntityMatch | null; nextMatch: EntityMatch | null; }
   interface TeamsEnvelope { entities: TeamEntity[]; source: { ok: boolean; errors: string[] }; }
   ```
   Import `Sport` from `@/lib/sports/types`.
-- [ ] 2.2 Add `findCatalogTeamById(id: string): CatalogTeam | null` to `lib/espn/catalog.ts`. It should scan `ALL_CATALOG_TEAMS` and return the first team whose `id` matches, or `null`. This is needed so the route handler can look up a team's `leagueKey` from its stored ESPN team ID.
-- [ ] 2.3 Create `app/api/teams/route.ts`. It is a server-only GET handler:
+- [x] 2.2 Add `findCatalogTeamById(id: string): CatalogTeam | null` to `lib/espn/catalog.ts`. It should scan `ALL_CATALOG_TEAMS` and return the first team whose `id` matches, or `null`. This is needed so the route handler can look up a team's `leagueKey` from its stored ESPN team ID.
+- [x] 2.3 Create `app/api/teams/route.ts`. It is a server-only GET handler:
   1. Call `auth()` and return 401 if no session.
   2. Call `listFavoritesForUser(session.user.id)` and filter to `type === "team"` or `type === "player"` favorites.
   3. For each `team` favorite: call `findCatalogTeamById(fav.externalId)` to get `leagueKey`. If not found in catalog, push a `TeamEntity` with `lastMatch: null` and `nextMatch: null`. If found, call `teamScheduleForLeague(leagueKey, fav.externalId)` (already implemented in `lib/espn/client.ts`), then extract: the most recently completed match (`status === "final"`) as `lastMatch` and the soonest upcoming match (`status === "upcoming"`) as `nextMatch`. Wrap in `try/catch`; on error push the entity with null matches and record the error in `errors[]`.
   4. Return `NextResponse.json(envelope)`.
   For `player` favorites: return `null` for both matches for now — player data wiring comes in Task 4.0.
-- [ ] 2.4 Create `app/api/teams/route.test.ts`. Mock `auth`, `listFavoritesForUser`, `findCatalogTeamById`, and `teamScheduleForLeague`. Write tests:
+- [x] 2.4 Create `app/api/teams/route.test.ts`. Mock `auth`, `listFavoritesForUser`, `findCatalogTeamById`, and `teamScheduleForLeague`. Write tests:
   - User with one team favorite whose catalog lookup succeeds and ESPN returns matches → response includes `lastMatch` with a score and `nextMatch` with a kickoff time.
   - User with one team favorite whose catalog lookup returns `null` → entity has `lastMatch: null`, `nextMatch: null`, `source.ok: false` (or entity is still returned gracefully, depending on your implementation choice).
   - Unauthenticated request → 401.
-- [ ] 2.5 Create `components/entity-card.tsx`. It is a presentational server or client component (no data fetching). Props: `entity: TeamEntity`. Render a bordered card (`border border-zinc-200 dark:border-zinc-800 rounded-lg p-4`) with: (a) team/player name in `font-semibold` with an optional badge `<img>`, (b) a "Last match" row showing score, opponent, and short date — or the text "No recent match" when `lastMatch` is null, (c) a "Next match" row showing opponent and formatted kickoff time — or "No upcoming match" when `nextMatch` is null, (d) "Match data unavailable" for both rows when both are null (used for player fallback in Task 4).
-- [ ] 2.6 Create `components/entity-card.test.tsx`. Use React Testing Library. Three test cases: (a) entity with `lastMatch` and `nextMatch` both populated — asserts opponent names and score render; (b) entity with both null — asserts "No recent match" and "No upcoming match"; (c) entity with `nextMatch` only — asserts "No recent match" for last and opponent name for next.
-- [ ] 2.7 Create `components/teams-client.tsx` as a `"use client"` component. It mirrors `HomeClient` in structure: accepts no props beyond what `app/(app)/teams/page.tsx` passes, fetches `${APP_BASE_PATH}/api/teams` on mount, polls every 60 seconds when any entity has a live match (`lastMatch` score contains live-progress text — or omit live detection in v1 and poll unconditionally), aborts on unmount/tab-hide, renders a list of `<EntityCard>` components, and handles loading/error states.
-- [ ] 2.7a Create `components/teams-client.test.tsx`. Mock `global.fetch` and `AbortController`. Write two tests: (a) on initial render, `fetch` is called with a URL containing `/api/teams` — demonstrates the initial data load is triggered; (b) when the component unmounts (call the `useEffect` cleanup), `AbortController.abort()` has been called — demonstrates the in-flight request is cancelled. Mirror the test structure in `components/home-client.test.tsx`.
-- [ ] 2.8 Update `app/(app)/teams/page.tsx`: import `TeamsClient` and render it in the branch where the user has team/player favorites (replacing the placeholder from Task 1.4).
-- [ ] 2.9 Modify `lib/home/aggregator.ts`:
+- [x] 2.5 Create `components/entity-card.tsx`. It is a presentational server or client component (no data fetching). Props: `entity: TeamEntity`. Render a bordered card (`border border-zinc-200 dark:border-zinc-800 rounded-lg p-4`) with: (a) team/player name in `font-semibold` with an optional badge `<img>`, (b) a "Last match" row showing score, opponent, and short date — or the text "No recent match" when `lastMatch` is null, (c) a "Next match" row showing opponent and formatted kickoff time — or "No upcoming match" when `nextMatch` is null, (d) "Match data unavailable" for both rows when both are null (used for player fallback in Task 4).
+- [x] 2.6 Create `components/entity-card.test.tsx`. Use React Testing Library. Three test cases: (a) entity with `lastMatch` and `nextMatch` both populated — asserts opponent names and score render; (b) entity with both null — asserts "No recent match" and "No upcoming match"; (c) entity with `nextMatch` only — asserts "No recent match" for last and opponent name for next.
+- [x] 2.7 Create `components/teams-client.tsx` as a `"use client"` component. It mirrors `HomeClient` in structure: accepts no props beyond what `app/(app)/teams/page.tsx` passes, fetches `${APP_BASE_PATH}/api/teams` on mount, polls every 60 seconds when any entity has a live match (`lastMatch` score contains live-progress text — or omit live detection in v1 and poll unconditionally), aborts on unmount/tab-hide, renders a list of `<EntityCard>` components, and handles loading/error states.
+- [x] 2.7a Create `components/teams-client.test.tsx`. Mock `global.fetch` and `AbortController`. Write two tests: (a) on initial render, `fetch` is called with a URL containing `/api/teams` — demonstrates the initial data load is triggered; (b) when the component unmounts (call the `useEffect` cleanup), `AbortController.abort()` has been called — demonstrates the in-flight request is cancelled. Mirror the test structure in `components/home-client.test.tsx`.
+- [x] 2.8 Update `app/(app)/teams/page.tsx`: import `TeamsClient` and render it in the branch where the user has team/player favorites (replacing the placeholder from Task 1.4).
+- [x] 2.9 Modify `lib/home/aggregator.ts`:
   - In `planLeagueKeys`: before building the sports set, filter `favorites` to exclude `type === "team"` and `type === "player"`. Name the filtered list `leagueFavorites` and use it in place of `favorites` for the `sports` set and the loop.
   - In `aggregateMatchesForUser`: compute `leagueFavorites = favorites.filter(...)` once, pass it to `planLeagueKeys` and to `buildHomeEnvelope`.
-- [ ] 2.10 Update `app/(app)/home/page.tsx`: after `listFavoritesForUser`, compute a boolean `hasLeagueFavorites` (true if any favorite has `type !== "team"` and `type !== "player"`). Pass it as a prop to `HomeClient` in addition to the existing `hasFavorites`.
-- [ ] 2.11 Update `components/home-client.tsx`: add `hasLeagueFavorites: boolean` to the `Props` interface. In the render logic, add a `TeamsOnlyPrompt` for when `!hasLeagueFavorites && hasFavorites && totalItems === 0` — this should display text like "Your team matches live in the Teams tab" with a link to `/teams`. This sits alongside the existing `NoFavoritesPrompt` and `NoMatchesEmptyState` cases (it does not replace them).
-- [ ] 2.12 Update `lib/home/aggregator.test.ts`: add a test that passes a favorites list containing only a `team`-type row to `planLeagueKeys` and asserts the result is an empty array. Add a second test that passes the same list to `aggregateMatchesForUser` (with an empty mock fetcher) and asserts the returned envelope has empty `yesterday`/`today`/`tomorrow` arrays.
-- [ ] 2.13 Update `components/home-client.test.tsx`: add a test for the `TeamsOnlyPrompt` case. Render `HomeClient` with `hasFavorites={true}` and `hasLeagueFavorites={false}`. Mock `/api/home` to return an empty envelope. Assert that the element with the "Teams" link (pointing to `/teams`) renders and that neither `NoFavoritesPrompt` nor `NoMatchesEmptyState` is shown.
+- [x] 2.10 Update `app/(app)/home/page.tsx`: after `listFavoritesForUser`, compute a boolean `hasLeagueFavorites` (true if any favorite has `type !== "team"` and `type !== "player"`). Pass it as a prop to `HomeClient` in addition to the existing `hasFavorites`.
+- [x] 2.11 Update `components/home-client.tsx`: add `hasLeagueFavorites: boolean` to the `Props` interface. In the render logic, add a `TeamsOnlyPrompt` for when `!hasLeagueFavorites && hasFavorites && totalItems === 0` — this should display text like "Your team matches live in the Teams tab" with a link to `/teams`. This sits alongside the existing `NoFavoritesPrompt` and `NoMatchesEmptyState` cases (it does not replace them).
+- [x] 2.12 Update `lib/home/aggregator.test.ts`: add a test that passes a favorites list containing only a `team`-type row to `planLeagueKeys` and asserts the result is an empty array. Add a second test that passes the same list to `aggregateMatchesForUser` (with an empty mock fetcher) and asserts the returned envelope has empty `yesterday`/`today`/`tomorrow` arrays.
+- [x] 2.13 Update `components/home-client.test.tsx`: add a test for the `TeamsOnlyPrompt` case. Render `HomeClient` with `hasFavorites={true}` and `hasLeagueFavorites={false}`. Mock `/api/home` to return an empty envelope. Assert that the element with the "Teams" link (pointing to `/teams`) renders and that neither `NoFavoritesPrompt` nor `NoMatchesEmptyState` is shown.
 
 ---
 

@@ -68,6 +68,16 @@ export function searchCatalogTeams(
 }
 
 /**
+ * Resolves a committed catalog team by its ESPN team id. Used by the
+ * `/api/teams` route to recover a team favorite's `leagueKey` (needed to
+ * call the ESPN team-schedule endpoint) from its stored `externalId`.
+ * Returns `null` when the id is not in the catalog.
+ */
+export function findCatalogTeamById(id: string): CatalogTeam | null {
+  return ALL_CATALOG_TEAMS.find((t) => t.id === id) ?? null;
+}
+
+/**
  * Returns every league whose name contains `query` (case-insensitive),
  * optionally narrowed to a single sport.
  */

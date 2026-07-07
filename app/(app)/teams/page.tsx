@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { TeamsClient } from "@/components/teams-client";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 
 export const metadata: Metadata = {
@@ -12,8 +13,6 @@ export const metadata: Metadata = {
  * last and next match. When the user follows no team or player favorites, we
  * render an empty state pointing them at the Favorites screen.
  *
- * NOTE: the data-driven `TeamsClient` is wired up in Task 2.0. For now the
- * "has favorites" branch renders a loading placeholder.
  */
 export default async function TeamsPage() {
   const session = await auth();
@@ -29,17 +28,7 @@ export default async function TeamsPage() {
   return (
     <main className="flex flex-1 flex-col px-5 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4">
-        {hasEntityFavorites ? (
-          <p
-            className="text-sm text-zinc-500"
-            aria-live="polite"
-            data-testid="teams-loading"
-          >
-            Loading teams…
-          </p>
-        ) : (
-          <TeamsEmptyState />
-        )}
+        {hasEntityFavorites ? <TeamsClient /> : <TeamsEmptyState />}
       </div>
     </main>
   );

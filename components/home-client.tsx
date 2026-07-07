@@ -19,6 +19,13 @@ import { TournamentCard } from "./tournament-card";
 interface Props {
   /** True when the signed-in user has ≥1 favorite. Drives the empty-state copy. */
   hasFavorites: boolean;
+  /**
+   * True when the user has ≥1 favorite that feeds the home feed (i.e. not a
+   * team/player favorite). When false but `hasFavorites` is true, the user
+   * only follows teams/players — those live on the Teams tab, so we show a
+   * pointer there instead of the generic "no matches" empty state.
+   */
+  hasLeagueFavorites: boolean;
 }
 
 type FetchState =
@@ -84,7 +91,7 @@ function groupMatchesByLeague(matches: readonly Match[]): MatchGroup[] {
  * when the tab is hidden and resumes when it returns to visible. Any
  * in-flight fetch is aborted on unmount and on visibility-hidden.
  */
-export function HomeClient({ hasFavorites }: Props) {
+export function HomeClient({ hasFavorites, hasLeagueFavorites }: Props) {
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [activeDay, setActiveDay] = useState<DayKey>("today");
   const abortRef = useRef<AbortController | null>(null);
@@ -177,7 +184,11 @@ export function HomeClient({ hasFavorites }: Props) {
     tomorrow: envelope.tomorrow.length + tennis.tomorrow.length,
   };
   const totalItems = counts.yesterday + counts.today + counts.tomorrow;
-  const showEmpty = totalItems === 0 && hasFavorites;
+  // A user who only follows teams/players has favorites but nothing feeding
+  // the home feed — point them at the Teams tab rather than the generic
+  // "no matches" state.
+  const showTeamsOnly = totalItems === 0 && hasFavorites && !hasLeagueFavorites;
+  const showEmpty = totalItems === 0 && hasFavorites && hasLeagueFavorites;
   const activeMatches: Match[] = envelope[activeDay];
   const activeDate = window[activeDay];
 
@@ -186,7 +197,9 @@ export function HomeClient({ hasFavorites }: Props) {
       {!envelope.source.ok && (
         <DataSourceErrorBanner errorCount={envelope.source.errors.length} />
       )}
-      {showEmpty ? (
+      {showTeamsOnly ? (
+        <TeamsOnlyPrompt />
+      ) : showEmpty ? (
         <NoMatchesEmptyState />
       ) : !hasFavorites && totalItems === 0 ? (
         <NoFavoritesPrompt />
@@ -369,6 +382,28 @@ function DayPanel({
           </CollapsibleSection>
         ))
       )}
+    </section>
+  );
+}
+
+function TeamsOnlyPrompt() {
+  return (
+    <section
+      role="status"
+      data-testid="teams-only-prompt"
+      className="mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg border border-zinc-200 px-6 py-10 text-center dark:border-zinc-800"
+    >
+      <h2 className="text-lg font-semibold">Your team matches moved</h2>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        Your team matches live in the Teams tab now. Favorite a league, sport,
+        or tournament to build your home feed.
+      </p>
+      <a
+        href="/teams"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
+      >
+        Go to Teams
+      </a>
     </section>
   );
 }

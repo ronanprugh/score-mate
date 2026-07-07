@@ -7,12 +7,15 @@
  *   - `favorites` (default) — the unified Favorites layout
  *   - `settings`            — the Settings account block + app info
  *   - `teams`               — the Teams empty state + four-item bottom nav
+ *   - `teams-cards`         — the Teams page with populated entity cards
  */
 import type { FavoriteRow } from "@/db/schema/favorites";
 import { FavoritesSearch } from "@/components/favorites-search";
 import { FavoritesList } from "@/components/favorites-list";
 import { AccountMenu } from "@/components/account-menu";
 import { BottomNav } from "@/components/bottom-nav";
+import { EntityCard } from "@/components/entity-card";
+import type { TeamEntity } from "@/lib/teams/types";
 
 const row = (
   id: string,
@@ -105,12 +108,70 @@ function TeamsEmptyView() {
   );
 }
 
+const FIXTURE_ENTITIES: TeamEntity[] = [
+  {
+    favoriteId: "e1",
+    displayName: "Arsenal",
+    type: "team",
+    sport: "Soccer",
+    lastMatch: {
+      opponentName: "Chelsea",
+      date: "2026-06-20",
+      score: "2-1",
+      kickoffUtc: "2026-06-20T15:00:00Z",
+      leagueName: "English Premier League",
+    },
+    nextMatch: {
+      opponentName: "Tottenham",
+      date: "2026-06-28",
+      kickoffUtc: "2026-06-28T14:00:00Z",
+      leagueName: "English Premier League",
+    },
+  },
+  {
+    favoriteId: "e2",
+    displayName: "Kansas City Chiefs",
+    type: "team",
+    sport: "American Football",
+    lastMatch: null,
+    nextMatch: {
+      opponentName: "Denver Broncos",
+      date: "2026-09-14",
+      kickoffUtc: "2026-09-14T20:20:00Z",
+      leagueName: "NFL",
+    },
+  },
+];
+
+function TeamsCardsView() {
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {FIXTURE_ENTITIES.map((entity) => (
+        <EntityCard key={entity.favoriteId} entity={entity} />
+      ))}
+    </div>
+  );
+}
+
 export default async function NavFixture({
   searchParams,
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
+
+  if (view === "teams-cards") {
+    return (
+      <main className="flex flex-1 flex-col px-5 pt-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 pt-4">
+          <TeamsCardsView />
+        </div>
+        <div className="[&_nav]:!static">
+          <BottomNav />
+        </div>
+      </main>
+    );
+  }
 
   // The bottom nav is `position: fixed`; for a focused screenshot, override it
   // to static flow so the icon+label destinations capture reliably.

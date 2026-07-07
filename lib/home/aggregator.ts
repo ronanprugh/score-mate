@@ -181,13 +181,23 @@ export function buildHomeEnvelope(
  * (b) and (c) are usually subsumed by (a) — they only widen the set when
  * a favorite somehow references a league key outside `SUPPORTED_LEAGUES`.
  */
+/**
+ * Team and player favorites live on the Teams destination (Spec 09), not the
+ * home feed, so they never expand into league fan-out here. ("player" joins
+ * the FavoriteType union in Task 3.0; broaden this predicate then.)
+ */
+function isLeagueFavorite(f: FavoriteRow): boolean {
+  return f.type !== "team";
+}
+
 export function planLeagueKeys(favorites: readonly FavoriteRow[]): string[] {
-  const sports = new Set<Sport>(favorites.map((f) => f.sport));
+  const leagueFavorites = favorites.filter(isLeagueFavorite);
+  const sports = new Set<Sport>(leagueFavorites.map((f) => f.sport));
   const keys = new Set<string>();
   for (const sport of sports) {
     for (const key of leagueKeysForSport(sport)) keys.add(key);
   }
-  for (const f of favorites) {
+  for (const f of leagueFavorites) {
     if (f.type === "league") {
       keys.add(f.externalId);
     } else if (f.type === "event") {
@@ -210,8 +220,13 @@ export async function aggregateMatchesForUser(
   const favorites = await listFavoritesForUser(userId);
   if (favorites.length === 0) return EMPTY_ENVELOPE();
 
+  // Team/player favorites belong to the Teams destination — exclude them from
+  // both the league fan-out plan and the match-matching step so they never
+  // surface on the home feed.
+  const leagueFavorites = favorites.filter(isLeagueFavorite);
+
   // ---- Plan -----------------------------------------------------------
-  const leagueKeys = planLeagueKeys(favorites);
+  const leagueKeys = planLeagueKeys(leagueFavorites);
   if (leagueKeys.length === 0) return EMPTY_ENVELOPE();
 
   // Widen the UTC fetch window by ±1 day so we catch late-night matches
@@ -264,7 +279,7 @@ export async function aggregateMatchesForUser(
   };
 
   return buildHomeEnvelope(
-    favorites,
+    leagueFavorites,
     allMatches,
     dates,
     errors,

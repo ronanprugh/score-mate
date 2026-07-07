@@ -13,6 +13,10 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+vi.mock("@/components/teams-client", () => ({
+  TeamsClient: () => <div data-testid="teams-client">TeamsClient</div>,
+}));
+
 const authMock = vi.fn();
 vi.mock("@/auth", () => ({
   auth: () => authMock(),
@@ -45,11 +49,11 @@ describe("Teams page (server shell)", () => {
     expect(screen.getByTestId("teams-empty-prompt")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: /add a team or player/i });
     expect(link).toHaveAttribute("href", "/favorites");
-    expect(screen.queryByTestId("teams-loading")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("teams-client")).not.toBeInTheDocument();
     expect(listFavoritesMock).toHaveBeenCalledWith("u1");
   });
 
-  it("renders the loading placeholder when the user has a team favorite", async () => {
+  it("renders the TeamsClient when the user has a team favorite", async () => {
     authMock.mockResolvedValue({ user: { id: "u1", email: "a@b" } });
     listFavoritesMock.mockResolvedValue([
       { id: "f1", type: "team", externalId: "133602", displayName: "Arsenal" },
@@ -57,7 +61,7 @@ describe("Teams page (server shell)", () => {
     const ui = await TeamsPage();
     render(ui);
 
-    expect(screen.getByTestId("teams-loading")).toBeInTheDocument();
+    expect(screen.getByTestId("teams-client")).toBeInTheDocument();
     expect(screen.queryByTestId("teams-empty-prompt")).not.toBeInTheDocument();
   });
 });
