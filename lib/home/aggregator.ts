@@ -183,11 +183,10 @@ export function buildHomeEnvelope(
  */
 /**
  * Team and player favorites live on the Teams destination (Spec 09), not the
- * home feed, so they never expand into league fan-out here. ("player" joins
- * the FavoriteType union in Task 3.0; broaden this predicate then.)
+ * home feed, so they never expand into league fan-out here.
  */
 function isLeagueFavorite(f: FavoriteRow): boolean {
-  return f.type !== "team";
+  return f.type !== "team" && f.type !== "player";
 }
 
 export function planLeagueKeys(favorites: readonly FavoriteRow[]): string[] {

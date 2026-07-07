@@ -21,9 +21,9 @@ export default async function TeamsPage() {
   }
 
   const favorites = await listFavoritesForUser(session.user.id);
-  // "player" is added to the FavoriteType union in Task 3.0; this check is
-  // broadened to include it then.
-  const hasEntityFavorites = favorites.some((f) => f.type === "team");
+  const hasEntityFavorites = favorites.some(
+    (f) => f.type === "team" || f.type === "player",
+  );
 
   return (
     <main className="flex flex-1 flex-col px-5 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">

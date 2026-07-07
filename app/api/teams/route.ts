@@ -9,9 +9,8 @@
  * and the affected entity carrying null matches — the UI degrades gracefully
  * rather than failing the whole page.
  *
- * NOTE: player favorites (`type === "player"`) can't exist until the DB enum
- * is extended in Task 3.0; their match wiring lands in Task 4.0. For now the
- * player branch returns null matches.
+ * NOTE: player favorites carry no match data yet — the ESPN athlete-schedule
+ * wiring lands in Task 4.0, so the player branch returns null matches for now.
  */
 
 import { NextResponse } from "next/server";
@@ -59,10 +58,23 @@ export function extractEntityMatches(
   };
 }
 
-async function buildTeamEntity(
+async function buildEntity(
   fav: FavoriteRow,
   errors: string[],
 ): Promise<TeamEntity> {
+  if (fav.type === "player") {
+    // Player schedule wiring lands in Task 4.0; return null matches for now so
+    // the card degrades gracefully to "Match data unavailable".
+    return {
+      favoriteId: fav.id,
+      displayName: fav.displayName,
+      type: "player",
+      sport: fav.sport,
+      lastMatch: null,
+      nextMatch: null,
+    };
+  }
+
   const base: TeamEntity = {
     favoriteId: fav.id,
     displayName: fav.displayName,
@@ -106,13 +118,13 @@ export async function GET() {
   }
 
   const favorites = await listFavoritesForUser(session.user.id);
-  // "player" is added to the FavoriteType union in Task 3.0; the filter and
-  // the player-schedule branch are broadened then (schedule wiring in 4.0).
-  const entityFavorites = favorites.filter((f) => f.type === "team");
+  const entityFavorites = favorites.filter(
+    (f) => f.type === "team" || f.type === "player",
+  );
 
   const errors: string[] = [];
   const entities = await Promise.all(
-    entityFavorites.map((fav) => buildTeamEntity(fav, errors)),
+    entityFavorites.map((fav) => buildEntity(fav, errors)),
   );
 
   const envelope: TeamsEnvelope = {

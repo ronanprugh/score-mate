@@ -112,7 +112,7 @@ Spec: [`09-spec-home-feed-split.md`](./09-spec-home-feed-split.md)
 
 ---
 
-### [ ] 3.0 Player favorite type (DB migration, TypeScript, search)
+### [x] 3.0 Player favorite type (DB migration, TypeScript, search)
 
 **Demoable:** A user can search an athlete name in the Favorites screen, see a "Players" result section, and save a player favorite to the database.
 
@@ -124,22 +124,22 @@ Spec: [`09-spec-home-feed-split.md`](./09-spec-home-feed-split.md)
 
 #### 3.0 Tasks
 
-- [ ] 3.1 In `lib/sports/types.ts`, add `"player"` to the `FavoriteType` union: `export type FavoriteType = "team" | "sport" | "league" | "event" | "player";`. Also add `"player"` to the `FAVORITE_TYPES` readonly array.
-- [ ] 3.2 In `db/schema/favorites.ts`, add `"player"` to the `favoriteTypeEnum` call: `pgEnum("favorite_type", ["team", "sport", "league", "event", "player"])`.
-- [ ] 3.3 Run `pnpm db:generate` to generate a new migration file in `db/migrations/`. Open the generated `.sql` file and verify it contains `ALTER TYPE "public"."favorite_type" ADD VALUE IF NOT EXISTS 'player'` (or equivalent). Commit the schema change and the migration file together. Apply it to your dev DB with `pnpm db:migrate`.
-- [ ] 3.4 In `components/favorites-list.tsx`:
+- [x] 3.1 In `lib/sports/types.ts`, add `"player"` to the `FavoriteType` union: `export type FavoriteType = "team" | "sport" | "league" | "event" | "player";`. Also add `"player"` to the `FAVORITE_TYPES` readonly array.
+- [x] 3.2 In `db/schema/favorites.ts`, add `"player"` to the `favoriteTypeEnum` call: `pgEnum("favorite_type", ["team", "sport", "league", "event", "player"])`.
+- [x] 3.3 Run `pnpm db:generate` to generate a new migration file in `db/migrations/`. Open the generated `.sql` file and verify it contains `ALTER TYPE "public"."favorite_type" ADD VALUE IF NOT EXISTS 'player'` (or equivalent). Commit the schema change and the migration file together. Apply it to your dev DB with `pnpm db:migrate`.
+- [x] 3.4 In `components/favorites-list.tsx`:
   - Add `"player"` to the `SECTION_ORDER` array (place it before `"team"` or after, per preference — before is recommended so players appear at the top of the saved list).
   - Add `player: "Players"` to `SECTION_LABEL`.
   - Add `player: []` to the initial object returned by `groupByType`.
-- [ ] 3.5 In `components/favorites-search.tsx`, add `player: "Player"` to the `TYPE_LABEL` record so search results with `type === "player"` display "Player" as the type label.
-- [ ] 3.6 Add a `searchAthletes(leagueKey: string, q: string, opts?: ClientOptions): Promise<{ id: string; displayName: string }[]>` function to `lib/espn/client.ts`. It fetches `${SITE_BASE}/${leagueKey}/athletes?search=${encodeURIComponent(q)}&limit=25` and maps the `athletes[]` array in the response to `{ id, displayName }`. Return `[]` on any error (the caller wraps this in a fan-out with per-call error suppression).
-- [ ] 3.7 In `app/api/favorites/search/route.ts`, after the existing `teamResults` block, add an athlete search fan-out:
+- [x] 3.5 In `components/favorites-search.tsx`, add `player: "Player"` to the `TYPE_LABEL` record so search results with `type === "player"` display "Player" as the type label.
+- [x] 3.6 Add a `searchAthletes(leagueKey: string, q: string, opts?: ClientOptions): Promise<{ id: string; displayName: string }[]>` function to `lib/espn/client.ts`. It fetches `${SITE_BASE}/${leagueKey}/athletes?search=${encodeURIComponent(q)}&limit=25` and maps the `athletes[]` array in the response to `{ id, displayName }`. Return `[]` on any error (the caller wraps this in a fan-out with per-call error suppression).
+- [x] 3.7 In `app/api/favorites/search/route.ts`, after the existing `teamResults` block, add an athlete search fan-out:
   1. For each `Sport` in `SUPPORTED_SPORTS`, get `leagueKeys` from `leagueKeysForSport(sport)` and call `searchAthletes(leagueKey, q)` for the first/primary league key for that sport (avoid calling every league per sport to keep latency low).
   2. Map results to `{ type: "player", externalId: athlete.id, displayName: athlete.displayName, sport }`.
   3. Deduplicate by athlete ID across all sports.
   4. Cap at `PER_CATEGORY_CAP` and append to `results` before returning.
   5. Wrap each `searchAthletes` call in `try/catch` and silently skip failures.
-- [ ] 3.8 Update `app/api/favorites/search/route.test.ts`: add a test that mocks `searchAthletes` to return one result and asserts the route's response includes a player result with `type: "player"`, the correct `externalId`, and the correct `sport`.
+- [x] 3.8 Update `app/api/favorites/search/route.test.ts`: add a test that mocks `searchAthletes` to return one result and asserts the route's response includes a player result with `type: "player"`, the correct `externalId`, and the correct `sport`.
 
 ---
 

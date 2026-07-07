@@ -22,13 +22,14 @@ export const SUPPORTED_SPORTS: readonly Sport[] = [
   "Tennis",
 ] as const;
 
-export type FavoriteType = "team" | "sport" | "league" | "event";
+export type FavoriteType = "team" | "sport" | "league" | "event" | "player";
 
 export const FAVORITE_TYPES: readonly FavoriteType[] = [
   "team",
   "sport",
   "league",
   "event",
+  "player",
 ] as const;
 
 export type MatchStatus = "final" | "live" | "upcoming";

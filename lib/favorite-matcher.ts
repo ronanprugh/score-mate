@@ -54,6 +54,10 @@ function favoriteClaimsMatch(fav: Favorite, match: Match): boolean {
         match.eventInstanceId === fav.externalId &&
         withinEventWindow(match, fav)
       );
+    case "player":
+      // Player favorites live on the Teams destination, not the home feed —
+      // they never claim a match here.
+      return false;
   }
 }
 

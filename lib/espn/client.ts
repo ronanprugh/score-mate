@@ -77,6 +77,10 @@ export function buildLeagueTeamsUrl(leagueKey: string): string {
   return `${SITE_BASE}/${leagueKey}/teams?limit=1000`;
 }
 
+export function buildAthleteSearchUrl(leagueKey: string, q: string): string {
+  return `${SITE_BASE}/${leagueKey}/athletes?search=${encodeURIComponent(q)}&limit=25`;
+}
+
 export function buildTeamScheduleUrl(
   leagueKey: string,
   teamId: string,
@@ -377,6 +381,32 @@ export async function leagueTeams(
   if (!sport) return [];
   const entries = data.sports?.[0]?.leagues?.[0]?.teams ?? [];
   return entries.map((e) => parseTeam(e.team, sport));
+}
+
+/**
+ * Searches athletes within a league by name. ESPN's `/athletes?search=` is
+ * undocumented and its shape varies by sport, so this is defensive: it reads
+ * the common `athletes[]` array, maps each entry to `{ id, displayName }`,
+ * and returns `[]` on any fetch/parse error (the caller fans out across
+ * sports and suppresses per-call failures).
+ */
+export async function searchAthletes(
+  leagueKey: string,
+  q: string,
+  opts: ClientOptions = {},
+): Promise<{ id: string; displayName: string }[]> {
+  try {
+    const url = buildAthleteSearchUrl(leagueKey, q);
+    const data = await fetchJson<{
+      athletes?: { id?: string | number; displayName?: string }[] | null;
+    }>(url, opts);
+    if (!data.athletes) return [];
+    return data.athletes
+      .filter((a) => a.id != null && a.displayName)
+      .map((a) => ({ id: String(a.id), displayName: a.displayName! }));
+  } catch {
+    return [];
+  }
 }
 
 /**
