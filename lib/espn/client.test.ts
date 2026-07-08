@@ -108,31 +108,38 @@ describe("searchAthletes — global player search", () => {
 });
 
 describe("athleteSchedule — team vs individual (tennis) eventlogs", () => {
-  it("team sport: derives the opponent from the event name '{Away} at {Home}'", async () => {
+  const DAY = 86_400_000;
+  const past = (days: number) =>
+    new Date(Date.now() - days * DAY).toISOString();
+  const future = (days: number) =>
+    new Date(Date.now() + days * DAY).toISOString();
+
+  it("team sport: picks latest-completed + earliest-upcoming by date, with W/L", async () => {
     const fetchFn = routedFetch({
       "/athletes/1966/eventlog": {
         events: {
           items: [
-            {
-              played: true,
-              teamId: "13",
-              event: { $ref: "http://x/events/e1" },
-            },
-            {
-              played: false,
-              teamId: "13",
-              event: { $ref: "http://x/events/e2" },
-            },
+            // Deliberately NOT in date order (the real API isn't either).
+            { teamId: "13", event: { $ref: "http://x/events/future" } },
+            { teamId: "13", event: { $ref: "http://x/events/old" } },
+            { teamId: "13", event: { $ref: "http://x/events/recent" } },
           ],
         },
       },
-      "/events/e1": {
-        date: "2026-03-17T01:30Z",
-        name: "Utah Jazz at Los Angeles Lakers",
+      "/events/old": {
+        date: past(30),
+        name: "Phoenix Suns at Los Angeles Lakers",
         competitions: [{ competitors: [{ id: "13", homeAway: "home" }] }],
       },
-      "/events/e2": {
-        date: "2026-03-20T02:00Z",
+      "/events/recent": {
+        date: past(2),
+        name: "Utah Jazz at Los Angeles Lakers",
+        competitions: [
+          { competitors: [{ id: "13", homeAway: "home", winner: true }] },
+        ],
+      },
+      "/events/future": {
+        date: future(3),
         name: "Los Angeles Lakers at Boston Celtics",
         competitions: [{ competitors: [{ id: "13", homeAway: "away" }] }],
       },
@@ -143,40 +150,70 @@ describe("athleteSchedule — team vs individual (tennis) eventlogs", () => {
       "1966",
       { fetchFn },
     );
+    // Most recent completed = the 2-days-ago Jazz game (a win), not the 30d one.
     expect(lastMatch?.opponentName).toBe("Utah Jazz");
-    expect(lastMatch?.date).toBe("2026-03-17");
+    expect(lastMatch?.result).toBe("W");
+    // Earliest upcoming = the future Celtics game (no result).
     expect(nextMatch?.opponentName).toBe("Boston Celtics");
+    expect(nextMatch?.result).toBeUndefined();
   });
 
-  it("tennis: reads the opponent from the competition's competitors, not the tournament name", async () => {
+  it("tennis: opponent from the competition (not the tournament) + set score + result", async () => {
     const fetchFn = routedFetch({
-      "/athletes/3626/eventlog": {
+      "/athletes/3623/eventlog": {
         events: {
           items: [
             {
-              played: true,
-              // No teamId — individual sport. Event is the tournament.
-              event: { $ref: "http://x/events/256-2026" },
-              competition: { $ref: "http://x/competitions/c1" },
+              event: { $ref: "http://x/events/wimbledon" },
+              competition: { $ref: "http://x/competitions/last" },
+            },
+            {
+              event: { $ref: "http://x/events/wimbledon" },
+              competition: { $ref: "http://x/competitions/next" },
             },
           ],
         },
       },
-      "/competitions/c1": {
-        date: "2026-02-09T16:15Z",
+      "/competitions/last": {
+        date: past(1),
         competitors: [
-          { id: "3626-11219", name: "Coco Gauff" },
-          { id: "3157-2298", name: "Cristina Bucsa" },
+          {
+            id: "3623-1",
+            name: "Jannik Sinner",
+            winner: true,
+            linescores: { $ref: "http://x/ls/mine" },
+          },
+          {
+            id: "9999-2",
+            name: "Jan-Lennard Struff",
+            winner: false,
+            linescores: { $ref: "http://x/ls/opp" },
+          },
+        ],
+      },
+      "/ls/mine": { items: [{ value: 7 }, { value: 7 }, { value: 6 }] },
+      "/ls/opp": { items: [{ value: 5 }, { value: 6 }, { value: 3 }] },
+      "/competitions/next": {
+        date: future(2),
+        competitors: [
+          { id: "3623-1", name: "Jannik Sinner" },
+          { id: "1234-3", name: "Novak Djokovic" },
         ],
       },
     });
 
-    const { lastMatch } = await athleteSchedule("tennis/wta", "3626", {
-      fetchFn,
-    });
-    // The opponent — NOT "Qatar Total Energies Open" (the tournament).
-    expect(lastMatch?.opponentName).toBe("Cristina Bucsa");
-    expect(lastMatch?.date).toBe("2026-02-09");
+    const { lastMatch, nextMatch } = await athleteSchedule(
+      "tennis/atp",
+      "3623",
+      {
+        fetchFn,
+      },
+    );
+    expect(lastMatch?.opponentName).toBe("Jan-Lennard Struff");
+    expect(lastMatch?.score).toBe("7-5, 7-6, 6-3");
+    expect(lastMatch?.result).toBe("W");
+    expect(nextMatch?.opponentName).toBe("Novak Djokovic");
+    expect(nextMatch?.score).toBeUndefined();
   });
 
   it("returns nulls (never throws) when the eventlog fetch fails", async () => {

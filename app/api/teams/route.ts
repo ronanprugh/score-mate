@@ -33,17 +33,24 @@ export function extractEntityMatches(
   matches: readonly Match[],
   teamId: string,
 ): { lastMatch: EntityMatch | null; nextMatch: EntityMatch | null } {
-  const toEntityMatch = (m: Match): EntityMatch => {
+  const toEntityMatch = (m: Match, completed: boolean): EntityMatch => {
     const isHome = m.homeTeamId === teamId;
     const opponentName = isHome ? m.awayTeamName : m.homeTeamName;
-    const hasScore = m.homeScore !== undefined && m.awayScore !== undefined;
-    return {
+    const match: EntityMatch = {
       opponentName,
       date: m.dateUtc,
-      score: hasScore ? `${m.homeScore}-${m.awayScore}` : undefined,
       kickoffUtc: m.kickoffUtc,
       leagueName: m.leagueName,
     };
+    // Score/result only for completed games, from the followed team's side.
+    if (completed && m.homeScore !== undefined && m.awayScore !== undefined) {
+      const mine = isHome ? m.homeScore : m.awayScore;
+      const theirs = isHome ? m.awayScore : m.homeScore;
+      match.score = `${mine}-${theirs}`;
+      if (mine > theirs) match.result = "W";
+      else if (mine < theirs) match.result = "L";
+    }
+    return match;
   };
 
   const sortKey = (m: Match) => m.kickoffUtc ?? `${m.dateUtc}T00:00:00Z`;
@@ -56,8 +63,8 @@ export function extractEntityMatches(
     .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
 
   return {
-    lastMatch: completed[0] ? toEntityMatch(completed[0]) : null,
-    nextMatch: upcoming[0] ? toEntityMatch(upcoming[0]) : null,
+    lastMatch: completed[0] ? toEntityMatch(completed[0], true) : null,
+    nextMatch: upcoming[0] ? toEntityMatch(upcoming[0], false) : null,
   };
 }
 
