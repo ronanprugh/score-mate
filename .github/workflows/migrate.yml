@@ -1,0 +1,58 @@
+name: Migrate DB
+
+# Applies pending Drizzle migrations to the production database.
+#
+# Triggers:
+#   - push to `main` that changes `db/migrations/**` (i.e. a new migration
+#     landed), so schema changes ship automatically instead of silently
+#     lagging production.
+#   - manual `workflow_dispatch`, so an already-merged migration can be applied
+#     on demand (e.g. the first time this workflow exists).
+#
+# `pnpm db:migrate` is idempotent — it only applies migrations not yet recorded
+# in the target DB's `drizzle.__drizzle_migrations` table, so re-runs are safe.
+#
+# NOTE: additive migrations (ADD COLUMN, ADD VALUE, CREATE TABLE) are safe to
+# apply before the new code deploys. For a DESTRUCTIVE migration (dropping a
+# column/table the running code still reads), coordinate ordering manually —
+# ship the code that stops using it first, then merge the migration.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "db/migrations/**"
+  workflow_dispatch:
+
+# Never run two migrations against the same DB at once.
+concurrency:
+  group: db-migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply pending migrations
+        run: pnpm db:migrate
+        env:
+          # Set this repo/environment secret to the production Neon connection
+          # string. Prefer the DIRECT (non-pooled) URL — DDL like
+          # `ALTER TYPE ... ADD VALUE` can misbehave through the -pooler host.
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
