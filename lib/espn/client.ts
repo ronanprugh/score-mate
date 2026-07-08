@@ -442,6 +442,9 @@ interface CoreEventLogResponse {
   events?: {
     items?: {
       event?: { $ref?: string };
+      /** Points at the athlete's SPECIFIC match (used for individual sports). */
+      competition?: { $ref?: string };
+      /** Present for team sports only; absent for tennis and other 1-v-1s. */
       teamId?: string;
       played?: boolean;
     }[];
@@ -454,6 +457,11 @@ interface CoreEvent {
   competitions?: {
     competitors?: { id?: string; homeAway?: "home" | "away" }[];
   }[];
+}
+
+interface CoreCompetition {
+  date?: string;
+  competitors?: { id?: string; name?: string }[];
 }
 
 /**
@@ -492,6 +500,32 @@ function coreEventToEntityMatch(
 }
 
 /**
+ * Derives an EntityMatch from an individual-sport (e.g. tennis) competition.
+ * Unlike team events, the event `name` here is the TOURNAMENT (e.g. "Australian
+ * Open"), not the matchup — so parsing it would wrongly show the tournament as
+ * the opponent. Instead we read the competition's two competitors directly:
+ * their `name` is already the player/pairing, and their `id` is
+ * `"{athleteId}-…"`, so the opponent is the competitor whose id doesn't start
+ * with the followed athlete's id.
+ */
+function competitionToEntityMatch(
+  comp: CoreCompetition,
+  athleteId: string,
+  leagueName: string,
+): EntityMatch | null {
+  if (!comp.date) return null;
+  const opponent = (comp.competitors ?? []).find(
+    (c) => (c.id ?? "").split("-")[0] !== athleteId,
+  );
+  return {
+    opponentName: opponent?.name?.trim() || "Opponent",
+    date: comp.date.slice(0, 10),
+    kickoffUtc: comp.date,
+    leagueName,
+  };
+}
+
+/**
  * Returns an athlete's most-recent completed and next upcoming match.
  *
  * SPIKE FINDINGS (Task 4.1): the site-v2 `athletes/{id}/eventlog` and
@@ -500,13 +534,18 @@ function coreEventToEntityMatch(
  * which returns `events.items[]`, each with `{ event: {$ref}, teamId,
  * played }` — but NO inline date/opponent/score. Items are season-ordered,
  * so the last `played:true` item is the most recent match and the first
- * `played:false` item is the next. Resolving each item's `event.$ref` yields
- * inline `date` and `name` ("{Away} at {Home}"), from which we derive the
- * opponent. Scores live behind further `$ref` hops (competitor → score), so
- * they are intentionally omitted here — a best-effort date+opponent for v1.
- * Individual sports (e.g. Tennis) have a different eventlog shape and fall
- * through to the graceful `{ null, null }` outcome. Any fetch/parse error
- * anywhere returns `{ lastMatch: null, nextMatch: null }` — never throws.
+ * `played:false` item is the next.
+ *
+ * Two eventlog shapes:
+ *   - TEAM sports carry `teamId`; resolving `event.$ref` gives a `name` of
+ *     "{Away} at {Home}", from which we derive the opponent.
+ *   - INDIVIDUAL sports (tennis) have no `teamId`; the event is the whole
+ *     tournament, so we resolve `competition.$ref` (the athlete's specific
+ *     match) and read the opposing competitor's `name` directly.
+ *
+ * Scores live behind further `$ref` hops, so they're omitted here — a
+ * best-effort date+opponent for v1. Any fetch/parse error anywhere returns
+ * `{ lastMatch: null, nextMatch: null }` — never throws.
  */
 export async function athleteSchedule(
   leagueKey: string,
@@ -525,22 +564,34 @@ export async function athleteSchedule(
     const items = log.events?.items ?? [];
     if (items.length === 0) return empty;
 
-    const played = items.filter((i) => i.played && i.event?.$ref);
-    const upcoming = items.filter((i) => i.played === false && i.event?.$ref);
+    const hasRef = (i: (typeof items)[number]) =>
+      Boolean(i.event?.$ref || i.competition?.$ref);
+    const played = items.filter((i) => i.played && hasRef(i));
+    const upcoming = items.filter((i) => i.played === false && hasRef(i));
     const lastItem = played[played.length - 1];
     const nextItem = upcoming[0];
+
+    // Core `$ref`s come back as http:// — upgrade to https to avoid a redirect.
+    const https = (ref: string) => ref.replace(/^http:/, "https:");
 
     const resolve = async (
       item: (typeof items)[number] | undefined,
     ): Promise<EntityMatch | null> => {
-      const ref = item?.event?.$ref;
-      if (!ref) return null;
-      // Core `$ref`s come back as http:// — upgrade to https to avoid a redirect.
-      const ev = await fetchJson<CoreEvent>(
-        ref.replace(/^http:/, "https:"),
-        opts,
-      );
-      return coreEventToEntityMatch(ev, item?.teamId ?? "", leagueName);
+      if (!item) return null;
+      // Team sports: the event name encodes "{Away} at {Home}".
+      if (item.teamId && item.event?.$ref) {
+        const ev = await fetchJson<CoreEvent>(https(item.event.$ref), opts);
+        return coreEventToEntityMatch(ev, item.teamId, leagueName);
+      }
+      // Individual sports (tennis): read the athlete's specific competition.
+      if (item.competition?.$ref) {
+        const comp = await fetchJson<CoreCompetition>(
+          https(item.competition.$ref),
+          opts,
+        );
+        return competitionToEntityMatch(comp, athleteId, leagueName);
+      }
+      return null;
     };
 
     const [lastMatch, nextMatch] = await Promise.all([

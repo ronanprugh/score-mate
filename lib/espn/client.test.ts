@@ -6,6 +6,7 @@ import emptyScoreboard from "./__fixtures__/empty-scoreboard.json" with { type: 
 import nflTeams from "./__fixtures__/nfl-teams.json" with { type: "json" };
 
 import {
+  athleteSchedule,
   buildLeagueTeamsUrl,
   buildScoreboardUrl,
   buildTeamScheduleUrl,
@@ -15,6 +16,18 @@ import {
   searchAthletes,
   sportFromLeagueKey,
 } from "./client";
+
+/** A fetchFn that returns different JSON bodies keyed by a URL substring. */
+function routedFetch(routes: Record<string, unknown>): typeof fetch {
+  return async (url: Parameters<typeof fetch>[0]) => {
+    const u = String(url);
+    const key = Object.keys(routes).find((k) => u.includes(k));
+    return new Response(JSON.stringify(key ? routes[key] : {}), {
+      status: key ? 200 : 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+}
 
 function mockJsonFetch(
   body: unknown,
@@ -91,6 +104,93 @@ describe("searchAthletes — global player search", () => {
       },
     });
     expect(results).toEqual([]);
+  });
+});
+
+describe("athleteSchedule — team vs individual (tennis) eventlogs", () => {
+  it("team sport: derives the opponent from the event name '{Away} at {Home}'", async () => {
+    const fetchFn = routedFetch({
+      "/athletes/1966/eventlog": {
+        events: {
+          items: [
+            {
+              played: true,
+              teamId: "13",
+              event: { $ref: "http://x/events/e1" },
+            },
+            {
+              played: false,
+              teamId: "13",
+              event: { $ref: "http://x/events/e2" },
+            },
+          ],
+        },
+      },
+      "/events/e1": {
+        date: "2026-03-17T01:30Z",
+        name: "Utah Jazz at Los Angeles Lakers",
+        competitions: [{ competitors: [{ id: "13", homeAway: "home" }] }],
+      },
+      "/events/e2": {
+        date: "2026-03-20T02:00Z",
+        name: "Los Angeles Lakers at Boston Celtics",
+        competitions: [{ competitors: [{ id: "13", homeAway: "away" }] }],
+      },
+    });
+
+    const { lastMatch, nextMatch } = await athleteSchedule(
+      "basketball/nba",
+      "1966",
+      { fetchFn },
+    );
+    expect(lastMatch?.opponentName).toBe("Utah Jazz");
+    expect(lastMatch?.date).toBe("2026-03-17");
+    expect(nextMatch?.opponentName).toBe("Boston Celtics");
+  });
+
+  it("tennis: reads the opponent from the competition's competitors, not the tournament name", async () => {
+    const fetchFn = routedFetch({
+      "/athletes/3626/eventlog": {
+        events: {
+          items: [
+            {
+              played: true,
+              // No teamId — individual sport. Event is the tournament.
+              event: { $ref: "http://x/events/256-2026" },
+              competition: { $ref: "http://x/competitions/c1" },
+            },
+          ],
+        },
+      },
+      "/competitions/c1": {
+        date: "2026-02-09T16:15Z",
+        competitors: [
+          { id: "3626-11219", name: "Coco Gauff" },
+          { id: "3157-2298", name: "Cristina Bucsa" },
+        ],
+      },
+    });
+
+    const { lastMatch } = await athleteSchedule("tennis/wta", "3626", {
+      fetchFn,
+    });
+    // The opponent — NOT "Qatar Total Energies Open" (the tournament).
+    expect(lastMatch?.opponentName).toBe("Cristina Bucsa");
+    expect(lastMatch?.date).toBe("2026-02-09");
+  });
+
+  it("returns nulls (never throws) when the eventlog fetch fails", async () => {
+    const { lastMatch, nextMatch } = await athleteSchedule(
+      "tennis/wta",
+      "3626",
+      {
+        fetchFn: async () => {
+          throw new Error("boom");
+        },
+      },
+    );
+    expect(lastMatch).toBeNull();
+    expect(nextMatch).toBeNull();
   });
 });
 
