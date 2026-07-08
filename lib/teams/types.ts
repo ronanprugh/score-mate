@@ -15,8 +15,14 @@ export interface EntityMatch {
   opponentName: string;
   /** YYYY-MM-DD (UTC) of the match. */
   date: string;
-  /** Formatted score for completed matches (e.g. "2-1"); omitted when upcoming. */
+  /**
+   * Formatted score for completed matches — team sports "2-1", tennis by set
+   * "7-5, 7-6, 6-3" (always from the followed entity's perspective). Omitted
+   * for upcoming matches.
+   */
   score?: string;
+  /** Result of a completed match from the followed entity's perspective. */
+  result?: "W" | "L";
   /** ISO 8601 kickoff timestamp; null when TBD. */
   kickoffUtc?: string | null;
   /** Human-readable league/competition name. */

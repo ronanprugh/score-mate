@@ -46,6 +46,36 @@ describe("EntityCard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows a W/L result badge and the score on the last match", () => {
+    render(
+      <EntityCard
+        entity={makeEntity({
+          displayName: "Jannik Sinner",
+          type: "player",
+          lastMatch: {
+            opponentName: "Jan-Lennard Struff",
+            date: "2026-07-07",
+            score: "7-5, 7-6, 6-3",
+            result: "W",
+            kickoffUtc: "2026-07-07T12:05:00Z",
+            leagueName: "ATP",
+          },
+          nextMatch: {
+            opponentName: "Novak Djokovic",
+            date: "2026-07-10",
+            kickoffUtc: "2026-07-10T04:00:00Z",
+            leagueName: "ATP",
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByLabelText("Win")).toHaveTextContent("W");
+    expect(screen.getByText("7-5, 7-6, 6-3")).toBeInTheDocument();
+    expect(screen.getByText(/Struff/)).toBeInTheDocument();
+    expect(screen.getByText(/Djokovic/)).toBeInTheDocument();
+  });
+
   it("shows 'Match data unavailable' when both matches are null", () => {
     render(<EntityCard entity={makeEntity()} />);
     expect(screen.getByText("Match data unavailable")).toBeInTheDocument();

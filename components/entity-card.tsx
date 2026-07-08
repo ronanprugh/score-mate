@@ -32,19 +32,67 @@ function formatKickoff(match: EntityMatch): string {
   }
 }
 
+/** A small W / L pill, colored like a match result. */
+function ResultBadge({ result }: { result: "W" | "L" }) {
+  return (
+    <span
+      className={[
+        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold",
+        result === "W"
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+          : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
+      ].join(" ")}
+      aria-label={result === "W" ? "Win" : "Loss"}
+    >
+      {result}
+    </span>
+  );
+}
+
+/**
+ * One match line: label + opponent + date on the top row, and (for completed
+ * matches) the score on an indented second row so long tennis scores
+ * ("7-5, 7-6, 6-3") stay readable on mobile.
+ */
 function MatchRow({
   label,
-  children,
+  match,
+  showScore,
+  emptyText,
 }: {
   label: string;
-  children: React.ReactNode;
+  match: EntityMatch | null;
+  showScore: boolean;
+  emptyText: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 text-sm">
-      <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-        {label}
-      </span>
-      <span className="min-w-0 truncate text-right">{children}</span>
+    <div className="flex flex-col gap-0.5 py-1">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="w-11 shrink-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {label}
+        </span>
+        {match ? (
+          <>
+            {showScore && match.result && <ResultBadge result={match.result} />}
+            <span className="min-w-0 flex-1 truncate">
+              <span className="text-zinc-400">vs </span>
+              <span className="text-zinc-800 dark:text-zinc-200">
+                {match.opponentName}
+              </span>
+            </span>
+            <span className="shrink-0 text-xs text-zinc-400">
+              {showScore ? formatShortDate(match.date) : formatKickoff(match)}
+            </span>
+          </>
+        ) : (
+          <span className="flex-1 text-zinc-500">{emptyText}</span>
+        )}
+      </div>
+      {match && showScore && match.score && (
+        <div className="pl-[3.25rem] text-sm font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">
+          {match.score}
+        </div>
+      )}
     </div>
   );
 }
@@ -81,38 +129,19 @@ export function EntityCard({ entity }: Props) {
       {bothUnavailable ? (
         <p className="text-sm text-zinc-500">Match data unavailable</p>
       ) : (
-        <div className="flex flex-col gap-2">
-          <MatchRow label="Last match">
-            {lastMatch ? (
-              <>
-                {lastMatch.score && (
-                  <span className="font-semibold">{lastMatch.score}</span>
-                )}{" "}
-                <span className="text-zinc-600 dark:text-zinc-400">
-                  vs {lastMatch.opponentName}
-                </span>{" "}
-                <span className="text-zinc-400">
-                  {formatShortDate(lastMatch.date)}
-                </span>
-              </>
-            ) : (
-              <span className="text-zinc-500">No recent match</span>
-            )}
-          </MatchRow>
-          <MatchRow label="Next match">
-            {nextMatch ? (
-              <>
-                <span className="text-zinc-600 dark:text-zinc-400">
-                  vs {nextMatch.opponentName}
-                </span>{" "}
-                <span className="text-zinc-400">
-                  {formatKickoff(nextMatch)}
-                </span>
-              </>
-            ) : (
-              <span className="text-zinc-500">No upcoming match</span>
-            )}
-          </MatchRow>
+        <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          <MatchRow
+            label="Last"
+            match={lastMatch}
+            showScore
+            emptyText="No recent match"
+          />
+          <MatchRow
+            label="Next"
+            match={nextMatch}
+            showScore={false}
+            emptyText="No upcoming match"
+          />
         </div>
       )}
     </article>
