@@ -46,6 +46,21 @@ function makeTournament(
   };
 }
 
+/** A tournament with one singles match and one doubles match (both families). */
+function bothFamiliesTournament(
+  overrides: Partial<ActiveTournament> = {},
+): ActiveTournament {
+  return makeTournament({
+    matches: [
+      makeMatch({ id: "ms1", tennis: singles("Men's Singles") }),
+      makeMatch({ id: "ms2", tennis: singles("Men's Singles") }),
+      makeMatch({ id: "ws1", tennis: singles("Women's Singles") }),
+      makeMatch({ id: "md1", tennis: singles("Men's Doubles") }),
+    ],
+    ...overrides,
+  });
+}
+
 describe("TournamentCard", () => {
   it("(a) collapsed state shows displayName, formatted date range, currentRound, and counts", () => {
     render(<TournamentCard tournament={makeTournament()} />);
@@ -78,48 +93,107 @@ describe("TournamentCard", () => {
     expect(screen.getByText(/Sep 7/)).toBeInTheDocument();
   });
 
-  it("(b) renders discipline sections (collapsed) with label + count, without a card-level toggle", () => {
-    const tournament = makeTournament({
-      matches: [
-        makeMatch({ id: "ms1", tennis: singles("Men's Singles") }),
-        makeMatch({ id: "ms2", tennis: singles("Men's Singles") }),
-        makeMatch({ id: "ws1", tennis: singles("Women's Singles") }),
-      ],
-    });
-    render(<TournamentCard tournament={tournament} />);
-
-    // No card-level expand/collapse control any more.
-    expect(
-      screen.queryByRole("button", { name: /expand|collapse/i }),
-    ).toBeNull();
-
-    // Two sections render immediately; sections start collapsed (no match cards).
-    expect(screen.getAllByTestId("match-group")).toHaveLength(2);
-    expect(screen.getByText("Men's Singles")).toBeInTheDocument();
-    expect(screen.getByText("Women's Singles")).toBeInTheDocument();
+  it("(b) collapsed by default: renders zero discipline sections", () => {
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
     expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
-
-    // Men's Singles count is 2.
-    const mens = screen.getByRole("button", { name: /^Men's Singles/ });
-    expect(mens).toHaveTextContent("2");
   });
 
-  it("(c) a section expands to reveal its match cards", () => {
+  it("(b2) first activation reveals only the singles sections", () => {
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+    fireEvent.click(toggle);
+
+    const groups = screen.getAllByTestId("match-group");
+    expect(groups).toHaveLength(2);
+    expect(screen.getByText("Men's Singles")).toBeInTheDocument();
+    expect(screen.getByText("Women's Singles")).toBeInTheDocument();
+    expect(screen.queryByText("Men's Doubles")).toBeNull();
+  });
+
+  it("(b3) second activation additionally reveals doubles sections", () => {
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+
+    const groups = screen.getAllByTestId("match-group");
+    expect(groups).toHaveLength(3);
+    expect(screen.getByText("Men's Singles")).toBeInTheDocument();
+    expect(screen.getByText("Women's Singles")).toBeInTheDocument();
+    expect(screen.getByText("Men's Doubles")).toBeInTheDocument();
+  });
+
+  it("(b4) a third activation wraps back to collapsed", () => {
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+
+    expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("(b5) aria-expanded and stage hint update across the click cycle", () => {
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByTestId("tournament-stage-hint")).toHaveTextContent(
+      "Singles",
+    );
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByTestId("tournament-stage-hint")).toHaveTextContent(
+      "Singles + Doubles",
+    );
+  });
+
+  it("(c) a revealed section still expands independently to show its match cards", () => {
     render(<TournamentCard tournament={makeTournament()} />);
+    fireEvent.click(screen.getByRole("button", { name: /Wimbledon/ }));
     fireEvent.click(screen.getByRole("button", { name: /^Men's Singles/ }));
     expect(screen.getAllByTestId("match-card")).toHaveLength(2);
   });
 
-  it("(c3) omits disciplines with zero matches", () => {
+  it("(c3) singles-only tournament has a single expanded stage with only singles", () => {
     const tournament = makeTournament({
       matches: [makeMatch({ id: "ms1", tennis: singles("Men's Singles") })],
     });
     render(<TournamentCard tournament={tournament} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+
+    fireEvent.click(toggle);
     expect(screen.getAllByTestId("match-group")).toHaveLength(1);
     expect(screen.queryByText("Women's Singles")).toBeNull();
+
+    // Wraps directly back to collapsed (no doubles stage).
+    fireEvent.click(toggle);
+    expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
   });
 
-  it("(c4) renders no section body when no match is classifiable", () => {
+  it("(c4) doubles-only tournament reveals its doubles sections on first activation", () => {
+    const tournament = makeTournament({
+      matches: [
+        makeMatch({ id: "md1", tennis: singles("Men's Doubles") }),
+        makeMatch({ id: "xd1", tennis: singles("Mixed Doubles") }),
+      ],
+    });
+    render(<TournamentCard tournament={tournament} />);
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+
+    fireEvent.click(toggle);
+    expect(screen.getAllByTestId("match-group")).toHaveLength(2);
+    expect(screen.getByText("Men's Doubles")).toBeInTheDocument();
+    expect(screen.getByText("Mixed Doubles")).toBeInTheDocument();
+  });
+
+  it("(c5) renders no toggle and no section body when no match is classifiable", () => {
     const tournament = makeTournament({
       matches: [
         makeMatch({ id: "j1", tennis: singles("Boys' Singles") }),
@@ -127,6 +201,7 @@ describe("TournamentCard", () => {
       ],
     });
     render(<TournamentCard tournament={tournament} />);
+    expect(screen.queryByRole("button", { name: /Wimbledon/ })).toBeNull();
     expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
     expect(screen.queryAllByTestId("match-card")).toHaveLength(0);
   });
@@ -153,12 +228,30 @@ describe("TournamentCard", () => {
       </>,
     );
 
-    const [sec1, sec2] = screen.getAllByRole("button", {
-      name: /^Men's Singles/,
+    const [toggle1, toggle2] = screen.getAllByRole("button", {
+      name: /Wimbledon|US Open/,
     });
-    fireEvent.click(sec1!);
-    expect(sec1).toHaveAttribute("aria-expanded", "true");
-    expect(sec2).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle1!);
+    expect(toggle1).toHaveAttribute("aria-expanded", "true");
+    expect(toggle2).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("(f) stage resets to collapsed on remount (ephemeral, non-persisted state)", () => {
+    const { unmount } = render(
+      <TournamentCard tournament={bothFamiliesTournament()} />,
+    );
+    const toggle = screen.getByRole("button", { name: /Wimbledon/ });
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    expect(screen.getAllByTestId("match-group")).toHaveLength(3);
+    unmount();
+
+    render(<TournamentCard tournament={bothFamiliesTournament()} />);
+    expect(screen.queryAllByTestId("match-group")).toHaveLength(0);
+    expect(screen.getByRole("button", { name: /Wimbledon/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
   });
 });
 
