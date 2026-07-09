@@ -6,6 +6,7 @@ import emptyScoreboard from "./__fixtures__/empty-scoreboard.json" with { type: 
 import nflTeams from "./__fixtures__/nfl-teams.json" with { type: "json" };
 
 import {
+  athleteMatchHistory,
   athleteSchedule,
   buildLeagueTeamsUrl,
   buildScoreboardUrl,
@@ -228,6 +229,186 @@ describe("athleteSchedule — team vs individual (tennis) eventlogs", () => {
     );
     expect(lastMatch).toBeNull();
     expect(nextMatch).toBeNull();
+  });
+});
+
+describe("athleteMatchHistory — full Match[] for the entity detail screen", () => {
+  const DAY = 86_400_000;
+  const past = (days: number) =>
+    new Date(Date.now() - days * DAY).toISOString();
+  const future = (days: number) =>
+    new Date(Date.now() + days * DAY).toISOString();
+
+  it("team-sport player: returns full Match[] with both sides, capped at 10 recent + 10 upcoming", async () => {
+    const items = [];
+    const routes: Record<string, unknown> = {};
+    // 15 completed + 15 upcoming games to prove the cap actually trims.
+    // Zero-padded indices avoid substring collisions in routedFetch's URL
+    // matching (e.g. "/events/old-1" is a substring of "/events/old-14").
+    const pad = (n: number) => String(n).padStart(2, "0");
+    for (let i = 0; i < 15; i++) {
+      items.push({
+        teamId: "13",
+        event: { $ref: `http://x/events/old-${pad(i)}` },
+      });
+      routes[`/events/old-${pad(i)}`] = {
+        date: past(30 - i),
+        name: "Phoenix Suns at Los Angeles Lakers",
+        competitions: [
+          {
+            competitors: [
+              { id: "13", homeAway: "home", winner: true, score: "110" },
+              { id: "9", homeAway: "away", winner: false, score: "100" },
+            ],
+          },
+        ],
+      };
+      items.push({
+        teamId: "13",
+        event: { $ref: `http://x/events/next-${pad(i)}` },
+      });
+      routes[`/events/next-${pad(i)}`] = {
+        date: future(i + 1),
+        name: "Los Angeles Lakers at Boston Celtics",
+        competitions: [
+          {
+            competitors: [
+              { id: "2", homeAway: "home" },
+              { id: "13", homeAway: "away" },
+            ],
+          },
+        ],
+      };
+    }
+    routes["/athletes/1966/eventlog"] = { events: { items } };
+    const fetchFn = routedFetch(routes);
+
+    const { recent, upcoming } = await athleteMatchHistory(
+      "basketball/nba",
+      "1966",
+      { fetchFn },
+    );
+
+    expect(recent).toHaveLength(10);
+    expect(upcoming).toHaveLength(10);
+    // Most-recent-first: old-14 (30-14=16 days ago) is the most recent.
+    expect(recent[0]!.id).toBe("http://x/events/old-14");
+    expect(recent[0]!.homeTeamName).toBe("Los Angeles Lakers");
+    expect(recent[0]!.awayTeamName).toBe("Phoenix Suns");
+    expect(recent[0]!.status).toBe("final");
+    expect(recent[0]!.homeScore).toBe(110);
+    expect(recent[0]!.awayScore).toBe(100);
+    // Soonest-first: next-00 (1 day out) is first.
+    expect(upcoming[0]!.id).toBe("http://x/events/next-00");
+    expect(upcoming[0]!.status).toBe("upcoming");
+    expect(upcoming[0]!.homeScore).toBeUndefined();
+  });
+
+  it("tennis player: returns matches with populated set-by-set tennis detail", async () => {
+    const fetchFn = routedFetch({
+      "/athletes/3623/eventlog": {
+        events: {
+          items: [
+            {
+              event: { $ref: "http://x/events/wimbledon" },
+              competition: { $ref: "http://x/competitions/last" },
+            },
+            {
+              event: { $ref: "http://x/events/wimbledon" },
+              competition: { $ref: "http://x/competitions/next" },
+            },
+          ],
+        },
+      },
+      "/competitions/last": {
+        date: past(1),
+        type: { text: "Men's Singles" },
+        round: { displayName: "Round 1" },
+        venue: { court: "Court 8" },
+        competitors: [
+          {
+            id: "3623-1",
+            name: "Jannik Sinner",
+            winner: true,
+            linescores: { $ref: "http://x/ls/mine" },
+          },
+          {
+            id: "9999-2",
+            name: "Jan-Lennard Struff",
+            winner: false,
+            linescores: { $ref: "http://x/ls/opp" },
+          },
+        ],
+      },
+      "/ls/mine": { items: [{ value: 7 }, { value: 7 }, { value: 6 }] },
+      "/ls/opp": { items: [{ value: 5 }, { value: 6 }, { value: 3 }] },
+      "/competitions/next": {
+        date: future(2),
+        competitors: [
+          { id: "3623-1", name: "Jannik Sinner" },
+          { id: "1234-3", name: "Novak Djokovic" },
+        ],
+      },
+    });
+
+    const { recent, upcoming } = await athleteMatchHistory(
+      "tennis/atp",
+      "3623",
+      {
+        fetchFn,
+      },
+    );
+
+    expect(recent).toHaveLength(1);
+    const match = recent[0]!;
+    expect(match.sport).toBe("Tennis");
+    expect(match.status).toBe("final");
+    expect(match.tennis).toBeDefined();
+    expect(match.tennis!.draw).toBe("Men's Singles");
+    expect(match.tennis!.round).toBe("Round 1");
+    expect(match.tennis!.court).toBe("Court 8");
+    expect(match.tennis!.home.won).toBe(true);
+    expect(match.tennis!.home.sets).toEqual([
+      { games: 7, won: true },
+      { games: 7, won: true },
+      { games: 6, won: true },
+    ]);
+    expect(match.tennis!.away.sets).toEqual([
+      { games: 5, won: false },
+      { games: 6, won: false },
+      { games: 3, won: false },
+    ]);
+
+    expect(upcoming).toHaveLength(1);
+    expect(upcoming[0]!.status).toBe("upcoming");
+    expect(upcoming[0]!.tennis!.home.sets).toEqual([]);
+  });
+
+  it("returns empty recent/upcoming (never throws) when the eventlog fetch fails", async () => {
+    const { recent, upcoming } = await athleteMatchHistory(
+      "tennis/wta",
+      "3626",
+      {
+        fetchFn: async () => {
+          throw new Error("boom");
+        },
+      },
+    );
+    expect(recent).toEqual([]);
+    expect(upcoming).toEqual([]);
+  });
+
+  it("returns empty recent/upcoming when the athlete has no eventlog items", async () => {
+    const fetchFn = routedFetch({
+      "/athletes/9999/eventlog": { events: { items: [] } },
+    });
+    const { recent, upcoming } = await athleteMatchHistory(
+      "basketball/nba",
+      "9999",
+      { fetchFn },
+    );
+    expect(recent).toEqual([]);
+    expect(upcoming).toEqual([]);
   });
 });
 

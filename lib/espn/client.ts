@@ -25,8 +25,10 @@ import type {
   MatchStatus,
   Sport,
   Team,
+  TennisSetScore,
 } from "@/lib/sports/types";
 import { findSupportedLeague } from "@/lib/espn/leagues";
+import { MATCH_HISTORY_CAP } from "@/lib/teams/schedule";
 import type { EntityMatch } from "@/lib/teams/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
@@ -471,6 +473,8 @@ interface CoreCompetitor {
   homeAway?: "home" | "away";
   winner?: boolean;
   linescores?: CoreLinescores;
+  /** Team-sport final score, when the core API returns it inline. */
+  score?: string;
 }
 
 interface CoreEvent {
@@ -482,27 +486,42 @@ interface CoreEvent {
 interface CoreCompetition {
   date?: string;
   competitors?: CoreCompetitor[];
+  /** Draw/event type, e.g. "Men's Singles" — mirrors the site-v2 tennis shape. */
+  type?: { text?: string };
+  round?: { displayName?: string };
+  venue?: { court?: string };
 }
 
 /**
- * Derives the opponent name for a team-sport core event relative to the
- * followed athlete's `teamId`. ESPN core event `name`s are formatted
- * "{Away} at {Home}"; we split on that and pick the side the athlete is NOT
- * on, using the inline competitor `homeAway` matched by `teamId`.
+ * Splits a core event's `name` ("{Away} at {Home}" or "{Away} vs {Home}")
+ * into its two sides. Returns `null` when the name doesn't match either
+ * separator (better to omit than guess).
  */
-function opponentFromCoreEvent(ev: CoreEvent, teamId: string): string {
+function splitEventName(ev: CoreEvent): { away: string; home: string } | null {
   const name = (ev.name ?? "").trim();
   const sep = name.includes(" at ")
     ? " at "
     : name.includes(" vs ")
       ? " vs "
       : null;
-  if (!sep) return name;
+  if (!sep) return null;
   const [away, home] = name.split(sep).map((s) => s.trim());
+  if (!away || !home) return null;
+  return { away, home };
+}
+
+/**
+ * Derives the opponent name for a team-sport core event relative to the
+ * followed athlete's `teamId`, using the inline competitor `homeAway`
+ * matched by `teamId`.
+ */
+function opponentFromCoreEvent(ev: CoreEvent, teamId: string): string {
+  const split = splitEventName(ev);
+  if (!split) return (ev.name ?? "").trim();
   const mine = ev.competitions?.[0]?.competitors?.find((c) => c.id === teamId);
-  if (mine?.homeAway === "home") return away ?? "";
-  if (mine?.homeAway === "away") return home ?? "";
-  return home ?? away ?? "";
+  if (mine?.homeAway === "home") return split.away;
+  if (mine?.homeAway === "away") return split.home;
+  return split.home || split.away;
 }
 
 /** A match resolved from the eventlog, before we pick last/next. */
@@ -518,29 +537,34 @@ interface ResolvedMatch {
   scoreFetcher: () => Promise<string | undefined>;
 }
 
+/** Resolves a competitor's set-by-set linescores into a games-per-set array. */
+async function resolveLinescoreValues(
+  ls: CoreLinescores,
+  opts: ClientOptions,
+): Promise<number[]> {
+  if (!ls) return [];
+  if (Array.isArray(ls)) return ls.map((x) => x.value ?? 0);
+  if (ls.$ref) {
+    const data = await fetchJson<{ items?: { value?: number }[] }>(
+      ls.$ref.replace(/^http:/, "https:"),
+      opts,
+    );
+    return (data.items ?? []).map((x) => x.value ?? 0);
+  }
+  return [];
+}
+
 /** Resolves both competitors' set scores into "7-5, 6-4" (athlete first). */
 async function tennisSetScore(
   mine: CoreCompetitor | undefined,
   opp: CoreCompetitor | undefined,
   opts: ClientOptions,
 ): Promise<string | undefined> {
-  const values = async (ls: CoreLinescores): Promise<number[] | undefined> => {
-    if (!ls) return undefined;
-    if (Array.isArray(ls)) return ls.map((x) => x.value ?? 0);
-    if (ls.$ref) {
-      const data = await fetchJson<{ items?: { value?: number }[] }>(
-        ls.$ref.replace(/^http:/, "https:"),
-        opts,
-      );
-      return (data.items ?? []).map((x) => x.value ?? 0);
-    }
-    return undefined;
-  };
   const [m, o] = await Promise.all([
-    values(mine?.linescores),
-    values(opp?.linescores),
+    resolveLinescoreValues(mine?.linescores, opts),
+    resolveLinescoreValues(opp?.linescores, opts),
   ]);
-  if (!m || !o || m.length === 0) return undefined;
+  if (m.length === 0 || o.length === 0) return undefined;
   return m.map((v, i) => `${v}-${o[i] ?? 0}`).join(", ");
 }
 
@@ -671,6 +695,210 @@ export async function athleteSchedule(
       toMatch(nextR, false),
     ]);
     return { lastMatch, nextMatch };
+  } catch {
+    return empty;
+  }
+}
+
+/** A player match resolved from the eventlog, before capping + deep-resolve. */
+interface ResolvedPlayerMatch {
+  date: string;
+  completed: boolean;
+  /** Builds the full `Match` for this item. May trigger further fetches
+   * (e.g. tennis linescores) — only called for the capped set. */
+  build: () => Promise<Match | null>;
+}
+
+function playerMatchStatus(dateIso: string, completed: boolean): MatchStatus {
+  return completed || Date.parse(dateIso) < Date.now() ? "final" : "upcoming";
+}
+
+/**
+ * Returns up to `MATCH_HISTORY_CAP` recent (completed, most-recent-first)
+ * and `MATCH_HISTORY_CAP` upcoming (soonest-first) matches for an athlete,
+ * as fully-populated `Match` objects — unlike `athleteSchedule`, which
+ * reduces to a single last/next `EntityMatch` summary. Powers the entity
+ * match-detail screen (Spec 11) so a followed player's history renders with
+ * the same `MatchCard` / `TennisMatchCard` components as Home.
+ *
+ * Two-phase resolution to bound fan-out: phase 1 resolves every eventlog
+ * item's `event`/`competition` $ref (unavoidable — the eventlog carries no
+ * inline date) to get date + identity, then sorts and caps to
+ * `MATCH_HISTORY_CAP` per side; phase 2 only fetches the additional,
+ * per-match detail needed for full fidelity (tennis set-by-set linescores)
+ * for that capped set — never for the full eventlog.
+ *
+ * Never throws — returns `{ recent: [], upcoming: [] }` on any failure, same
+ * as `athleteSchedule`.
+ */
+export async function athleteMatchHistory(
+  leagueKey: string,
+  athleteId: string,
+  opts: ClientOptions = {},
+): Promise<{ recent: Match[]; upcoming: Match[] }> {
+  const empty = { recent: [], upcoming: [] };
+  try {
+    const sport = sportFromLeagueKey(leagueKey);
+    if (!sport) return empty;
+    const leagueName = findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
+    const req: ClientOptions = {
+      ...opts,
+      revalidateSeconds: opts.revalidateSeconds ?? 300,
+    };
+    const https = (ref: string) => ref.replace(/^http:/, "https:");
+
+    const url = `${CORE_BASE}/${leagueKey}/athletes/${encodeURIComponent(
+      athleteId,
+    )}/eventlog?limit=300&lang=en&region=us`;
+    const log = await fetchJson<CoreEventLogResponse>(url, req);
+    const items = log.events?.items ?? [];
+    if (items.length === 0) return empty;
+
+    const resolveItem = async (
+      item: (typeof items)[number],
+    ): Promise<ResolvedPlayerMatch | null> => {
+      // Team sports: resolve the shared event once; build() is cheap (no
+      // further fetches — score/team info is already inline).
+      if (item.teamId && item.event?.$ref) {
+        const ev = await fetchJson<CoreEvent>(https(item.event.$ref), req);
+        if (!ev.date) return null;
+        const competitors = ev.competitions?.[0]?.competitors ?? [];
+        const mine = competitors.find((c) => c.id === item.teamId);
+        const opp = competitors.find((c) => c.id !== item.teamId);
+        const completed =
+          mine?.winner !== undefined || opp?.winner !== undefined;
+        return {
+          date: ev.date,
+          completed,
+          build: async (): Promise<Match | null> => {
+            const split = splitEventName(ev);
+            const status = playerMatchStatus(ev.date!, completed);
+            const homeIsMine = mine?.homeAway === "home";
+            const homeName = split
+              ? split.home
+              : (homeIsMine ? mine : opp)?.name || "Home";
+            const awayName = split
+              ? split.away
+              : (homeIsMine ? opp : mine)?.name || "Away";
+            const homeCompetitor = homeIsMine ? mine : opp;
+            const awayCompetitor = homeIsMine ? opp : mine;
+            return {
+              id: item.event!.$ref!,
+              sport,
+              homeTeamId: homeCompetitor?.id ?? "home",
+              homeTeamName: homeName,
+              awayTeamId: awayCompetitor?.id ?? "away",
+              awayTeamName: awayName,
+              leagueId: leagueKey,
+              leagueName,
+              dateUtc: ev.date!.slice(0, 10),
+              kickoffUtc: ev.date!,
+              status,
+              homeScore:
+                status === "upcoming"
+                  ? undefined
+                  : parseScore(homeCompetitor?.score),
+              awayScore:
+                status === "upcoming"
+                  ? undefined
+                  : parseScore(awayCompetitor?.score),
+            };
+          },
+        };
+      }
+
+      // Individual sports (tennis): resolve the specific competition once
+      // for identity/date; build() lazily fetches set scores (the "deep"
+      // resolve step) only when this item survives the 10/10 cap.
+      if (item.competition?.$ref) {
+        const comp = await fetchJson<CoreCompetition>(
+          https(item.competition.$ref),
+          req,
+        );
+        if (!comp.date) return null;
+        const competitors = comp.competitors ?? [];
+        const idPrefix = (c: CoreCompetitor) => (c.id ?? "").split("-")[0];
+        const mine = competitors.find((c) => idPrefix(c) === athleteId);
+        const opp = competitors.find((c) => idPrefix(c) !== athleteId);
+        const completed = competitors.some((c) => c.winner === true);
+        return {
+          date: comp.date,
+          completed,
+          build: async (): Promise<Match | null> => {
+            const status = playerMatchStatus(comp.date!, completed);
+            const [mineValues, oppValues] = await Promise.all([
+              resolveLinescoreValues(mine?.linescores, req),
+              resolveLinescoreValues(opp?.linescores, req),
+            ]);
+            const numSets = Math.max(mineValues.length, oppValues.length);
+            const buildSets = (
+              own: number[],
+              other: number[],
+            ): TennisSetScore[] =>
+              Array.from({ length: numSets }, (_, i) => ({
+                games: own[i] ?? 0,
+                won: (own[i] ?? 0) > (other[i] ?? 0),
+              }));
+            return {
+              id: item.competition!.$ref!,
+              sport: "Tennis",
+              homeTeamId: mine?.id ?? "home",
+              homeTeamName: mine?.name ?? "Player",
+              awayTeamId: opp?.id ?? "away",
+              awayTeamName: opp?.name ?? "Opponent",
+              leagueId: leagueKey,
+              leagueName,
+              dateUtc: comp.date!.slice(0, 10),
+              kickoffUtc: comp.date!,
+              status,
+              round: comp.round?.displayName,
+              tennis: {
+                draw: comp.type?.text,
+                round: comp.round?.displayName,
+                court: comp.venue?.court,
+                home: {
+                  sets: buildSets(mineValues, oppValues),
+                  won: mine?.winner === true,
+                },
+                away: {
+                  sets: buildSets(oppValues, mineValues),
+                  won: opp?.winner === true,
+                },
+              },
+            };
+          },
+        };
+      }
+
+      return null;
+    };
+
+    const resolved = (await Promise.all(items.map(resolveItem))).filter(
+      (r): r is ResolvedPlayerMatch => r !== null,
+    );
+
+    const byDateAsc = (a: ResolvedPlayerMatch, b: ResolvedPlayerMatch) =>
+      a.date.localeCompare(b.date);
+    const now = Date.now();
+
+    const completedCapped = resolved
+      .filter((r) => r.completed)
+      .sort((a, b) => byDateAsc(b, a)) // most-recent-first
+      .slice(0, MATCH_HISTORY_CAP);
+    const upcomingCapped = resolved
+      .filter((r) => !r.completed && Date.parse(r.date) >= now)
+      .sort(byDateAsc) // soonest-first
+      .slice(0, MATCH_HISTORY_CAP);
+
+    const [recent, upcoming] = await Promise.all([
+      Promise.all(completedCapped.map((r) => r.build())),
+      Promise.all(upcomingCapped.map((r) => r.build())),
+    ]);
+
+    return {
+      recent: recent.filter((m): m is Match => m !== null),
+      upcoming: upcoming.filter((m): m is Match => m !== null),
+    };
   } catch {
     return empty;
   }

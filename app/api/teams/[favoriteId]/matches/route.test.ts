@@ -19,9 +19,12 @@ vi.mock("@/lib/espn/catalog", () => ({
 }));
 
 const teamScheduleMock = vi.fn();
+const athleteMatchHistoryMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
   teamScheduleForLeague: (leagueKey: string, teamId: string) =>
     teamScheduleMock(leagueKey, teamId),
+  athleteMatchHistory: (leagueKey: string, athleteId: string) =>
+    athleteMatchHistoryMock(leagueKey, athleteId),
 }));
 
 import { GET } from "./route";
@@ -37,6 +40,20 @@ function teamFavorite(over: Record<string, unknown> = {}) {
     displayName: "Arsenal",
     sport: "Soccer",
     metadata: null,
+    createdAt: new Date("2026-06-01T00:00:00Z"),
+    ...over,
+  };
+}
+
+function playerFavorite(over: Record<string, unknown> = {}) {
+  return {
+    id: "fav-p1",
+    userId: "user-a",
+    type: "player",
+    externalId: "3623",
+    displayName: "Jannik Sinner",
+    sport: "Tennis",
+    metadata: { leagueKey: "tennis/atp" },
     createdAt: new Date("2026-06-01T00:00:00Z"),
     ...over,
   };
@@ -69,6 +86,7 @@ describe("GET /api/teams/[favoriteId]/matches", () => {
     listFavoritesMock.mockReset();
     findCatalogTeamByIdMock.mockReset();
     teamScheduleMock.mockReset();
+    athleteMatchHistoryMock.mockReset();
   });
 
   it("returns 401 when there is no session", async () => {
@@ -196,5 +214,65 @@ describe("GET /api/teams/[favoriteId]/matches", () => {
     const body = (await res.json()) as EntityMatchesEnvelope;
     expect(body.source.ok).toBe(false);
     expect(body.source.errors).toContain("ESPN 500");
+  });
+
+  it("returns full Match[] for a player favorite via athleteMatchHistory, using the stored leagueKey", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    const recent = [
+      makeMatch({ id: "sinner-1", status: "final", sport: "Tennis" }),
+    ];
+    const upcoming = [
+      makeMatch({ id: "sinner-2", status: "upcoming", sport: "Tennis" }),
+    ];
+    athleteMatchHistoryMock.mockResolvedValue({ recent, upcoming });
+
+    const res = await GET(new Request("http://x"), ctx("fav-p1"));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as EntityMatchesEnvelope;
+
+    expect(body.entity).toMatchObject({
+      favoriteId: "fav-p1",
+      displayName: "Jannik Sinner",
+      type: "player",
+      sport: "Tennis",
+    });
+    expect(body.recent).toEqual(recent);
+    expect(body.upcoming).toEqual(upcoming);
+    expect(body.source.ok).toBe(true);
+    expect(athleteMatchHistoryMock).toHaveBeenCalledWith("tennis/atp", "3623");
+  });
+
+  it("falls back to the sport's primary league key when the player has no stored leagueKey", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([
+      playerFavorite({
+        id: "fav-p2",
+        externalId: "1966",
+        displayName: "LeBron James",
+        sport: "Basketball",
+        metadata: null,
+      }),
+    ]);
+    athleteMatchHistoryMock.mockResolvedValue({ recent: [], upcoming: [] });
+
+    await GET(new Request("http://x"), ctx("fav-p2"));
+    expect(athleteMatchHistoryMock).toHaveBeenCalledWith(
+      "basketball/nba",
+      "1966",
+    );
+  });
+
+  it("returns 200 with empty arrays (Match data unavailable) when the player has no ESPN data", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteMatchHistoryMock.mockResolvedValue({ recent: [], upcoming: [] });
+
+    const res = await GET(new Request("http://x"), ctx("fav-p1"));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as EntityMatchesEnvelope;
+    expect(body.recent).toEqual([]);
+    expect(body.upcoming).toEqual([]);
+    expect(body.source.ok).toBe(true);
   });
 });

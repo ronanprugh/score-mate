@@ -68,7 +68,7 @@ Add an auth-gated, user-scoped endpoint that returns a followed **team's** recen
 - [x] 2.6 Add `app/api/teams/[favoriteId]/matches/route.test.ts`: caps at 10 recent + 10 upcoming; matches come from the followed team's schedule; 401 unauthenticated; 404 for unknown/foreign favorite; 200-with-`source.ok=false` on upstream failure.
 - [x] 2.7 Run the quality gates; capture the team detail screenshot (Home-identical `MatchCard`s) and the API JSON excerpt proof artifacts.
 
-### [ ] 3.0 Player match history (team-sport and tennis players)
+### [x] 3.0 Player match history (team-sport and tennis players)
 
 Extend the athlete data path to resolve a **player** favorite's schedule into fully-populated `Match` objects (capped ≤10 recent + ≤10 upcoming): team-sport players (e.g. Messi) rendered with `MatchCard`, tennis players (e.g. Jannik Sinner) carrying `TennisMatchDetail` (per-player sets, flags, round/draw) rendered with the unchanged `TennisMatchCard`. No usable data shows the graceful "Match data unavailable" state. Bound fan-out (cap before deep-resolving, parallelize, reuse caching). (Spec Unit 3; Goals 2, 3; FR: full `Match` objects for players, tennis detail, 10/10 cap, `MatchCard`/`TennisMatchCard` reuse, graceful unavailable.)
 
@@ -80,14 +80,16 @@ Extend the athlete data path to resolve a **player** favorite's schedule into fu
 
 #### 3.0 Tasks
 
-- [ ] 3.1 In `lib/espn/client.ts`, add `athleteMatchHistory(leagueKey, athleteId, opts?)` returning `Promise<{ recent: Match[]; upcoming: Match[] }>`. Reuse the eventlog fetch + item-resolution scaffolding from `athleteSchedule` (core-API `eventlog`, `$ref` resolution, `revalidateSeconds` caching), but build full `Match` objects instead of `EntityMatch`. Never throw — return empty arrays on failure.
-- [ ] 3.2 Cap before deep-resolving: from the eventlog, sort items by date, take the ≤10 most recent completed and ≤10 soonest upcoming *item refs first*, then resolve only those to full detail (`Promise.all`) to bound fan-out per the spec's performance note.
-- [ ] 3.3 **Team-sport players** (item has `teamId`): build a full `Match` from the resolved core `event` — both competitors' names/ids/logos, scores (when final), `status`, `dateUtc`/`kickoffUtc`, `leagueId`/`leagueName`. Ensure the followed player's team maps consistently (home/away) so `MatchCard` renders correctly.
-- [ ] 3.4 **Tennis players** (item has `competition`): build a full `Match` with `sport: "Tennis"` and a populated `TennisMatchDetail` (`home`/`away` `TennisPlayerLine` with set-by-set `sets`, `flagUrl`/`flagAlt`, `seed`, plus `round`/`draw` when available), reusing existing tennis set-score parsing (`tennisSetScore` / `lib/espn/tennis.ts` helpers) so `TennisMatchCard` renders identically to Home.
-- [ ] 3.5 In `app/api/teams/[favoriteId]/matches/route.ts`, add the **player** branch: resolve `leagueKey` from `fav.metadata?.leagueKey ?? leagueKeysForSport(fav.sport)[0]`, call `athleteMatchHistory`, and return the same `EntityMatchesEnvelope`. When both arrays are empty, return 200 with `source.ok` unchanged (graceful "Match data unavailable"), mirroring the player handling in `app/api/teams/route.ts`.
-- [ ] 3.6 In `components/entity-matches-client.tsx`, route each `Match` to the correct card by sport: `sport === "Tennis"` → `TennisMatchCard`, else → `MatchCard`.
-- [ ] 3.7 Add `lib/espn/client.test.ts` cases for `athleteMatchHistory`: team-sport player returns full `Match[]` capped 10/10; tennis player returns matches with populated `tennis` detail; no-data athlete returns empty arrays. Use fixtures consistent with existing ESPN client tests.
-- [ ] 3.8 Run the quality gates; capture the tennis-player (`TennisMatchCard`) and team-sport-player (`MatchCard`) detail screenshots as proof artifacts.
+- [x] 3.1 In `lib/espn/client.ts`, add `athleteMatchHistory(leagueKey, athleteId, opts?)` returning `Promise<{ recent: Match[]; upcoming: Match[] }>`. Reuse the eventlog fetch + item-resolution scaffolding from `athleteSchedule` (core-API `eventlog`, `$ref` resolution, `revalidateSeconds` caching), but build full `Match` objects instead of `EntityMatch`. Never throw — return empty arrays on failure.
+- [x] 3.2 Cap before deep-resolving: from the eventlog, sort items by date, take the ≤10 most recent completed and ≤10 soonest upcoming *item refs first*, then resolve only those to full detail (`Promise.all`) to bound fan-out per the spec's performance note.
+- [x] 3.3 **Team-sport players** (item has `teamId`): build a full `Match` from the resolved core `event` — both competitors' names/ids/logos, scores (when final), `status`, `dateUtc`/`kickoffUtc`, `leagueId`/`leagueName`. Ensure the followed player's team maps consistently (home/away) so `MatchCard` renders correctly.
+- [x] 3.4 **Tennis players** (item has `competition`): build a full `Match` with `sport: "Tennis"` and a populated `TennisMatchDetail` (`home`/`away` `TennisPlayerLine` with set-by-set `sets`, `flagUrl`/`flagAlt`, `seed`, plus `round`/`draw` when available), reusing existing tennis set-score parsing (`tennisSetScore` / `lib/espn/tennis.ts` helpers) so `TennisMatchCard` renders identically to Home.
+- [x] 3.5 In `app/api/teams/[favoriteId]/matches/route.ts`, add the **player** branch: resolve `leagueKey` from `fav.metadata?.leagueKey ?? leagueKeysForSport(fav.sport)[0]`, call `athleteMatchHistory`, and return the same `EntityMatchesEnvelope`. When both arrays are empty, return 200 with `source.ok` unchanged (graceful "Match data unavailable"), mirroring the player handling in `app/api/teams/route.ts`.
+- [x] 3.6 In `components/entity-matches-client.tsx`, route each `Match` to the correct card by sport: `sport === "Tennis"` → `TennisMatchCard`, else → `MatchCard`.
+- [x] 3.7 Add `lib/espn/client.test.ts` cases for `athleteMatchHistory`: team-sport player returns full `Match[]` capped 10/10; tennis player returns matches with populated `tennis` detail; no-data athlete returns empty arrays. Use fixtures consistent with existing ESPN client tests.
+- [x] 3.8 Run the quality gates; capture the tennis-player (`TennisMatchCard`) and team-sport-player (`MatchCard`) detail screenshots as proof artifacts.
+
+  Note: flag/seed enrichment for tennis players (`TennisPlayerLine.flagUrl`/`flagAlt`/`seed`) was intentionally left unset — these are optional fields on `TennisPlayerLine`/`TennisMatchCard` and populating them would require extra per-match ESPN fetches beyond the capped set, working against the fan-out bound in 3.2. Cards render correctly without them (verified by tests).
 
 ### [ ] 4.0 Chronological layout with focus-on-recent + empty states
 

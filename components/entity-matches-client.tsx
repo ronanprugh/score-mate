@@ -2,9 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { APP_BASE_PATH } from "@/lib/auth/constants";
+import type { Match } from "@/lib/sports/types";
 import type { EntityMatchesEnvelope } from "@/lib/teams/types";
 import { DataSourceErrorBanner } from "./data-source-error-banner";
 import { MatchCard } from "./match-card";
+import { TennisMatchCard } from "./tennis-match-card";
+
+/** Renders a match with the same card Home uses for its sport. */
+function EntityMatchCard({ match }: { match: Match }) {
+  return match.sport === "Tennis" ? (
+    <TennisMatchCard match={match} />
+  ) : (
+    <MatchCard match={match} />
+  );
+}
 
 interface Props {
   favoriteId: string;
@@ -74,10 +85,10 @@ export function EntityMatchesClient({ favoriteId }: Props) {
       )}
       <div className="flex flex-col gap-2">
         {envelope.recent.map((m) => (
-          <MatchCard key={m.id} match={m} />
+          <EntityMatchCard key={m.id} match={m} />
         ))}
         {envelope.upcoming.map((m) => (
-          <MatchCard key={m.id} match={m} />
+          <EntityMatchCard key={m.id} match={m} />
         ))}
       </div>
     </div>
