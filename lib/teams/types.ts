@@ -7,7 +7,7 @@
  * presentational `EntityCard`.
  */
 
-import type { Sport } from "@/lib/sports/types";
+import type { Match, Sport } from "@/lib/sports/types";
 
 /** One match row (last or next) on an entity card. */
 export interface EntityMatch {
@@ -49,6 +49,31 @@ export interface TeamsEnvelope {
     /** True when every upstream lookup succeeded. */
     ok: boolean;
     /** Human-readable error strings for each failed lookup. */
+    errors: string[];
+  };
+}
+
+/**
+ * Response envelope for `GET /api/teams/[favoriteId]/matches` (Spec 11).
+ * Carries the fully-populated `Match` objects a Home-style card needs —
+ * unlike `TeamEntity`'s lightweight `EntityMatch` last/next summary.
+ */
+export interface EntityMatchesEnvelope {
+  entity: {
+    favoriteId: string;
+    displayName: string;
+    type: "team" | "player";
+    sport: Sport;
+    badgeUrl?: string;
+  };
+  /** Up to 10 most recent completed matches, most-recent first. */
+  recent: Match[];
+  /** Up to 10 soonest upcoming matches, soonest first. */
+  upcoming: Match[];
+  source: {
+    /** True when the upstream schedule lookup succeeded. */
+    ok: boolean;
+    /** Human-readable error strings for failed lookups. */
     errors: string[];
   };
 }

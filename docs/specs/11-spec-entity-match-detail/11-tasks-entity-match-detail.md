@@ -48,7 +48,7 @@ Make each Teams-tab card a link into a new deep-linkable, auth-gated detail rout
 - [x] 1.5 Add tests in `components/entity-card.test.tsx` (card renders an anchor to `/teams/[favoriteId]` with the accessible label; existing render assertions still pass) and `app/(app)/teams/[favoriteId]/page.test.tsx` (unauthenticated redirects; unknown/foreign `favoriteId` → not-found state; valid favorite → header shows name).
 - [x] 1.6 Run `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm test:ci`; capture the Teams→detail navigation screenshot proof artifact.
 
-### [ ] 2.0 Detail data endpoint + Home-style team match history
+### [x] 2.0 Detail data endpoint + Home-style team match history
 
 Add an auth-gated, user-scoped endpoint that returns a followed **team's** recent (completed) and upcoming matches as fully-populated `Match` objects (capped at ≤10 each) via the existing team-schedule path, and render them with the unchanged `MatchCard` so cards look identical to Home. Partial upstream failures degrade gracefully. (Spec Unit 2; Goals 2, 3; FR: endpoint returns full `Match[]`, 10/10 cap, `MatchCard` reuse, auth-scoped, graceful degradation.)
 
@@ -60,13 +60,13 @@ Add an auth-gated, user-scoped endpoint that returns a followed **team's** recen
 
 #### 2.0 Tasks
 
-- [ ] 2.1 In `lib/teams/types.ts`, add `EntityMatchesEnvelope`: `{ entity: { favoriteId; displayName; type; sport; badgeUrl? }, recent: Match[], upcoming: Match[], source: { ok: boolean; errors: string[] } }`. Import `Match` from `lib/sports/types`.
-- [ ] 2.2 Add a shared helper (e.g. `splitAndCapSchedule(matches: Match[]): { recent: Match[]; upcoming: Match[] }`) — colocated in the route or a small `lib/teams/` module — that selects the ≤10 most recent `final` matches (most-recent first) and ≤10 soonest `upcoming` matches (soonest first), reusing the sort-key approach from `extractEntityMatches` in `app/api/teams/route.ts`.
-- [ ] 2.3 Create `app/api/teams/[favoriteId]/matches/route.ts`: `GET` handler, auth-gate (401 when no session), read `await ctx.params`, resolve the favorite via `listFavoritesForUser(session.user.id)`; return 404 when the id is not a team/player favorite owned by the user.
-- [ ] 2.4 For a **team** favorite: resolve the catalog team (`findCatalogTeamById`), fetch `teamScheduleForLeague(leagueKey, externalId)`, run `splitAndCapSchedule`, and return the `EntityMatchesEnvelope` (set `badgeUrl` from the catalog). On upstream failure, return 200 with empty `recent`/`upcoming` and `source.ok = false` (mirror `app/api/teams/route.ts`).
-- [ ] 2.5 In `components/entity-matches-client.tsx` (created here, layout completed in 4.0), fetch `${APP_BASE_PATH}/api/teams/${favoriteId}/matches` with an `AbortController`, loading/error states like `TeamsClient`, and render each team-sport `Match` with the unchanged `MatchCard`. Wire it into the detail page from 1.0.
-- [ ] 2.6 Add `app/api/teams/[favoriteId]/matches/route.test.ts`: caps at 10 recent + 10 upcoming; matches come from the followed team's schedule; 401 unauthenticated; 404 for unknown/foreign favorite; 200-with-`source.ok=false` on upstream failure.
-- [ ] 2.7 Run the quality gates; capture the team detail screenshot (Home-identical `MatchCard`s) and the API JSON excerpt proof artifacts.
+- [x] 2.1 In `lib/teams/types.ts`, add `EntityMatchesEnvelope`: `{ entity: { favoriteId; displayName; type; sport; badgeUrl? }, recent: Match[], upcoming: Match[], source: { ok: boolean; errors: string[] } }`. Import `Match` from `lib/sports/types`.
+- [x] 2.2 Add a shared helper (e.g. `splitAndCapSchedule(matches: Match[]): { recent: Match[]; upcoming: Match[] }`) — colocated in the route or a small `lib/teams/` module — that selects the ≤10 most recent `final` matches (most-recent first) and ≤10 soonest `upcoming` matches (soonest first), reusing the sort-key approach from `extractEntityMatches` in `app/api/teams/route.ts`.
+- [x] 2.3 Create `app/api/teams/[favoriteId]/matches/route.ts`: `GET` handler, auth-gate (401 when no session), read `await ctx.params`, resolve the favorite via `listFavoritesForUser(session.user.id)`; return 404 when the id is not a team/player favorite owned by the user.
+- [x] 2.4 For a **team** favorite: resolve the catalog team (`findCatalogTeamById`), fetch `teamScheduleForLeague(leagueKey, externalId)`, run `splitAndCapSchedule`, and return the `EntityMatchesEnvelope` (set `badgeUrl` from the catalog). On upstream failure, return 200 with empty `recent`/`upcoming` and `source.ok = false` (mirror `app/api/teams/route.ts`).
+- [x] 2.5 In `components/entity-matches-client.tsx` (created here, layout completed in 4.0), fetch `${APP_BASE_PATH}/api/teams/${favoriteId}/matches` with an `AbortController`, loading/error states like `TeamsClient`, and render each team-sport `Match` with the unchanged `MatchCard`. Wire it into the detail page from 1.0.
+- [x] 2.6 Add `app/api/teams/[favoriteId]/matches/route.test.ts`: caps at 10 recent + 10 upcoming; matches come from the followed team's schedule; 401 unauthenticated; 404 for unknown/foreign favorite; 200-with-`source.ok=false` on upstream failure.
+- [x] 2.7 Run the quality gates; capture the team detail screenshot (Home-identical `MatchCard`s) and the API JSON excerpt proof artifacts.
 
 ### [ ] 3.0 Player match history (team-sport and tennis players)
 
