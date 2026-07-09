@@ -1,11 +1,10 @@
 /**
- * Pure logic for the tennis tournament card's staged disclosure (Spec 10).
- *
- * The card starts collapsed, the first activation reveals only the singles
- * sections, and a second activation additionally reveals the doubles/mixed
- * sections. Activating past the final stage wraps back to collapsed. Stages
- * are derived from which families are actually present, so a singles-only or
- * doubles-only tournament has a single expanded stage rather than a dead click.
+ * Pure logic for the tennis tournament card's staged disclosure (Spec 10,
+ * revised): the card starts collapsed; a single header toggle reveals the
+ * primary family (singles, or doubles when no singles exist) and collapses
+ * it again. When a secondary (doubles) family exists alongside singles, it
+ * is revealed independently via a "see doubles matches" control rather than
+ * a second header activation.
  */
 
 import type { MatchGroup, SectionKey } from "./tennis-priority";
@@ -23,19 +22,20 @@ export const DOUBLES_KEYS: readonly SectionKey[] = [
   "mixed-doubles",
 ];
 
-const FAMILIES: readonly { keys: readonly SectionKey[]; label: string }[] = [
-  { keys: SINGLES_KEYS, label: "Singles" },
-  { keys: DOUBLES_KEYS, label: "Doubles" },
+const FAMILY_KEYS: readonly (readonly SectionKey[])[] = [
+  SINGLES_KEYS,
+  DOUBLES_KEYS,
 ];
 
 /**
  * The present reveal families, in fixed order (singles first, then doubles),
  * each as its member `MatchGroup`s (already `SECTION_ORDER`-sorted by
- * `groupMatches`). Families with zero matching groups are omitted.
+ * `groupMatches`). Families with zero matching groups are omitted, so the
+ * result has 0, 1, or 2 entries.
  */
 export function revealFamilies(groups: MatchGroup[]): MatchGroup[][] {
   const families: MatchGroup[][] = [];
-  for (const { keys } of FAMILIES) {
+  for (const keys of FAMILY_KEYS) {
     const members = groups.filter((g) => keys.includes(g.key));
     if (members.length > 0) families.push(members);
   }
@@ -43,47 +43,20 @@ export function revealFamilies(groups: MatchGroup[]): MatchGroup[][] {
 }
 
 /**
- * Total number of stages: stage 0 (collapsed) plus one stage per present
- * family. A tournament with no classifiable sections has exactly 1 stage
- * (collapsed only, non-interactive).
+ * The family the header toggle reveals: singles if present, otherwise
+ * doubles (for a doubles-only tournament), otherwise empty.
  */
-export function totalStages(groups: MatchGroup[]): number {
-  return 1 + revealFamilies(groups).length;
+export function primaryFamily(groups: MatchGroup[]): MatchGroup[] {
+  return revealFamilies(groups)[0] ?? [];
 }
 
 /**
- * Sections visible at the given stage: the cumulative union of families for
- * stages 1..N, empty at stage 0. Stage is clamped into range.
+ * The doubles family, only returned when it is a *secondary* reveal (i.e.
+ * singles is the primary family and doubles also exists). Empty for
+ * doubles-only or singles-only tournaments, where doubles is either the
+ * primary family or absent.
  */
-export function sectionsForStage(
-  groups: MatchGroup[],
-  stage: number,
-): MatchGroup[] {
+export function secondaryFamily(groups: MatchGroup[]): MatchGroup[] {
   const families = revealFamilies(groups);
-  const n = Math.max(0, Math.min(stage, families.length));
-  return families.slice(0, n).flat();
-}
-
-/**
- * Advances the stage by one activation, wrapping back to 0 (collapsed) after
- * the final stage.
- */
-export function nextStage(groups: MatchGroup[], stage: number): number {
-  const stages = totalStages(groups);
-  return (stage + 1) % stages;
-}
-
-/**
- * Human-readable label for the current stage's revealed families (e.g.
- * `"Singles"`, `"Singles + Doubles"`, or `"Doubles"` for a doubles-only
- * event). Empty at stage 0.
- */
-export function stageHint(groups: MatchGroup[], stage: number): string {
-  const families = revealFamilies(groups);
-  const n = Math.max(0, Math.min(stage, families.length));
-  if (n === 0) return "";
-  const labels = FAMILIES.filter((f) =>
-    families.slice(0, n).some((fam) => fam.some((g) => f.keys.includes(g.key))),
-  ).map((f) => f.label);
-  return labels.join(" + ");
+  return families.length > 1 ? families[1]! : [];
 }

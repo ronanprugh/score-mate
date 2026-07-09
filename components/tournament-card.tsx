@@ -3,12 +3,7 @@
 import { useState } from "react";
 import type { ActiveTournament } from "@/lib/home/tennis-aggregator";
 import { groupMatches } from "@/lib/home/tennis-priority";
-import {
-  nextStage,
-  sectionsForStage,
-  stageHint,
-  totalStages,
-} from "@/lib/home/tennis-card-stages";
+import { primaryFamily, secondaryFamily } from "@/lib/home/tennis-card-stages";
 import { MatchGroupSection } from "./match-group-section";
 
 function formatDateRange(startDate: string, endDate: string): string {
@@ -22,16 +17,37 @@ function formatDateRange(startDate: string, endDate: string): string {
   return `${start} – ${end}`;
 }
 
+function Arrow({ direction }: { direction: "down" | "up" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 12 12"
+      className={[
+        "h-3 w-3 shrink-0 transition-transform",
+        direction === "up" ? "rotate-180" : "",
+      ].join(" ")}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 4.5L6 8L10 4.5" />
+    </svg>
+  );
+}
+
 interface Props {
   tournament: ActiveTournament;
 }
 
 /**
- * Tournament card with staged disclosure (Spec 10): collapsed by default, the
- * first activation reveals singles sections, and a second reveals doubles too;
- * a further activation wraps back to collapsed. When only one discipline
- * family is present the card has a single expanded stage; when none are
- * present the header renders as a plain, non-interactive block.
+ * Tournament card with staged disclosure (Spec 10): collapsed by default; the
+ * header toggle reveals the primary family (singles, or doubles when a
+ * tournament has no singles) and collapses it again. When doubles exists
+ * alongside singles, it is revealed independently via a "see doubles
+ * matches" control below the singles sections, with its own collapse
+ * control — no second header activation needed.
  */
 export function TournamentCard({ tournament }: Props) {
   const {
@@ -45,18 +61,22 @@ export function TournamentCard({ tournament }: Props) {
     matches,
   } = tournament;
 
-  const [stage, setStage] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+  const [doublesOpen, setDoublesOpen] = useState(false);
 
   // Split matches into discipline/gender sections (Spec 08); each is sorted by
-  // match priority. Spec 10 reveals them in stages (singles, then doubles).
+  // match priority. Spec 10 reveals them in stages (primary, then doubles).
   const groups = groupMatches(matches);
-  const stages = totalStages(groups);
-  const visibleSections = sectionsForStage(groups, stage);
-  const hint = stageHint(groups, stage);
-  const isInteractive = stages > 1;
+  const primary = primaryFamily(groups);
+  const secondary = secondaryFamily(groups);
+  const isInteractive = primary.length > 0;
 
   function toggle() {
-    setStage((s) => nextStage(groups, s));
+    setExpanded((e) => {
+      const next = !e;
+      if (!next) setDoublesOpen(false);
+      return next;
+    });
   }
 
   const headerContent = (
@@ -83,33 +103,7 @@ export function TournamentCard({ tournament }: Props) {
       >
         {liveCount} live · {upcomingCount} upcoming · {doneCount} done
       </span>
-      {isInteractive && (
-        <>
-          {hint && (
-            <span
-              data-testid="tournament-stage-hint"
-              className="hidden shrink-0 text-xs text-zinc-500 dark:text-zinc-400 sm:block"
-            >
-              {hint}
-            </span>
-          )}
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 12 12"
-            className={[
-              "h-3 w-3 shrink-0 transition-transform",
-              stage > 0 ? "rotate-180" : "",
-            ].join(" ")}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M2 4.5L6 8L10 4.5" />
-          </svg>
-        </>
-      )}
+      {isInteractive && <Arrow direction={expanded ? "up" : "down"} />}
     </>
   );
 
@@ -122,7 +116,7 @@ export function TournamentCard({ tournament }: Props) {
         <button
           type="button"
           onClick={toggle}
-          aria-expanded={stage > 0}
+          aria-expanded={expanded}
           className="flex min-h-11 w-full items-center gap-2 rounded-sm text-left"
         >
           {headerContent}
@@ -130,9 +124,9 @@ export function TournamentCard({ tournament }: Props) {
       ) : (
         <div className="flex min-h-11 items-center gap-2">{headerContent}</div>
       )}
-      {visibleSections.length > 0 && (
+      {expanded && primary.length > 0 && (
         <div className="flex flex-col gap-1 pt-2">
-          {visibleSections.map((s) => (
+          {primary.map((s) => (
             <MatchGroupSection
               key={s.key}
               label={s.label}
@@ -140,6 +134,37 @@ export function TournamentCard({ tournament }: Props) {
             />
           ))}
         </div>
+      )}
+      {expanded && secondary.length > 0 && !doublesOpen && (
+        <button
+          type="button"
+          onClick={() => setDoublesOpen(true)}
+          className="mt-2 flex min-h-11 w-full items-center justify-center gap-1 rounded-sm text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          See doubles matches
+          <Arrow direction="down" />
+        </button>
+      )}
+      {expanded && secondary.length > 0 && doublesOpen && (
+        <>
+          <div className="flex flex-col gap-1 pt-2">
+            {secondary.map((s) => (
+              <MatchGroupSection
+                key={s.key}
+                label={s.label}
+                matches={s.matches}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setDoublesOpen(false)}
+            className="mt-2 flex min-h-11 w-full items-center justify-center gap-1 rounded-sm text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          >
+            Collapse doubles matches
+            <Arrow direction="up" />
+          </button>
+        </>
       )}
     </article>
   );
