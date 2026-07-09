@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { EntityMatch, TeamEntity } from "@/lib/teams/types";
 
 interface Props {
@@ -109,9 +110,11 @@ export function EntityCard({ entity }: Props) {
   const bothUnavailable = lastMatch === null && nextMatch === null;
 
   return (
-    <article
+    <Link
+      href={`/teams/${entity.favoriteId}`}
       data-testid="entity-card"
-      className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+      aria-label={`View ${displayName} matches`}
+      className="flex min-h-11 flex-col gap-3 rounded-lg border border-zinc-200 p-4 outline-none transition-colors hover:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
     >
       <header className="flex items-center gap-2">
         {badgeUrl && (
@@ -144,6 +147,6 @@ export function EntityCard({ entity }: Props) {
           />
         </div>
       )}
-    </article>
+    </Link>
   );
 }

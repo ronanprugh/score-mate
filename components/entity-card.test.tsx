@@ -16,6 +16,12 @@ function makeEntity(over: Partial<TeamEntity> = {}): TeamEntity {
 }
 
 describe("EntityCard", () => {
+  it("renders as a link to the entity's detail route with an accessible label", () => {
+    render(<EntityCard entity={makeEntity({ favoriteId: "fav-42" })} />);
+    const link = screen.getByRole("link", { name: "View Arsenal matches" });
+    expect(link).toHaveAttribute("href", "/teams/fav-42");
+  });
+
   it("renders both last and next match rows when populated", () => {
     render(
       <EntityCard
