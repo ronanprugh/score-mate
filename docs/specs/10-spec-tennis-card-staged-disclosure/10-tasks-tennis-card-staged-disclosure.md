@@ -75,7 +75,7 @@ behavior. Covers Spec Unit 2.
 - [x] 2.7 Run `pnpm test:ci components/tournament-card.test.tsx` and confirm green.
 - [x] 2.8 Start the dev server, open the tennis-day fixture, and capture screenshots at each stage (collapsed → singles → singles+doubles) for the proof artifacts.
 
-### [ ] 3.0 Quality gates & end-to-end proof capture
+### [x] 3.0 Quality gates & end-to-end proof capture
 
 Run the full CI-equivalent gate set and capture the before/after visual proof so
 the change is validated exactly as CI and a reviewer would see it. Covers Spec
@@ -89,8 +89,8 @@ Success Metrics and the repo quality gates.
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Run `pnpm lint` and `pnpm format:check`; fix any issues (run `pnpm format` if needed).
-- [ ] 3.2 Run `pnpm typecheck`; resolve any type errors (no `any`, no untracked suppressions).
-- [ ] 3.3 Run `pnpm test:ci` (full suite) and confirm all tests green, including untouched neighbors.
-- [ ] 3.4 Run `pnpm build` and confirm it succeeds.
-- [ ] 3.5 Capture the collapsed-default screenshot and save proof artifacts under `docs/specs/10-spec-tennis-card-staged-disclosure/10-proofs/`.
+- [x] 3.1 Run `pnpm lint` and `pnpm format:check`; fix any issues (run `pnpm format` if needed).
+- [x] 3.2 Run `pnpm typecheck`; resolve any type errors (no `any`, no untracked suppressions).
+- [x] 3.3 Run `pnpm test:ci` (full suite) and confirm all tests green, including untouched neighbors.
+- [x] 3.4 Run `pnpm build` and confirm it succeeds.
+- [x] 3.5 Capture the collapsed-default screenshot and save proof artifacts under `docs/specs/10-spec-tennis-card-staged-disclosure/10-proofs/`.
