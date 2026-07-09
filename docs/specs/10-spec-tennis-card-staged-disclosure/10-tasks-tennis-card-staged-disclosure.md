@@ -49,7 +49,7 @@ core that Unit 2 renders. Covers Spec Unit 1.
 - [x] 1.7 Write `lib/home/tennis-card-stages.test.ts` covering: both-families (3 stages; stage 1 = singles keys only; stage 2 = singles+doubles), singles-only (2 stages), doubles-only (2 stages; stage 1 shows doubles), no-sections (1 stage), `nextStage` wrap from final → 0, and `stageHint` strings per stage.
 - [x] 1.8 Run `pnpm test:ci lib/home/tennis-card-stages.test.ts` and confirm green.
 
-### [ ] 2.0 Tournament card staged interaction & UI
+### [x] 2.0 Tournament card staged interaction & UI
 
 Wire the staged-reveal logic into `TournamentCard`: collapsed by default, a single
 header toggle that cycles collapsed → singles → singles+doubles → collapsed, a
@@ -66,14 +66,14 @@ behavior. Covers Spec Unit 2.
 
 #### 2.0 Tasks
 
-- [ ] 2.1 In `tournament-card.tsx`, compute `groups = groupMatches(matches)` and `stages = totalStages(groups)`; add `const [stage, setStage] = useState(0)`.
-- [ ] 2.2 Make the header a single toggle `button` (only when `stages > 1`) that calls `setStage((s) => nextStage(groups, s))`, sets `aria-expanded={stage > 0}`, and keeps the existing name/date/round/counts content and ≥44px (`min-h-11`) target.
-- [ ] 2.3 Add the chevron SVG (reuse the `match-group-section.tsx` rotate pattern) and render `stageHint(groups, stage)` as a muted `text-xs` label in the header; follow the `hidden … sm:block` pattern if width-constrained.
-- [ ] 2.4 Render only `sectionsForStage(groups, stage)` as `MatchGroupSection`s (each still collapsed-by-default, unchanged); render nothing below the header at stage 0.
-- [ ] 2.5 When `stages === 1` (no classifiable sections), render the header as plain non-interactive markup (no button, no chevron, no `aria-expanded`), matching today's no-sections output.
-- [ ] 2.6 Revise `components/tournament-card.test.tsx`: update the existing `(b)`/`(c)`/`(c3)`/`(c4)`/`(e)` cases to the staged model (collapsed default, activate to reveal), and add cases for: zero sections at stage 0, singles-only after 1 click, singles+doubles after 2 clicks, wrap-to-collapsed on 3rd click, `aria-expanded`/hint updates, and non-interactive header for no-sections. Also add: (i) a **doubles-only** tournament renders its doubles sections after the first activation (component-level coverage of the logic-layer path); and (ii) a **remount/reset** assertion — re-rendering a fresh `TournamentCard` returns to stage 0 (zero `match-group`), guarding the ephemeral-state requirement against future lifted/persisted-state regressions.
-- [ ] 2.7 Run `pnpm test:ci components/tournament-card.test.tsx` and confirm green.
-- [ ] 2.8 Start the dev server, open the tennis-day fixture, and capture screenshots at each stage (collapsed → singles → singles+doubles) for the proof artifacts.
+- [x] 2.1 In `tournament-card.tsx`, compute `groups = groupMatches(matches)` and `stages = totalStages(groups)`; add `const [stage, setStage] = useState(0)`.
+- [x] 2.2 Make the header a single toggle `button` (only when `stages > 1`) that calls `setStage((s) => nextStage(groups, s))`, sets `aria-expanded={stage > 0}`, and keeps the existing name/date/round/counts content and ≥44px (`min-h-11`) target.
+- [x] 2.3 Add the chevron SVG (reuse the `match-group-section.tsx` rotate pattern) and render `stageHint(groups, stage)` as a muted `text-xs` label in the header; follow the `hidden … sm:block` pattern if width-constrained.
+- [x] 2.4 Render only `sectionsForStage(groups, stage)` as `MatchGroupSection`s (each still collapsed-by-default, unchanged); render nothing below the header at stage 0.
+- [x] 2.5 When `stages === 1` (no classifiable sections), render the header as plain non-interactive markup (no button, no chevron, no `aria-expanded`), matching today's no-sections output.
+- [x] 2.6 Revise `components/tournament-card.test.tsx`: update the existing `(b)`/`(c)`/`(c3)`/`(c4)`/`(e)` cases to the staged model (collapsed default, activate to reveal), and add cases for: zero sections at stage 0, singles-only after 1 click, singles+doubles after 2 clicks, wrap-to-collapsed on 3rd click, `aria-expanded`/hint updates, and non-interactive header for no-sections. Also add: (i) a **doubles-only** tournament renders its doubles sections after the first activation (component-level coverage of the logic-layer path); and (ii) a **remount/reset** assertion — re-rendering a fresh `TournamentCard` returns to stage 0 (zero `match-group`), guarding the ephemeral-state requirement against future lifted/persisted-state regressions.
+- [x] 2.7 Run `pnpm test:ci components/tournament-card.test.tsx` and confirm green.
+- [x] 2.8 Start the dev server, open the tennis-day fixture, and capture screenshots at each stage (collapsed → singles → singles+doubles) for the proof artifacts.
 
 ### [ ] 3.0 Quality gates & end-to-end proof capture
 
