@@ -91,7 +91,7 @@ Extend the athlete data path to resolve a **player** favorite's schedule into fu
 
   Note: flag/seed enrichment for tennis players (`TennisPlayerLine.flagUrl`/`flagAlt`/`seed`) was intentionally left unset — these are optional fields on `TennisPlayerLine`/`TennisMatchCard` and populating them would require extra per-match ESPN fetches beyond the capped set, working against the fan-out bound in 3.2. Cards render correctly without them (verified by tests).
 
-### [ ] 4.0 Chronological layout with focus-on-recent + empty states
+### [x] 4.0 Chronological layout with focus-on-recent + empty states
 
 Assemble recent + upcoming into one continuous chronological list (past → future) with a subtle completed/upcoming divider, position the viewport on the most recent completed match on load (scroll up = older, down = upcoming), and render section-level empty copy ("No recent matches" / "No upcoming matches") and a single unavailable state when both are empty. Mobile-first, reusing Home's spacing/typography. (Spec Unit 4; Goals 4, 5; FR: chronological order, divider, focus-on-recent, per-section + combined empty states.)
 
@@ -103,10 +103,12 @@ Assemble recent + upcoming into one continuous chronological list (past → futu
 
 #### 4.0 Tasks
 
-- [ ] 4.1 In `components/entity-matches-client.tsx`, render a single continuous list ordered past → future: completed matches oldest→newest, then upcoming soonest→latest (transform the endpoint's `recent` — which is most-recent-first — into ascending order for display).
-- [ ] 4.2 Insert a subtle divider between the last completed and first upcoming match marking the "today"/now boundary (styled with Home's zinc/divide conventions). When one side is empty, place the divider sensibly (or omit it) without breaking layout.
-- [ ] 4.3 On mount, scroll the most recent completed match (the item just above the divider) into view using a `ref` + `scrollIntoView`, so the screen opens focused on recent form; guard against layout shift from lazy-loading card images (e.g. scroll after data render / images `loading="lazy"`).
-- [ ] 4.4 Add empty states: "No recent matches" when `recent` is empty, "No upcoming matches" when `upcoming` is empty, and a single "Match data unavailable" message when both are empty (reuse Teams/Home empty-copy tone). Keep the `DataSourceErrorBanner` behavior when `source.ok === false`, consistent with `TeamsClient`.
-- [ ] 4.5 Ensure mobile-first layout parity with Home (spacing, responsive grid/stack, safe-area insets) and that cards remain the unchanged `MatchCard`/`TennisMatchCard`.
-- [ ] 4.6 Add `components/entity-matches-client.test.tsx`: asserts past→future ordering, divider placement between completed/upcoming, correct per-section and combined empty copy, sport→card routing (Tennis→`TennisMatchCard`, else→`MatchCard`), and — via an `Element.prototype.scrollIntoView` spy — that the most-recent-completed match element is scrolled into view on mount (focus-on-recent).
-- [ ] 4.7 Run the quality gates; capture the focus-on-recent (with divider) and sparse-entity empty-state screenshots on a mobile viewport as proof artifacts.
+- [x] 4.1 In `components/entity-matches-client.tsx`, render a single continuous list ordered past → future: completed matches oldest→newest, then upcoming soonest→latest (transform the endpoint's `recent` — which is most-recent-first — into ascending order for display).
+- [x] 4.2 Insert a subtle divider between the last completed and first upcoming match marking the "today"/now boundary (styled with Home's zinc/divide conventions). When one side is empty, place the divider sensibly (or omit it) without breaking layout.
+- [x] 4.3 On mount, scroll the most recent completed match (the item just above the divider) into view using a `ref` + `scrollIntoView`, so the screen opens focused on recent form; guard against layout shift from lazy-loading card images (e.g. scroll after data render / images `loading="lazy"`).
+- [x] 4.4 Add empty states: "No recent matches" when `recent` is empty, "No upcoming matches" when `upcoming` is empty, and a single "Match data unavailable" message when both are empty (reuse Teams/Home empty-copy tone). Keep the `DataSourceErrorBanner` behavior when `source.ok === false`, consistent with `TeamsClient`.
+- [x] 4.5 Ensure mobile-first layout parity with Home (spacing, responsive grid/stack, safe-area insets) and that cards remain the unchanged `MatchCard`/`TennisMatchCard`.
+- [x] 4.6 Add `components/entity-matches-client.test.tsx`: asserts past→future ordering, divider placement between completed/upcoming, correct per-section and combined empty copy, sport→card routing (Tennis→`TennisMatchCard`, else→`MatchCard`), and — via an `Element.prototype.scrollIntoView` spy — that the most-recent-completed match element is scrolled into view on mount (focus-on-recent).
+- [x] 4.7 Run the quality gates; capture the focus-on-recent (with divider) and sparse-entity empty-state screenshots on a mobile viewport as proof artifacts.
+
+  Note: authenticated mobile screenshots require a real signed-in session (OAuth/magic-link), unavailable in this sandboxed environment (same limitation noted in Tasks 1.0-3.0's proofs). Layout/ordering/divider/focus/empty-state behavior is proven via the automated test suite in `11-task-4-proofs.md` plus a live no-server-errors check instead.
