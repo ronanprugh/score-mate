@@ -57,7 +57,7 @@ Task list for `12-spec-performance-optimization.md`.
 - [x] 1.7 Run all quality gates (`pnpm test:ci`, `pnpm typecheck`, `pnpm lint`, `pnpm format:check`); capture a `curl -sD -` proof of the `Server-Timing` header against `pnpm build && pnpm start`.
 - [x] 1.8 Commit as `perf: add server timing instrumentation to data routes` with body `Related to T1.0 in Spec 12-spec-performance-optimization`.
 
-### [ ] 2.0 Capture baseline performance report and confirm targets
+### [~] 2.0 Capture baseline performance report and confirm targets
 
 #### 2.0 Proof Artifact(s)
 
