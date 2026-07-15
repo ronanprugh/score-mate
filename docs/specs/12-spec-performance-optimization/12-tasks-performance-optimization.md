@@ -57,7 +57,7 @@ Task list for `12-spec-performance-optimization.md`.
 - [x] 1.7 Run all quality gates (`pnpm test:ci`, `pnpm typecheck`, `pnpm lint`, `pnpm format:check`); capture a `curl -sD -` proof of the `Server-Timing` header against `pnpm build && pnpm start`.
 - [x] 1.8 Commit as `perf: add server timing instrumentation to data routes` with body `Related to T1.0 in Spec 12-spec-performance-optimization`.
 
-### [~] 2.0 Capture baseline performance report and confirm targets
+### [x] 2.0 Capture baseline performance report and confirm targets
 
 #### 2.0 Proof Artifact(s)
 
@@ -67,12 +67,12 @@ Task list for `12-spec-performance-optimization.md`.
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Build and serve a production build locally (`pnpm build && pnpm start`) with a signed-in test session and at least one favorite per relevant sport so `/api/home` exercises a realistic fan-out.
-- [ ] 2.2 Measure cold-cache latency: restart the server (fresh cache), then hit each of the four endpoints once and record the timing log line (duration + fan-out count).
-- [ ] 2.3 Measure warm-cache latency: repeat each request ≥5 times within the shortest TTL window (30s) and record min/median/max durations.
-- [ ] 2.4 Write `12-baseline-performance.md`: a table of cold/warm numbers per endpoint, the observed `/api/home` fan-out count, a ranked list of the highest-cost bottlenecks mapped to the spec's candidate-optimization list, and proposed numeric targets derived from the numbers (e.g. "warm median under N ms, cold under M ms"). Redact any cookies/headers in captured output.
-- [ ] 2.5 Present the baseline and proposed targets to the user and STOP — do not begin Task 3.0 until the user confirms the targets (and, if polling ranks highest, until the user answers Spec § Open Questions 2).
-- [ ] 2.6 After confirmation, record the confirmed targets in the baseline doc and commit as `docs(perf): add baseline performance report` with body `Related to T2.0 in Spec 12-spec-performance-optimization`.
+- [x] 2.1 Build and serve a production build locally (`pnpm build && pnpm start`) with a signed-in test session and at least one favorite per relevant sport so `/api/home` exercises a realistic fan-out.
+- [x] 2.2 Measure cold-cache latency: restart the server (fresh cache), then hit each of the four endpoints once and record the timing log line (duration + fan-out count).
+- [x] 2.3 Measure warm-cache latency: repeat each request ≥5 times within the shortest TTL window (30s) and record min/median/max durations.
+- [x] 2.4 Write `12-baseline-performance.md`: a table of cold/warm numbers per endpoint, the observed `/api/home` fan-out count, a ranked list of the highest-cost bottlenecks mapped to the spec's candidate-optimization list, and proposed numeric targets derived from the numbers (e.g. "warm median under N ms, cold under M ms"). Redact any cookies/headers in captured output.
+- [x] 2.5 Present the baseline and proposed targets to the user and STOP — do not begin Task 3.0 until the user confirms the targets (and, if polling ranks highest, until the user answers Spec § Open Questions 2).
+- [x] 2.6 After confirmation, record the confirmed targets in the baseline doc and commit as `docs(perf): add baseline performance report` with body `Related to T2.0 in Spec 12-spec-performance-optimization`.
 
 ### [ ] 3.0 Implement highest-impact hot-path optimizations
 
