@@ -93,7 +93,7 @@ Task list for `12-spec-performance-optimization.md`.
 - [x] 3.6 Implemented: pass `{ revalidateSeconds: 300 }` to both `teamScheduleForLeague` call sites (`app/api/teams/route.ts` and `app/api/teams/[favoriteId]/matches/route.ts`). 461/461 tests pass; typecheck clean; format clean.
 - [x] 3.7 Commit each optimization separately as `perf(home): <what>` with body `Related to T3.0 in Spec 12-spec-performance-optimization`.
 
-### [ ] 4.0 Measure after-state and record before/after evidence
+### [x] 4.0 Measure after-state and record before/after evidence
 
 #### 4.0 Proof Artifact(s)
 
@@ -103,12 +103,12 @@ Task list for `12-spec-performance-optimization.md`.
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Re-run the exact Task 2.2/2.3 measurement procedure (same production-build setup, same favorites, cold + warm passes) on the optimized code.
-- [ ] 4.2 Append a before/after table to `12-baseline-performance.md`: per-endpoint cold/warm durations and `/api/home` fan-out counts, with percentage change against baseline and pass/fail against the confirmed targets.
-- [ ] 4.3 If a confirmed target is missed, report the gap to the user and STOP for a decision (iterate on Task 3.0 vs. accept and document) — do not silently proceed.
-- [ ] 4.4 Run the full gate set one final time and commit as `docs(perf): record before/after performance evidence` with body `Related to T4.0 in Spec 12-spec-performance-optimization`.
+- [x] 4.1 Re-run the exact Task 2.2/2.3 measurement procedure (same production-build setup, same favorites, cold + warm passes) on the optimized code.
+- [x] 4.2 Append a before/after table to `12-baseline-performance.md`: per-endpoint cold/warm durations and `/api/home` fan-out counts, with percentage change against baseline and pass/fail against the confirmed targets.
+- [x] 4.3 Cold target missed (1 363 ms vs ≤ 600 ms); reported to user; user selected option C (accept and document — no further code change). Warm target exceeded at 19 ms (−94%).
+- [x] 4.4 Run the full gate set one final time and commit as `docs(perf): record before/after performance evidence` with body `Related to T4.0 in Spec 12-spec-performance-optimization`.
 
-### [ ] 5.0 Deliver prioritized code-quality findings document
+### [x] 5.0 Deliver prioritized code-quality findings document
 
 #### 5.0 Proof Artifact(s)
 
@@ -118,8 +118,8 @@ Task list for `12-spec-performance-optimization.md`.
 
 #### 5.0 Tasks
 
-- [ ] 5.1 Collect code-quality observations noted while working Tasks 1.0–4.0 (e.g. `lib/espn/client.ts` size/structure, duplicated `addDays` helpers in `lib/home/cache.ts` and `lib/home/aggregator.ts`, per-request `auth()` database session lookup, any dead or deprecated-alias code encountered).
-- [ ] 5.2 Write `12-code-quality-findings.md`: one entry per finding with file reference, issue description, why it matters, suggested direction, and a high/medium/low priority; order by priority so a follow-up spec can be cut from the top.
-- [ ] 5.3 Add the Cache Components evaluation section: read `node_modules/next/dist/docs/01-app/` on `cacheComponents` / `"use cache"`, then document what a migration of `lib/home/cache.ts` would entail, a recommendation, and a rough scope estimate.
-- [ ] 5.4 Verify scope containment: review `git log`/`git diff` for the spec's commits and confirm code changes are limited to instrumentation and selected Task 3.0 optimizations; note the verification in the findings doc.
-- [ ] 5.5 Commit as `docs(perf): add code-quality findings and cache migration evaluation` with body `Related to T5.0 in Spec 12-spec-performance-optimization`.
+- [x] 5.1 Collect code-quality observations noted while working Tasks 1.0–4.0 (e.g. `lib/espn/client.ts` size/structure, duplicated `addDays` helpers in `lib/home/cache.ts` and `lib/home/aggregator.ts`, per-request `auth()` database session lookup, any dead or deprecated-alias code encountered).
+- [x] 5.2 Write `12-code-quality-findings.md`: one entry per finding with file reference, issue description, why it matters, suggested direction, and a high/medium/low priority; order by priority so a follow-up spec can be cut from the top.
+- [x] 5.3 Add the Cache Components evaluation section: read `node_modules/next/dist/docs/01-app/` on `cacheComponents` / `"use cache"`, then document what a migration of `lib/home/cache.ts` would entail, a recommendation, and a rough scope estimate.
+- [x] 5.4 Verify scope containment: review `git log`/`git diff` for the spec's commits and confirm code changes are limited to instrumentation and selected Task 3.0 optimizations; note the verification in the findings doc.
+- [x] 5.5 Commit as `docs(perf): add code-quality findings and cache migration evaluation` with body `Related to T5.0 in Spec 12-spec-performance-optimization`.
