@@ -136,4 +136,76 @@ Confirmed by user on 2026-07-15.
 | `/api/teams/[id]/matches` | Warm median | ≤ 50 ms |
 | `/api/favorites/search` | Warm median | ≤ 20 ms |
 
-**Selected optimization:** add server-side caching (`revalidateSeconds: 300`) to `teamScheduleForLeague` calls in the teams route. No polling changes, no fan-out reduction — the data does not support those.
+**Selected optimization (final):** wrap `teamScheduleForLeague` and `athleteSchedule` calls in `unstable_cache` with a 300 s TTL in `app/api/teams/route.ts`. This stores ESPN responses in the Node.js process heap within a warm serverless instance — the same pattern `lib/home/cache.ts` uses for the home aggregator.
+
+> Note: the first iteration added `revalidateSeconds: 300` to `teamScheduleForLeague` call sites, which uses Vercel's network-level Data Cache. That reduced warm from 330 ms → 299 ms (miss) because the Data Cache round-trip itself costs ~250 ms. The second iteration switched to `unstable_cache` (in-process, ~1–5 ms reads), achieving 19 ms warm.
+
+---
+
+## After-State Timings (deployment `dpl_EeDuEcA7xZbAuCUXfTXQLmFKyFQ4`, commit `61ffef9`)
+
+Measurements taken 2026-07-15 against the `unstable_cache` optimization. Same procedure as Task 2.2/2.3 (Vercel runtime logs, server-side durations).
+
+### `/api/teams` (after)
+
+| Run | Server-side (ms) | Notes |
+|-----|-----------------|-------|
+| Cold | 1 363 | 7 ESPN calls, no in-process cache (new instance) |
+| Warm 2 | 19 | `unstable_cache` populated |
+| Warm 3 | 18 | |
+| Warm 4 | 19 | |
+| Warm 5 | 21 | |
+| Warm 6 | 34 | |
+
+**Cold: 1 363 ms** | **Warm median (runs 2–6): 19 ms** | **Warm range: 18–34 ms**
+
+### `/api/home` (after — unmodified)
+
+| Run | Server-side (ms) | Notes |
+|-----|-----------------|-------|
+| Cold | 3 307 | Unmodified — higher natural variation vs baseline (more sports in season) |
+| Warm 1 | 2 183 | Likely a second concurrent cold instance (different serverless container) |
+| Warm 2 | 124 | Fully warm |
+| Warm 3 | 116 | |
+| Warm 4 | 117 | |
+| Warm 5 | 139 | |
+| Warm 6 | 134 | |
+
+**Warm median (runs 3–7): 124 ms** — unchanged from baseline (home was not modified).
+
+### `/api/teams/[id]/matches` (after — `revalidateSeconds: 300` from first iteration, in place)
+
+| Run | Server-side (ms) |
+|-----|-----------------|
+| 1 | 37 |
+| 2 | 17 |
+| 3 | 17 |
+| 4 | 19 |
+| 5 | 16 |
+
+**Warm median: 17 ms** | **Range: 16–37 ms**
+
+---
+
+## Before / After Summary
+
+| Endpoint | Metric | Before | After | Δ | Target | Pass? |
+|----------|--------|--------|-------|---|--------|-------|
+| `/api/teams` | Warm median | 330 ms | **19 ms** | −94% | ≤ 100 ms | ✅ |
+| `/api/teams` | Cold | 2 417 ms | **1 363 ms** | −44% | ≤ 600 ms | ❌ |
+| `/api/home` | Warm median | 133 ms | **124 ms** | −7% | ≤ 200 ms | ✅ |
+| `/api/teams/[id]/matches` | Warm median | 20 ms | **17 ms** | −15% | ≤ 50 ms | ✅ |
+| `/api/favorites/search` | Warm median | 6 ms | (not re-measured; unchanged) | — | ≤ 20 ms | ✅ |
+
+### Cold-target gap — Task 4.3 stop
+
+`/api/teams` cold is **1 363 ms** against a confirmed target of ≤ 600 ms.
+
+**Root cause:** `unstable_cache` stores responses in the Node.js process heap within the _current_ serverless function instance. A cold start (new instance, new deployment, or long inactivity) has no populated cache and must make all 7 ESPN calls live. The warm target (≤ 100 ms) is achievable and was dramatically exceeded at 19 ms. The cold target (≤ 600 ms) implicitly assumed persistence across instances, which requires the Vercel Data Cache (`revalidateSeconds`) — but that approach costs ~250 ms per warm read, preventing the warm target from being met.
+
+**Trade-off:**
+- `unstable_cache` (current): warm 19 ms ✅, cold 1 363 ms ❌
+- `revalidateSeconds` (first attempt): warm ~299 ms ❌, cold would likely improve (Data Cache survives instances)
+- Hybrid (both): warm ~19 ms ✅ from in-process hit; cold ~200–300 ms ✅ from Data Cache on first instance request — but adds complexity
+
+**Decision (2026-07-15):** Accept and document (option C). No additional code change. The cold performance is bounded by ESPN API latency across 7 live calls; the confirmed cold target (≤ 600 ms) was set before the `unstable_cache` vs. Data Cache trade-off was understood. The warm target (≤ 100 ms) — the common case for active polling users — is met at 19 ms. Cold starts occur only on new deployments or after extended inactivity and are acceptable at 1 363 ms (44% improvement from 2 417 ms baseline).
