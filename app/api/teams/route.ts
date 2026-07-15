@@ -15,6 +15,7 @@
  * usable data for the athlete.
  */
 
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { withServerTiming } from "@/lib/perf/server-timing";
@@ -92,10 +93,11 @@ async function buildEntity(
       return playerBase;
     }
     try {
-      const { lastMatch, nextMatch } = await athleteSchedule(
-        leagueKey,
-        fav.externalId,
-      );
+      const { lastMatch, nextMatch } = await unstable_cache(
+        () => athleteSchedule(leagueKey, fav.externalId),
+        ["teams-athlete-schedule", leagueKey, fav.externalId],
+        { revalidate: 300 },
+      )();
       // athleteSchedule never throws, but a graceful null result for a player
       // ESPN has no data on shouldn't flip source.ok — the card just shows
       // "Match data unavailable".
@@ -132,11 +134,11 @@ async function buildEntity(
   if (catalogTeam.badgeUrl) base.badgeUrl = catalogTeam.badgeUrl;
 
   try {
-    const schedule = await teamScheduleForLeague(
-      catalogTeam.leagueKey,
-      fav.externalId,
-      { revalidateSeconds: 300 },
-    );
+    const schedule = await unstable_cache(
+      () => teamScheduleForLeague(catalogTeam.leagueKey, fav.externalId),
+      ["teams-team-schedule", catalogTeam.leagueKey, fav.externalId],
+      { revalidate: 300 },
+    )();
     const { lastMatch, nextMatch } = extractEntityMatches(
       schedule,
       fav.externalId,

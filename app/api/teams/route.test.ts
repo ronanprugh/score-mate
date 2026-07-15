@@ -29,6 +29,13 @@ vi.mock("@/lib/espn/client", () => ({
     athleteScheduleMock(leagueKey, athleteId),
 }));
 
+// unstable_cache requires the Next.js incremental cache context which is
+// absent in the Vitest jsdom environment. Stub it as a transparent passthrough
+// so the route's caching layer doesn't interfere with unit-test assertions.
+vi.mock("next/cache", () => ({
+  unstable_cache: (fn: () => unknown) => fn,
+}));
+
 import { GET } from "./route";
 
 const SESSION = { user: { id: "user-a", email: "a@example.com" } };
