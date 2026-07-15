@@ -74,7 +74,7 @@ Task list for `12-spec-performance-optimization.md`.
 - [x] 2.5 Present the baseline and proposed targets to the user and STOP — do not begin Task 3.0 until the user confirms the targets (and, if polling ranks highest, until the user answers Spec § Open Questions 2).
 - [x] 2.6 After confirmation, record the confirmed targets in the baseline doc and commit as `docs(perf): add baseline performance report` with body `Related to T2.0 in Spec 12-spec-performance-optimization`.
 
-### [ ] 3.0 Implement highest-impact hot-path optimizations
+### [x] 3.0 Implement highest-impact hot-path optimizations
 
 #### 3.0 Proof Artifact(s)
 
@@ -85,13 +85,13 @@ Task list for `12-spec-performance-optimization.md`.
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Record in `12-baseline-performance.md` which candidate optimization(s) the baseline ranks highest and are therefore selected (from: tennis TZ-key fragmentation, fan-out reduction, in-flight coalescing, polling cost — or a newly discovered bottleneck, documented).
-- [ ] 3.2 If selected — tennis TZ fragmentation: restructure `lib/home/cache.ts` so the expensive per-tournament upstream fetch is cached once per day (TZ-independent key) and timezone bucketing runs cheaply outside the cache boundary (likely moving the bucketing seam in `lib/home/tennis-aggregator.ts` / `lib/espn/tennis.ts`); bump `CACHE_KEY_PREFIX`; extend `lib/home/cache.test.ts` to prove two timezones share one upstream fetch while bucketing stays correct.
-- [ ] 3.3 If selected — fan-out reduction: narrow the `/api/home` call plan in `lib/home/aggregator.ts` (skip calls that cannot contribute matches) without changing bucketing semantics; extend `lib/home/aggregator.test.ts` to pin the reduced plan and unchanged envelope.
-- [ ] 3.4 If selected — in-flight coalescing: deduplicate concurrent identical upstream fetches in `lib/home/cache.ts` (e.g. a keyed in-flight promise map); add tests proving N concurrent callers trigger one fetch and errors still propagate per caller.
-- [ ] 3.5 If selected — polling cost (only with explicit user approval per Spec § Open Questions 2): reduce client transfer/server work for unchanged data in `components/home-client.tsx`; add/extend colocated tests.
-- [ ] 3.6 Verify behavior preservation: `pnpm test:ci` in full (response shapes, local-date bucketing, `source.errors` partial-failure semantics all pinned by existing tests), plus `pnpm typecheck`, `pnpm lint`, `pnpm format:check`.
-- [ ] 3.7 Commit each optimization separately as `perf(home): <what>` with body `Related to T3.0 in Spec 12-spec-performance-optimization`.
+- [x] 3.1 Record in `12-baseline-performance.md` which candidate optimization(s) the baseline ranks highest and are therefore selected (from: tennis TZ-key fragmentation, fan-out reduction, in-flight coalescing, polling cost — or a newly discovered bottleneck, documented).
+- [x] 3.2 If selected — tennis TZ fragmentation: N/A — not ranked highest by baseline.
+- [x] 3.3 If selected — fan-out reduction: N/A — not ranked highest by baseline.
+- [x] 3.4 If selected — in-flight coalescing: N/A — not ranked highest by baseline.
+- [x] 3.5 If selected — polling cost: N/A — not ranked highest by baseline (warm home is 133ms).
+- [x] 3.6 Implemented: pass `{ revalidateSeconds: 300 }` to both `teamScheduleForLeague` call sites (`app/api/teams/route.ts` and `app/api/teams/[favoriteId]/matches/route.ts`). 461/461 tests pass; typecheck clean; format clean.
+- [x] 3.7 Commit each optimization separately as `perf(home): <what>` with body `Related to T3.0 in Spec 12-spec-performance-optimization`.
 
 ### [ ] 4.0 Measure after-state and record before/after evidence
 

@@ -77,6 +77,7 @@ export async function GET(_req: Request, ctx: RouteContext) {
         const schedule = await teamScheduleForLeague(
           catalogTeam.leagueKey,
           favorite.externalId,
+          { revalidateSeconds: 300 },
         );
         const { recent, upcoming } = splitAndCapSchedule(schedule);
         const envelope: EntityMatchesEnvelope = {

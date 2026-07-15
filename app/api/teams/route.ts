@@ -135,6 +135,7 @@ async function buildEntity(
     const schedule = await teamScheduleForLeague(
       catalogTeam.leagueKey,
       fav.externalId,
+      { revalidateSeconds: 300 },
     );
     const { lastMatch, nextMatch } = extractEntityMatches(
       schedule,
