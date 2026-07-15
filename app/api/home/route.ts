@@ -25,6 +25,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { aggregateMatchesForUser } from "@/lib/home/aggregator";
 import { makeCachedFetchers } from "@/lib/home/cache";
+import { withServerTiming } from "@/lib/perf/server-timing";
 import type { DateWindow } from "@/lib/date-window";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -82,13 +83,17 @@ export async function GET(req: NextRequest) {
   }
 
   const tz = parseTimezone(searchParams.get("tz"));
+  const userId = session.user.id;
 
-  const envelope = await aggregateMatchesForUser(
-    session.user.id,
-    dates,
-    makeCachedFetchers(dates),
-    tz,
-  );
-
-  return NextResponse.json(envelope, { status: 200 });
+  const counters: Record<string, number> = {};
+  return withServerTiming("home", counters, async () => {
+    const envelope = await aggregateMatchesForUser(
+      userId,
+      dates,
+      makeCachedFetchers(dates),
+      tz,
+      counters,
+    );
+    return NextResponse.json(envelope, { status: 200 });
+  });
 }

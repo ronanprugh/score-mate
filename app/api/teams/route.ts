@@ -17,6 +17,7 @@
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { withServerTiming } from "@/lib/perf/server-timing";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
 import { athleteSchedule, teamScheduleForLeague } from "@/lib/espn/client";
 import { leagueKeysForSport } from "@/lib/espn/leagues";
@@ -156,19 +157,22 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const favorites = await listFavoritesForUser(session.user.id);
-  const entityFavorites = favorites.filter(
-    (f) => f.type === "team" || f.type === "player",
-  );
+  const userId = session.user.id;
+  return withServerTiming("teams", {}, async () => {
+    const favorites = await listFavoritesForUser(userId);
+    const entityFavorites = favorites.filter(
+      (f) => f.type === "team" || f.type === "player",
+    );
 
-  const errors: string[] = [];
-  const entities = await Promise.all(
-    entityFavorites.map((fav) => buildEntity(fav, errors)),
-  );
+    const errors: string[] = [];
+    const entities = await Promise.all(
+      entityFavorites.map((fav) => buildEntity(fav, errors)),
+    );
 
-  const envelope: TeamsEnvelope = {
-    entities,
-    source: { ok: errors.length === 0, errors },
-  };
-  return NextResponse.json(envelope, { status: 200 });
+    const envelope: TeamsEnvelope = {
+      entities,
+      source: { ok: errors.length === 0, errors },
+    };
+    return NextResponse.json(envelope, { status: 200 });
+  });
 }

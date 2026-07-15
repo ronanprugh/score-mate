@@ -89,7 +89,7 @@ describe("GET /api/home", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual(EMPTY_ENVELOPE);
-    // Aggregator received the user's id + the parsed dates.
+    // Aggregator received the user's id + the parsed dates + out-param.
     expect(aggregateMock).toHaveBeenCalledWith(
       "user-a",
       { yesterday: "2026-06-21", today: "2026-06-22", tomorrow: "2026-06-23" },
@@ -97,7 +97,20 @@ describe("GET /api/home", () => {
         eventsLeagueDay: expect.any(Function),
       }),
       expect.any(String),
+      expect.any(Object),
     );
+  });
+
+  it("includes a Server-Timing header and passes the JSON body through unchanged", async () => {
+    authMock.mockResolvedValue(SESSION);
+    aggregateMock.mockResolvedValue(EMPTY_ENVELOPE);
+    const res = await GET(
+      makeRequest("?dates=2026-06-21,2026-06-22,2026-06-23") as never,
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Server-Timing")).toMatch(/^home;dur=\d+/);
+    const body = await res.json();
+    expect(body).toEqual(EMPTY_ENVELOPE);
   });
 
   it("returns 200 with source.ok=false (partial failure) and still passes data through", async () => {

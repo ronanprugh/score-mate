@@ -298,4 +298,17 @@ describe("GET /api/favorites/search — player results", () => {
     expect(players).toHaveLength(1);
     expect(players[0]!.externalId).toBe("s1");
   });
+
+  it("includes a Server-Timing header on a search response", async () => {
+    searchAthletesMock.mockResolvedValue([]);
+    authMock.mockResolvedValue(SESSION);
+
+    const res = await GET(
+      new Request("http://localhost/api/favorites/search?q=arsenal") as never,
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Server-Timing")).toMatch(
+      /^favorites-search;dur=\d+/,
+    );
+  });
 });

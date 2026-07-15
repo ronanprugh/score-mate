@@ -270,4 +270,13 @@ describe("GET /api/teams", () => {
     expect(body.source.ok).toBe(false);
     expect(body.source.errors).toContain("ESPN athlete 500");
   });
+
+  it("includes a Server-Timing header on a successful response", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([]);
+
+    const res = await GET();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Server-Timing")).toMatch(/^teams;dur=\d+/);
+  });
 });

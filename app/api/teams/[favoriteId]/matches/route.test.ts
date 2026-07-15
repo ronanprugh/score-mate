@@ -275,4 +275,14 @@ describe("GET /api/teams/[favoriteId]/matches", () => {
     expect(body.upcoming).toEqual([]);
     expect(body.source.ok).toBe(true);
   });
+
+  it("includes a Server-Timing header on a 200 response", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteMatchHistoryMock.mockResolvedValue({ recent: [], upcoming: [] });
+
+    const res = await GET(new Request("http://x"), ctx("fav-p1"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Server-Timing")).toMatch(/^teams-matches;dur=\d+/);
+  });
 });

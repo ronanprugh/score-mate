@@ -208,13 +208,29 @@ export function planLeagueKeys(favorites: readonly FavoriteRow[]): string[] {
 }
 
 /**
+ * Returns the number of upstream fetcher invocations that
+ * `aggregateMatchesForUser` would dispatch for the given favorites and date
+ * window: `leagueKeys.length × 5` (the widened UTC dates) plus `3` (one
+ * tennis call per local day). Pure — no network, no DB.
+ */
+export function planFanoutCount(favorites: readonly FavoriteRow[]): number {
+  const leagueKeys = planLeagueKeys(favorites.filter(isLeagueFavorite));
+  return leagueKeys.length * 5 + 3;
+}
+
+/**
  * Full pipeline: load favorites, plan + run queries, build the envelope.
+ *
+ * @param out  Optional mutable object; `out.fanoutCount` is set to the
+ *             planned upstream call count before any awaits so the caller
+ *             (e.g. timing wrapper) can read it after the function resolves.
  */
 export async function aggregateMatchesForUser(
   userId: string,
   dates: DateWindow,
   fetchers: Fetchers,
   tz: string = "UTC",
+  out?: { fanoutCount?: number },
 ): Promise<HomeEnvelope> {
   const favorites = await listFavoritesForUser(userId);
   if (favorites.length === 0) return EMPTY_ENVELOPE();
@@ -227,6 +243,9 @@ export async function aggregateMatchesForUser(
   // ---- Plan -----------------------------------------------------------
   const leagueKeys = planLeagueKeys(leagueFavorites);
   if (leagueKeys.length === 0) return EMPTY_ENVELOPE();
+
+  // Expose the planned call count to the caller (e.g. timing wrapper).
+  if (out) out.fanoutCount = leagueKeys.length * 5 + 3;
 
   // Widen the UTC fetch window by ±1 day so we catch late-night matches
   // (UTC date = local date + 1) and early-morning matches (UTC date =

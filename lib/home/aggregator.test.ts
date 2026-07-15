@@ -15,6 +15,7 @@ vi.mock("@/lib/favorites/queries", () => ({
 import {
   aggregateMatchesForUser,
   buildHomeEnvelope,
+  planFanoutCount,
   planLeagueKeys,
   sortKeyForTournamentCard,
   type EventsLeagueDayFetcher,
@@ -139,6 +140,28 @@ describe("planLeagueKeys", () => {
     expect(keys).toContain("soccer/fifa.world");
     // Still 14 (the World Cup key is one of the 14 Soccer leagues).
     expect(keys).toHaveLength(14);
+  });
+});
+
+describe("planFanoutCount", () => {
+  it("returns 3 for an empty favorites list (only tennis calls)", () => {
+    expect(planFanoutCount([])).toBe(3);
+  });
+
+  it("returns leagueKeys * 5 + 3 for a sport favorite", () => {
+    const favs: FavoriteRow[] = [
+      fav({ type: "sport", sport: "Basketball", externalId: "Basketball" }),
+    ];
+    const leagueCount = leagueKeysForSport("Basketball").length;
+    expect(planFanoutCount(favs)).toBe(leagueCount * 5 + 3);
+  });
+
+  it("excludes team favorites from the fanout count", () => {
+    const favs: FavoriteRow[] = [
+      fav({ type: "team", sport: "Soccer", externalId: "133602" }),
+    ];
+    // Team favorites don't contribute league fan-out — only 3 tennis calls.
+    expect(planFanoutCount(favs)).toBe(3);
   });
 });
 

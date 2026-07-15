@@ -19,6 +19,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
+import { withServerTiming } from "@/lib/perf/server-timing";
 import { searchCatalogLeagues, searchCatalogTeams } from "@/lib/espn/catalog";
 import { searchAthletes } from "@/lib/espn/client";
 import { searchEventsCatalog } from "@/lib/events-catalog";
@@ -72,93 +73,96 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] as SearchResult[] });
   }
 
-  // --- Sport-as-favorite: matches when the query is part of a sport name ---
-  const sportResults: SearchResult[] = SUPPORTED_SPORTS.filter(
-    (s) =>
-      s.toLowerCase().includes(q.toLowerCase()) &&
-      (!sportFilter || s === sportFilter),
-  ).map((s) => ({
-    type: "sport",
-    externalId: s,
-    displayName: `${s} (top matches)`,
-    sport: s,
-  }));
+  return withServerTiming("favorites-search", {}, async () => {
+    // --- Sport-as-favorite: matches when the query is part of a sport name ---
+    const sportResults: SearchResult[] = SUPPORTED_SPORTS.filter(
+      (s) =>
+        s.toLowerCase().includes(q.toLowerCase()) &&
+        (!sportFilter || s === sportFilter),
+    ).map((s) => ({
+      type: "sport",
+      externalId: s,
+      displayName: `${s} (top matches)`,
+      sport: s,
+    }));
 
-  // --- Events: hand-curated catalog ---
-  const eventResults: SearchResult[] = searchEventsCatalog(q, sportFilter).map(
-    (e) => ({
+    // --- Events: hand-curated catalog ---
+    const eventResults: SearchResult[] = searchEventsCatalog(
+      q,
+      sportFilter,
+    ).map((e) => ({
       type: "event",
       externalId: e.id,
       displayName: e.name,
       sport: e.sport,
       metadata: { startDate: e.startDate, endDate: e.endDate },
-    }),
-  );
-
-  // --- Leagues: in-memory ESPN catalog ---
-  // Tennis catalog entries are stored as leagues (no per-year ids) but must
-  // POST as type:"event" so the favorites system can call the tennis scoreboard
-  // by year-less tournament id. See Spec 05 Q3 Round 1 (B).
-  const leagueResults: SearchResult[] = searchCatalogLeagues(
-    q,
-    sportFilter,
-  ).map((l) => ({
-    type: l.sport === "Tennis" ? ("event" as const) : ("league" as const),
-    externalId: l.id,
-    displayName: l.name,
-    sport: l.sport,
-  }));
-
-  // --- Teams: in-memory ESPN catalog. A team can appear in multiple
-  // leagues (e.g. Arsenal is in both Premier League and FA Cup catalogs);
-  // dedupe by team id so the UI doesn't repeat the same card. ---
-  const seenTeamIds = new Set<string>();
-  const teamResults: SearchResult[] = [];
-  for (const t of searchCatalogTeams(q, sportFilter)) {
-    if (!t.sport) continue;
-    if (seenTeamIds.has(t.id)) continue;
-    seenTeamIds.add(t.id);
-    teamResults.push({
-      type: "team",
-      externalId: t.id,
-      displayName: t.name,
-      sport: t.sport,
-      ...(t.badgeUrl ? { badgeUrl: t.badgeUrl } : {}),
-    });
-  }
-
-  // --- Players: one global ESPN athlete search, ranked + deduped ---
-  // `searchAthletes` hits ESPN's global player index and suppresses its own
-  // errors (returning []). We drop athletes whose sport is filtered out, rank
-  // pro leagues above college/minor, dedupe by athlete id, and carry each
-  // athlete's real `leagueKey` in metadata so the Teams route can look up the
-  // right league schedule.
-  const seenAthleteIds = new Set<string>();
-  const playerResults: SearchResult[] = (await searchAthletes(q))
-    .filter((a) => !sportFilter || a.sport === sportFilter)
-    .sort((a, b) => leagueRank(a.leagueKey) - leagueRank(b.leagueKey))
-    .filter((a) => {
-      if (seenAthleteIds.has(a.id)) return false;
-      seenAthleteIds.add(a.id);
-      return true;
-    })
-    .map((a) => ({
-      type: "player" as const,
-      externalId: a.id,
-      displayName: a.displayName,
-      sport: a.sport,
-      metadata: { leagueKey: a.leagueKey },
     }));
 
-  // Cap each section so the result list stays scannable on a phone.
-  const cap = (xs: SearchResult[]) => xs.slice(0, PER_CATEGORY_CAP);
-  const results: SearchResult[] = [
-    ...cap(sportResults),
-    ...cap(eventResults),
-    ...cap(leagueResults),
-    ...cap(teamResults),
-    ...cap(playerResults),
-  ];
+    // --- Leagues: in-memory ESPN catalog ---
+    // Tennis catalog entries are stored as leagues (no per-year ids) but must
+    // POST as type:"event" so the favorites system can call the tennis scoreboard
+    // by year-less tournament id. See Spec 05 Q3 Round 1 (B).
+    const leagueResults: SearchResult[] = searchCatalogLeagues(
+      q,
+      sportFilter,
+    ).map((l) => ({
+      type: l.sport === "Tennis" ? ("event" as const) : ("league" as const),
+      externalId: l.id,
+      displayName: l.name,
+      sport: l.sport,
+    }));
 
-  return NextResponse.json({ results });
+    // --- Teams: in-memory ESPN catalog. A team can appear in multiple
+    // leagues (e.g. Arsenal is in both Premier League and FA Cup catalogs);
+    // dedupe by team id so the UI doesn't repeat the same card. ---
+    const seenTeamIds = new Set<string>();
+    const teamResults: SearchResult[] = [];
+    for (const t of searchCatalogTeams(q, sportFilter)) {
+      if (!t.sport) continue;
+      if (seenTeamIds.has(t.id)) continue;
+      seenTeamIds.add(t.id);
+      teamResults.push({
+        type: "team",
+        externalId: t.id,
+        displayName: t.name,
+        sport: t.sport,
+        ...(t.badgeUrl ? { badgeUrl: t.badgeUrl } : {}),
+      });
+    }
+
+    // --- Players: one global ESPN athlete search, ranked + deduped ---
+    // `searchAthletes` hits ESPN's global player index and suppresses its own
+    // errors (returning []). We drop athletes whose sport is filtered out, rank
+    // pro leagues above college/minor, dedupe by athlete id, and carry each
+    // athlete's real `leagueKey` in metadata so the Teams route can look up the
+    // right league schedule.
+    const seenAthleteIds = new Set<string>();
+    const playerResults: SearchResult[] = (await searchAthletes(q))
+      .filter((a) => !sportFilter || a.sport === sportFilter)
+      .sort((a, b) => leagueRank(a.leagueKey) - leagueRank(b.leagueKey))
+      .filter((a) => {
+        if (seenAthleteIds.has(a.id)) return false;
+        seenAthleteIds.add(a.id);
+        return true;
+      })
+      .map((a) => ({
+        type: "player" as const,
+        externalId: a.id,
+        displayName: a.displayName,
+        sport: a.sport,
+        metadata: { leagueKey: a.leagueKey },
+      }));
+
+    // Cap each section so the result list stays scannable on a phone.
+    const cap = (xs: SearchResult[]) => xs.slice(0, PER_CATEGORY_CAP);
+    const results: SearchResult[] = [
+      ...cap(sportResults),
+      ...cap(eventResults),
+      ...cap(leagueResults),
+      ...cap(teamResults),
+      ...cap(playerResults),
+    ];
+
+    return NextResponse.json({ results });
+  }); // end withServerTiming
 }
