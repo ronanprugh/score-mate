@@ -305,7 +305,7 @@ to `athleteMatchHistory` (already returns full `Match` objects), and remove
       private helpers orphaned by deleting `athleteSchedule`, surfaced by
       `pnpm lint`.
 
-### [ ] 4.0 Teams list score-card redesign
+### [x] 4.0 Teams list score-card redesign
 
 Rewrite `EntityCard` to render a crest+name header followed by stacked
 last-match and next-match cards, reusing `MatchCard` / `TennisMatchCard`, and
@@ -346,11 +346,11 @@ and the link into `/teams/[favoriteId]`. Covers Spec Unit 3. Depends on 3.0.
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Add the competition fallback to `components/match-card.tsx`: when
+- [x] 4.1 Add the competition fallback to `components/match-card.tsx`: when
       `round` is absent, render `leagueName` in the same footer slot. Confirm
       `showFooter` accounts for the new condition so a friendly with no `round`
       still renders its footer.
-- [ ] 4.2 Add the `match-card.test.tsx` case for the `leagueName` fallback and a
+- [x] 4.2 Add the `match-card.test.tsx` case for the `leagueName` fallback and a
       case confirming `round` still wins when both are present.
 - [x] 4.3 **(done in Task 3.0 — see 3.8)** Rewrite `components/entity-card.tsx`: a `<Link>`ed header
       (crest + display name, `min-h-11`, existing focus-visible ring and
@@ -364,21 +364,29 @@ and the link into `/teams/[favoriteId]`. Covers Spec Unit 3. Depends on 3.0.
 - [x] 4.5 **(done in Task 3.0 — see 3.8)** Preserve the empty states: `Match data unavailable` when both sides
       are null; `No recent match` / `No upcoming match` when one side is.
       Label each card slot ("Last" / "Next") so a lone card is unambiguous.
-- [ ] 4.6 Change the grid in `components/teams-client.tsx:101` from
+- [x] 4.6 Change the grid in `components/teams-client.tsx:101` from
       `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` to a single-column
       `flex flex-col gap-4`, matching the detail screen's list rhythm.
-- [ ] 4.7 Add the `components/teams-client.test.tsx` case asserting no
+- [x] 4.7 Add the `components/teams-client.test.tsx` case asserting no
       `sm:grid-cols-*` / `lg:grid-cols-*` class remains on the container.
 - [x] 4.8 **(done in Task 3.0 — see 3.8)** Rewrite `components/entity-card.test.tsx` against the new markup,
       covering all five proof-artifact test cases. The existing
       `renders as a link to the entity's detail route with an accessible label`
       case should survive largely intact.
-- [ ] 4.9 Run the app, sign in with a Liverpool favorite, and capture three
+- [x] 4.9 Run the app, sign in with a Liverpool favorite, and capture three
       screenshots into `13-proofs/13-task-04-proofs.md`: the entity list at
       375px, the Liverpool friendly card at 375px, and the list at ≥1280px.
       Redact the account menu email before committing (Spec Security
       Considerations).
-- [ ] 4.10 Run the full gate set and commit as
+- [x] 4.11 **Added during implementation.** Remove `EntityCard`'s own border
+      and padding. Nesting a bordered card inside a bordered card cost ~24px of
+      width and truncated "Liverpool" to "Liver…" at 375px; the match cards are
+      the visual boundary and the list gap (`gap-6`) separates entities.
+- [x] 4.12 **Added during implementation.** Update the `dev-fixture/nav`
+      `CardsGrid` container to mirror `TeamsClient` (single column), and rebuild
+      its fixture data from Liverpool's real 2026-08-05 ESPN state so the
+      screenshots show the reported bug fixed rather than placeholder teams.
+- [x] 4.10 Run the full gate set and commit as
       `feat(teams): render Teams list entities as Home-style match cards`.
 
 ### [ ] 5.0 Latency verification and release documentation

@@ -55,14 +55,16 @@ export function EntityCard({ entity }: Props) {
   const bothUnavailable = lastMatch === null && nextMatch === null;
 
   return (
-    <article
-      data-testid="entity-card"
-      className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-    >
+    // No border or padding of its own: the match cards already carry a border,
+    // and nesting one bordered box inside another both reads as clutter and
+    // costs ~24px of horizontal room — enough to truncate "Liverpool" to
+    // "Liver…" at 375px. The cards are the visual boundary; the list's gap
+    // separates entities.
+    <article data-testid="entity-card" className="flex flex-col gap-2">
       <Link
         href={`/teams/${entity.favoriteId}`}
         aria-label={`View ${displayName} matches`}
-        className="-m-1 flex min-h-11 items-center gap-2 rounded p-1 outline-none transition-colors hover:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:hover:bg-zinc-900/50"
+        className="-mx-1 flex min-h-11 items-center gap-2 rounded px-1 outline-none transition-colors hover:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-zinc-400 dark:hover:bg-zinc-900/50"
       >
         {badgeUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- external ESPN crest, not a local asset
@@ -78,9 +80,11 @@ export function EntityCard({ entity }: Props) {
       </Link>
 
       {bothUnavailable ? (
-        <p className="text-sm text-zinc-500">Match data unavailable</p>
+        <p className="rounded-md border border-dashed border-zinc-200 px-3 py-4 text-center text-sm text-zinc-500 dark:border-zinc-800">
+          Match data unavailable
+        </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <MatchSlot
             label="Last"
             match={lastMatch}

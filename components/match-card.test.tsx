@@ -124,4 +124,57 @@ describe("MatchCard", () => {
       expect(screen.getByTestId("away-score")).toHaveTextContent("1");
     });
   });
+
+  describe("competition label (Spec 13, Unit 3)", () => {
+    it("falls back to leagueName when the match has no round", () => {
+      // Friendlies and cup ties usually carry no `round`. Before Spec 13 those
+      // cards showed no competition at all, so a preseason friendly was
+      // indistinguishable from a league fixture.
+      render(
+        <MatchCard
+          match={{
+            ...base,
+            status: "final",
+            homeScore: 2,
+            awayScore: 4,
+            leagueName: "Club Friendly",
+          }}
+        />,
+      );
+      expect(screen.getByTestId("competition")).toHaveTextContent(
+        "Club Friendly",
+      );
+    });
+
+    it("prefers round over leagueName when ESPN provides both", () => {
+      // "Matchweek 3" is more specific than "Premier League".
+      render(
+        <MatchCard
+          match={{
+            ...base,
+            round: "Matchweek 3",
+            leagueName: "Premier League",
+          }}
+        />,
+      );
+      const competition = screen.getByTestId("competition");
+      expect(competition).toHaveTextContent("Matchweek 3");
+      expect(competition).not.toHaveTextContent("Premier League");
+    });
+
+    it("renders a footer for an upcoming match that only has a competition", () => {
+      render(
+        <MatchCard
+          match={{
+            ...base,
+            round: undefined,
+            venue: undefined,
+            broadcast: undefined,
+            leagueName: "Club Friendly",
+          }}
+        />,
+      );
+      expect(screen.getByTestId("competition")).toBeInTheDocument();
+    });
+  });
 });

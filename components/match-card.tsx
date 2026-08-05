@@ -158,6 +158,7 @@ export function MatchCard({ match }: Props) {
     homeScore,
     awayScore,
     round,
+    leagueName,
     venue,
     broadcast,
     liveProgress,
@@ -186,10 +187,16 @@ export function MatchCard({ match }: Props) {
         : "loser"
       : "neutral";
 
+  // Competition context, so a friendly is visibly a friendly. `round` wins
+  // when ESPN provides it ("Matchweek 3" is more specific than "Premier
+  // League"); friendlies and cup ties often have no round, and before Spec 13
+  // those cards carried no competition label at all.
+  const competition = round ?? leagueName;
+
   const showFooter =
     status === "final" ||
     status === "live" ||
-    Boolean(round) ||
+    Boolean(competition) ||
     Boolean(venue) ||
     (status === "upcoming" && Boolean(broadcast));
 
@@ -290,9 +297,13 @@ export function MatchCard({ match }: Props) {
                 {liveProgress}
               </span>
             )}
-            {round && (
-              <span className="truncate uppercase tracking-wide" title={round}>
-                {round}
+            {competition && (
+              <span
+                data-testid="competition"
+                className="truncate uppercase tracking-wide"
+                title={competition}
+              >
+                {competition}
               </span>
             )}
             {venue && (

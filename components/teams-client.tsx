@@ -98,7 +98,13 @@ export function TeamsClient() {
       {!envelope.source.ok && (
         <DataSourceErrorBanner errorCount={envelope.source.errors.length} />
       )}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {/*
+        Single column at every width. A score card is roughly 3x the height of
+        the scoreline row it replaced, so a multi-column grid would produce
+        ragged rows of unequal-height cards. Matches the detail screen's list
+        rhythm (Spec 13, Unit 3).
+      */}
+      <div data-testid="entity-list" className="flex flex-col gap-6">
         {envelope.entities.map((entity) => (
           <EntityCard key={entity.favoriteId} entity={entity} />
         ))}

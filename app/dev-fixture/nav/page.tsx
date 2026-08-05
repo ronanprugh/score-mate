@@ -115,35 +115,57 @@ function TeamsEmptyView() {
 function fixtureMatch(over: Partial<Match> & Pick<Match, "id">): Match {
   return {
     sport: "Soccer",
-    homeTeamId: "h",
-    homeTeamName: "Arsenal",
-    homeTeamShortName: "Arsenal",
-    awayTeamId: "a",
-    awayTeamName: "Chelsea",
-    awayTeamShortName: "Chelsea",
+    homeTeamId: "364",
+    homeTeamName: "Liverpool",
+    homeTeamShortName: "Liverpool",
+    homeTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+    awayTeamId: "357",
+    awayTeamName: "Leeds United",
+    awayTeamShortName: "Leeds",
+    awayTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
     leagueId: "soccer/eng.1",
-    leagueName: "English Premier League",
-    dateUtc: "2026-06-20",
-    kickoffUtc: "2026-06-20T15:00:00Z",
+    leagueName: "Premier League",
+    dateUtc: "2026-08-02",
+    kickoffUtc: "2026-08-02T20:00:00Z",
     status: "final",
     ...over,
   } as Match;
 }
 
+/**
+ * Liverpool's real August 2026 state, recorded from ESPN on 2026-08-05 — the
+ * exact case Spec 13 was raised for. Before the fix this entity rendered
+ * "Match data unavailable": the implicit-season schedule call returned zero
+ * events, and friendlies were never queried at all.
+ */
 const FIXTURE_ENTITIES: TeamEntity[] = [
   {
     favoriteId: "e1",
-    displayName: "Arsenal",
+    displayName: "Liverpool",
     type: "team",
     sport: "Soccer",
-    lastMatch: fixtureMatch({ id: "m1", homeScore: 2, awayScore: 1 }),
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+    // A friendly, surfaced only because of the companion-league fan-out, and
+    // the most recent fixture chronologically — so it wins over the league
+    // season finale (Unit 2: no preference for competitive matches).
+    lastMatch: fixtureMatch({
+      id: "401863533",
+      homeScore: 2,
+      awayScore: 4,
+      leagueName: "Club Friendly",
+      venue: "Soldier Field",
+    }),
     nextMatch: fixtureMatch({
-      id: "m2",
+      id: "401879319",
       status: "upcoming",
-      awayTeamName: "Tottenham",
-      awayTeamShortName: "Tottenham",
-      dateUtc: "2026-06-28",
-      kickoffUtc: "2026-06-28T14:00:00Z",
+      awayTeamId: "359",
+      awayTeamName: "Arsenal",
+      awayTeamShortName: "Arsenal",
+      awayTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+      dateUtc: "2026-08-15",
+      kickoffUtc: "2026-08-15T19:00:00Z",
+      round: "Matchweek 1",
+      broadcast: "USA Network",
     }),
   },
   {
@@ -151,20 +173,37 @@ const FIXTURE_ENTITIES: TeamEntity[] = [
     displayName: "Kansas City Chiefs",
     type: "team",
     sport: "American Football",
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+    // Only one side populated — exercises the per-side empty state.
     lastMatch: null,
     nextMatch: fixtureMatch({
-      id: "m3",
+      id: "nfl-1",
       sport: "American Football",
       status: "upcoming",
+      homeTeamId: "12",
       homeTeamName: "Kansas City Chiefs",
       homeTeamShortName: "Chiefs",
+      homeTeamLogo: "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+      awayTeamId: "7",
       awayTeamName: "Denver Broncos",
       awayTeamShortName: "Broncos",
+      awayTeamLogo: "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
       leagueId: "football/nfl",
       leagueName: "NFL",
       dateUtc: "2026-09-14",
       kickoffUtc: "2026-09-14T20:20:00Z",
+      round: "Week 2",
     }),
+  },
+  {
+    // Both sides null — the graceful "Match data unavailable" collapse.
+    favoriteId: "e3",
+    displayName: "Wrexham",
+    type: "team",
+    sport: "Soccer",
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/soccer/500/352.png",
+    lastMatch: null,
+    nextMatch: null,
   },
 ];
 
@@ -214,8 +253,11 @@ const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
 ];
 
 function CardsGrid({ entities }: { entities: TeamEntity[] }) {
+  // Mirrors the real `TeamsClient` container: single column at every width
+  // (Spec 13, Unit 3). Keep these in sync — this fixture is what the Teams
+  // layout screenshots are captured from.
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-6">
       {entities.map((entity) => (
         <EntityCard key={entity.favoriteId} entity={entity} />
       ))}

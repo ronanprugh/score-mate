@@ -51,4 +51,35 @@ describe("TeamsClient", () => {
     unmount();
     expect(capturedSignal!.aborted).toBe(true);
   });
+
+  it("lays entities out in a single column at every breakpoint", async () => {
+    // Spec 13, Unit 3 FR3. A 375px screenshot alone would also pass for a grid
+    // that merely stacks on mobile, so assert the responsive column classes
+    // are gone rather than just overridden.
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        entities: [
+          {
+            favoriteId: "fav-1",
+            displayName: "Liverpool",
+            type: "team",
+            sport: "Soccer",
+            lastMatch: null,
+            nextMatch: null,
+          },
+        ],
+        source: { ok: true, errors: [] },
+      }),
+    } as Response);
+
+    const { findByTestId } = render(<TeamsClient />);
+    const list = await findByTestId("entity-list");
+
+    expect(list.className).not.toMatch(/\bsm:grid-cols-/);
+    expect(list.className).not.toMatch(/\bmd:grid-cols-/);
+    expect(list.className).not.toMatch(/\blg:grid-cols-/);
+    expect(list.className).toContain("flex-col");
+  });
 });
