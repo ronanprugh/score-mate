@@ -20,10 +20,10 @@ vi.mock("@/lib/espn/catalog", () => ({
     findCatalogTeamByIdMock(id, sport, displayName),
 }));
 
-const athleteScheduleMock = vi.fn();
+const athleteMatchHistoryMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
-  athleteSchedule: (leagueKey: string, athleteId: string) =>
-    athleteScheduleMock(leagueKey, athleteId),
+  athleteMatchHistory: (leagueKey: string, athleteId: string) =>
+    athleteMatchHistoryMock(leagueKey, athleteId),
 }));
 
 /**
@@ -112,7 +112,7 @@ describe("GET /api/teams", () => {
     listFavoritesMock.mockReset();
     findCatalogTeamByIdMock.mockReset();
     teamScheduleMock.mockReset();
-    athleteScheduleMock.mockReset();
+    athleteMatchHistoryMock.mockReset();
     fanoutErrorsMock.mockReset();
     fanoutErrorsMock.mockReturnValue([]);
   });
@@ -166,16 +166,24 @@ describe("GET /api/teams", () => {
       sport: "Soccer",
       badgeUrl: "https://example.com/arsenal.png",
     });
+    // Full Match objects, not a one-sided summary: the Teams list renders the
+    // same score cards as Home, which need both sides and numeric scores.
     expect(entity.lastMatch).toMatchObject({
-      opponentName: "Chelsea",
-      score: "2-1",
+      id: "final-1",
+      status: "final",
+      homeTeamName: "Arsenal",
+      awayTeamName: "Chelsea",
+      homeScore: 2,
+      awayScore: 1,
       leagueName: "English Premier League",
     });
     expect(entity.nextMatch).toMatchObject({
-      opponentName: "Spurs",
+      id: "next-1",
+      status: "upcoming",
+      awayTeamName: "Spurs",
       kickoffUtc: "2026-06-28T14:00:00Z",
     });
-    expect(entity.nextMatch?.score).toBeUndefined();
+    expect(entity.nextMatch?.homeScore).toBeUndefined();
     expect(body.source.ok).toBe(true);
     expect(teamScheduleMock).toHaveBeenCalledWith("soccer/eng.1", "133602");
     // The catalog lookup is disambiguated by sport + name (ESPN ids collide).
@@ -290,22 +298,32 @@ describe("GET /api/teams", () => {
     expect(body.source.errors[0]).toContain("uefa.champions");
   });
 
-  it("returns last/next matches for a player favorite when athleteSchedule resolves", async () => {
+  it("returns full Match objects for a player favorite via athleteMatchHistory", async () => {
     authMock.mockResolvedValue(SESSION);
     listFavoritesMock.mockResolvedValue([playerFavorite()]);
-    athleteScheduleMock.mockResolvedValue({
-      lastMatch: {
-        opponentName: "Houston Rockets",
-        date: "2026-03-17",
-        kickoffUtc: "2026-03-17T01:30:00Z",
-        leagueName: "NBA",
-      },
-      nextMatch: {
-        opponentName: "Boston Celtics",
-        date: "2026-03-20",
-        kickoffUtc: "2026-03-20T00:00:00Z",
-        leagueName: "NBA",
-      },
+    athleteMatchHistoryMock.mockResolvedValue({
+      recent: [
+        makeMatch({
+          id: "nba-final",
+          sport: "Basketball",
+          status: "final",
+          homeTeamName: "Los Angeles Lakers",
+          awayTeamName: "Houston Rockets",
+          homeScore: 118,
+          awayScore: 104,
+          leagueName: "NBA",
+        }),
+      ],
+      upcoming: [
+        makeMatch({
+          id: "nba-next",
+          sport: "Basketball",
+          status: "upcoming",
+          homeTeamName: "Los Angeles Lakers",
+          awayTeamName: "Boston Celtics",
+          leagueName: "NBA",
+        }),
+      ],
     });
 
     const res = await GET();
@@ -320,12 +338,45 @@ describe("GET /api/teams", () => {
       type: "player",
       sport: "Basketball",
     });
-    expect(entity.lastMatch).toMatchObject({ opponentName: "Houston Rockets" });
-    expect(entity.nextMatch).toMatchObject({ opponentName: "Boston Celtics" });
+    // Card-ready shape, matching the team path — both sides plus numeric
+    // scores, not a one-sided summary.
+    expect(entity.lastMatch).toMatchObject({
+      id: "nba-final",
+      homeTeamName: "Los Angeles Lakers",
+      awayTeamName: "Houston Rockets",
+      homeScore: 118,
+      awayScore: 104,
+    });
+    expect(entity.nextMatch).toMatchObject({
+      id: "nba-next",
+      awayTeamName: "Boston Celtics",
+    });
     expect(body.source.ok).toBe(true);
     // With no stored leagueKey, the lookup falls back to the sport's primary
     // league key (basketball/nba).
-    expect(athleteScheduleMock).toHaveBeenCalledWith("basketball/nba", "1966");
+    expect(athleteMatchHistoryMock).toHaveBeenCalledWith(
+      "basketball/nba",
+      "1966",
+    );
+  });
+
+  it("takes only the first match per side from the athlete history", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteMatchHistoryMock.mockResolvedValue({
+      recent: [
+        makeMatch({ id: "most-recent", status: "final" }),
+        makeMatch({ id: "older", status: "final" }),
+      ],
+      upcoming: [
+        makeMatch({ id: "soonest", status: "upcoming" }),
+        makeMatch({ id: "later", status: "upcoming" }),
+      ],
+    });
+
+    const body = (await (await GET()).json()) as TeamsEnvelope;
+    expect(body.entities[0]?.lastMatch?.id).toBe("most-recent");
+    expect(body.entities[0]?.nextMatch?.id).toBe("soonest");
   });
 
   it("uses the player's stored leagueKey metadata when present (e.g. soccer/usa.1)", async () => {
@@ -338,17 +389,36 @@ describe("GET /api/teams", () => {
         metadata: { leagueKey: "soccer/usa.1" },
       }),
     ]);
-    athleteScheduleMock.mockResolvedValue({ lastMatch: null, nextMatch: null });
+    athleteMatchHistoryMock.mockResolvedValue({ recent: [], upcoming: [] });
 
     await GET();
     // The athlete's actual league is used, not Soccer's primary (soccer/eng.1).
-    expect(athleteScheduleMock).toHaveBeenCalledWith("soccer/usa.1", "45843");
+    expect(athleteMatchHistoryMock).toHaveBeenCalledWith(
+      "soccer/usa.1",
+      "45843",
+    );
   });
 
-  it("returns a null-match player entity and source.ok=false when athleteSchedule throws", async () => {
+  it("returns null matches without flipping source.ok when ESPN has no data for the player", async () => {
+    // athleteMatchHistory never throws; an empty result is a graceful
+    // "Match data unavailable", not an upstream failure.
     authMock.mockResolvedValue(SESSION);
     listFavoritesMock.mockResolvedValue([playerFavorite()]);
-    athleteScheduleMock.mockRejectedValue(new Error("ESPN athlete 500"));
+    athleteMatchHistoryMock.mockResolvedValue({ recent: [], upcoming: [] });
+
+    const body = (await (await GET()).json()) as TeamsEnvelope;
+    expect(body.entities[0]).toMatchObject({
+      type: "player",
+      lastMatch: null,
+      nextMatch: null,
+    });
+    expect(body.source.ok).toBe(true);
+  });
+
+  it("returns a null-match player entity and source.ok=false when the athlete lookup throws", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([playerFavorite()]);
+    athleteMatchHistoryMock.mockRejectedValue(new Error("ESPN athlete 500"));
 
     const res = await GET();
     const body = (await res.json()) as TeamsEnvelope;

@@ -17,6 +17,7 @@ import { FavoritesList } from "@/components/favorites-list";
 import { AccountMenu } from "@/components/account-menu";
 import { BottomNav } from "@/components/bottom-nav";
 import { EntityCard } from "@/components/entity-card";
+import type { Match } from "@/lib/sports/types";
 import type { TeamEntity } from "@/lib/teams/types";
 
 const row = (
@@ -110,25 +111,40 @@ function TeamsEmptyView() {
   );
 }
 
+/** Builds a fixture `Match` with only the fields the cards read. */
+function fixtureMatch(over: Partial<Match> & Pick<Match, "id">): Match {
+  return {
+    sport: "Soccer",
+    homeTeamId: "h",
+    homeTeamName: "Arsenal",
+    homeTeamShortName: "Arsenal",
+    awayTeamId: "a",
+    awayTeamName: "Chelsea",
+    awayTeamShortName: "Chelsea",
+    leagueId: "soccer/eng.1",
+    leagueName: "English Premier League",
+    dateUtc: "2026-06-20",
+    kickoffUtc: "2026-06-20T15:00:00Z",
+    status: "final",
+    ...over,
+  } as Match;
+}
+
 const FIXTURE_ENTITIES: TeamEntity[] = [
   {
     favoriteId: "e1",
     displayName: "Arsenal",
     type: "team",
     sport: "Soccer",
-    lastMatch: {
-      opponentName: "Chelsea",
-      date: "2026-06-20",
-      score: "2-1",
-      kickoffUtc: "2026-06-20T15:00:00Z",
-      leagueName: "English Premier League",
-    },
-    nextMatch: {
-      opponentName: "Tottenham",
-      date: "2026-06-28",
+    lastMatch: fixtureMatch({ id: "m1", homeScore: 2, awayScore: 1 }),
+    nextMatch: fixtureMatch({
+      id: "m2",
+      status: "upcoming",
+      awayTeamName: "Tottenham",
+      awayTeamShortName: "Tottenham",
+      dateUtc: "2026-06-28",
       kickoffUtc: "2026-06-28T14:00:00Z",
-      leagueName: "English Premier League",
-    },
+    }),
   },
   {
     favoriteId: "e2",
@@ -136,12 +152,19 @@ const FIXTURE_ENTITIES: TeamEntity[] = [
     type: "team",
     sport: "American Football",
     lastMatch: null,
-    nextMatch: {
-      opponentName: "Denver Broncos",
-      date: "2026-09-14",
-      kickoffUtc: "2026-09-14T20:20:00Z",
+    nextMatch: fixtureMatch({
+      id: "m3",
+      sport: "American Football",
+      status: "upcoming",
+      homeTeamName: "Kansas City Chiefs",
+      homeTeamShortName: "Chiefs",
+      awayTeamName: "Denver Broncos",
+      awayTeamShortName: "Broncos",
+      leagueId: "football/nfl",
       leagueName: "NFL",
-    },
+      dateUtc: "2026-09-14",
+      kickoffUtc: "2026-09-14T20:20:00Z",
+    }),
   },
 ];
 
@@ -151,18 +174,33 @@ const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
     displayName: "LeBron James",
     type: "player",
     sport: "Basketball",
-    lastMatch: {
-      opponentName: "Houston Rockets",
-      date: "2026-03-17",
+    lastMatch: fixtureMatch({
+      id: "m4",
+      sport: "Basketball",
+      homeTeamName: "Los Angeles Lakers",
+      homeTeamShortName: "Lakers",
+      awayTeamName: "Houston Rockets",
+      awayTeamShortName: "Rockets",
+      leagueId: "basketball/nba",
+      leagueName: "NBA",
+      dateUtc: "2026-03-17",
       kickoffUtc: "2026-03-17T01:30:00Z",
+      homeScore: 118,
+      awayScore: 104,
+    }),
+    nextMatch: fixtureMatch({
+      id: "m5",
+      sport: "Basketball",
+      status: "upcoming",
+      homeTeamName: "Los Angeles Lakers",
+      homeTeamShortName: "Lakers",
+      awayTeamName: "Boston Celtics",
+      awayTeamShortName: "Celtics",
+      leagueId: "basketball/nba",
       leagueName: "NBA",
-    },
-    nextMatch: {
-      opponentName: "Boston Celtics",
-      date: "2026-03-20",
+      dateUtc: "2026-03-20",
       kickoffUtc: "2026-03-20T00:00:00Z",
-      leagueName: "NBA",
-    },
+    }),
   },
   {
     // A player ESPN has no usable schedule data for → graceful fallback.

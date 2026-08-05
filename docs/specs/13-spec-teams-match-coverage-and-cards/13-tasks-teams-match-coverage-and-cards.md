@@ -238,7 +238,7 @@ id. Covers Spec Unit 2 except the latency measurement (Task 5.0). Depends on 1.0
       `13-proofs/13-task-02-proofs.md`, and run the full gate set. Commit as
       `feat(teams): include cup, continental, and friendly fixtures in team schedules`.
 
-### [ ] 3.0 Full-`Match` contract for `GET /api/teams`
+### [x] 3.0 Full-`Match` contract for `GET /api/teams`
 
 Change `TeamEntity.lastMatch` / `nextMatch` from the reduced `EntityMatch`
 summary to full `Match` objects, so the Teams list can render the same cards Home
@@ -271,29 +271,39 @@ to `athleteMatchHistory` (already returns full `Match` objects), and remove
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Change `TeamEntity.lastMatch` and `nextMatch` in `lib/teams/types.ts`
+- [x] 3.1 Change `TeamEntity.lastMatch` and `nextMatch` in `lib/teams/types.ts`
       to `Match | null`, and update the interface's doc comment to say the
       Teams list now renders Home-style cards.
-- [ ] 3.2 Add a `selectLastAndNext(matches: readonly Match[]): { lastMatch: Match | null;
+- [x] 3.2 Add a `selectLastAndNext(matches: readonly Match[]): { lastMatch: Match | null;
       nextMatch: Match | null }` helper to `lib/teams/schedule.ts`, reusing the
       same `kickoffUtc ?? dateUtc` sort key that `splitAndCapSchedule` uses so
       the two selectors cannot drift.
-- [ ] 3.3 Delete `extractEntityMatches` from `app/api/teams/route.ts` and its
+- [x] 3.3 Delete `extractEntityMatches` from `app/api/teams/route.ts` and its
       tests, replacing the call with `selectLastAndNext`.
-- [ ] 3.4 Switch the player branch in `app/api/teams/route.ts` from
+- [x] 3.4 Switch the player branch in `app/api/teams/route.ts` from
       `athleteSchedule` to `athleteMatchHistory`, taking `recent[0]` and
       `upcoming[0]`. Preserve the existing behaviour that a graceful null result
       does **not** flip `source.ok` (only a thrown error does).
-- [ ] 3.5 Run `grep -rn "EntityMatch" app components lib` and remove the type
+- [x] 3.5 Run `grep -rn "EntityMatch" app components lib` and remove the type
       from `lib/teams/types.ts` if nothing outside the deleted code references
       it. If `athleteSchedule` is now unused across the repo, remove it too
       rather than leaving a dead export.
-- [ ] 3.6 Update `app/api/teams/route.test.ts`: rewrite the team and player
+- [x] 3.6 Update `app/api/teams/route.test.ts`: rewrite the team and player
       assertions against the full-`Match` shape, add the player-no-data case,
       and confirm the 401 and `Server-Timing` cases are untouched.
-- [ ] 3.7 Capture the `grep` output into `13-proofs/13-task-03-proofs.md`, run
+- [x] 3.7 Capture the `grep` output into `13-proofs/13-task-03-proofs.md`, run
       the full gate set, and commit as
       `refactor(teams): return full Match objects from /api/teams`.
+- [x] 3.8 **Resequenced from Task 4.0.** Sub-tasks 4.3 (EntityCard rewrite),
+      4.4 (shared `EntityMatchCard`), 4.5 (empty states + slot labels), and
+      4.8 (entity-card test rewrite) were completed here. Changing `TeamEntity`
+      to `Match` breaks `EntityCard`'s compile immediately, so `pnpm typecheck`
+      could not pass without it; the alternative was a throwaway adaptation
+      written only to be deleted next task. See `13-task-03-proofs.md`.
+- [x] 3.9 **Added during implementation.** Remove `opponentFromCoreEvent`,
+      `ResolvedMatch`, and `tennisSetScore` from `lib/espn/client.ts` —
+      private helpers orphaned by deleting `athleteSchedule`, surfaced by
+      `pnpm lint`.
 
 ### [ ] 4.0 Teams list score-card redesign
 
@@ -342,16 +352,16 @@ and the link into `/teams/[favoriteId]`. Covers Spec Unit 3. Depends on 3.0.
       still renders its footer.
 - [ ] 4.2 Add the `match-card.test.tsx` case for the `leagueName` fallback and a
       case confirming `round` still wins when both are present.
-- [ ] 4.3 Rewrite `components/entity-card.tsx`: a `<Link>`ed header
+- [x] 4.3 **(done in Task 3.0 — see 3.8)** Rewrite `components/entity-card.tsx`: a `<Link>`ed header
       (crest + display name, `min-h-11`, existing focus-visible ring and
       `aria-label`) followed by the last-match card then the next-match card.
       Delete `MatchRow`, `ResultBadge`, `formatShortDate`, and `formatKickoff` —
       `MatchCard` covers all of it.
-- [ ] 4.4 Add the tennis/non-tennis card selection, mirroring
+- [x] 4.4 **(done in Task 3.0 — see 3.8)** Add the tennis/non-tennis card selection, mirroring
       `EntityMatchCard` in `components/entity-matches-client.tsx:12`. Extract
       that helper into a shared module and import it from both places rather
       than duplicating the ternary.
-- [ ] 4.5 Preserve the empty states: `Match data unavailable` when both sides
+- [x] 4.5 **(done in Task 3.0 — see 3.8)** Preserve the empty states: `Match data unavailable` when both sides
       are null; `No recent match` / `No upcoming match` when one side is.
       Label each card slot ("Last" / "Next") so a lone card is unambiguous.
 - [ ] 4.6 Change the grid in `components/teams-client.tsx:101` from
@@ -359,7 +369,7 @@ and the link into `/teams/[favoriteId]`. Covers Spec Unit 3. Depends on 3.0.
       `flex flex-col gap-4`, matching the detail screen's list rhythm.
 - [ ] 4.7 Add the `components/teams-client.test.tsx` case asserting no
       `sm:grid-cols-*` / `lg:grid-cols-*` class remains on the container.
-- [ ] 4.8 Rewrite `components/entity-card.test.tsx` against the new markup,
+- [x] 4.8 **(done in Task 3.0 — see 3.8)** Rewrite `components/entity-card.test.tsx` against the new markup,
       covering all five proof-artifact test cases. The existing
       `renders as a link to the entity's detail route with an accessible label`
       case should survive largely intact.

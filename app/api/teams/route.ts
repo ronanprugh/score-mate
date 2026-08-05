@@ -9,10 +9,14 @@
  * and the affected entity carrying null matches — the UI degrades gracefully
  * rather than failing the whole page.
  *
- * Team schedules come from the site-v2 per-team endpoint; player schedules
- * come from the core-API athlete eventlog (best-effort — see `athleteSchedule`)
- * and fall back to null matches ("Match data unavailable") when ESPN has no
- * usable data for the athlete.
+ * Both matches are fully-populated `Match` objects, because the Teams list
+ * renders the same score cards as Home (Spec 13).
+ *
+ * Team schedules come from the site-v2 per-team endpoint, fanned out across
+ * every competition the team plays (`teamScheduleAcrossCompetitions`); player
+ * schedules come from the core-API athlete eventlog (best-effort — see
+ * `athleteMatchHistory`) and fall back to null matches ("Match data
+ * unavailable") when ESPN has no usable data for the athlete.
  */
 
 import { unstable_cache } from "next/cache";
@@ -20,57 +24,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { withServerTiming } from "@/lib/perf/server-timing";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
-import { athleteSchedule } from "@/lib/espn/client";
+import { athleteMatchHistory } from "@/lib/espn/client";
 import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import { cachedTeamScheduleForLeague } from "@/lib/teams/cached-schedule";
-import { teamScheduleAcrossCompetitions } from "@/lib/teams/schedule";
+import {
+  selectLastAndNext,
+  teamScheduleAcrossCompetitions,
+} from "@/lib/teams/schedule";
 import type { FavoriteRow } from "@/db/schema/favorites";
-import type { Match } from "@/lib/sports/types";
-import type { EntityMatch, TeamEntity, TeamsEnvelope } from "@/lib/teams/types";
-
-/**
- * Reduces a team's full schedule to a last (most recent completed) and next
- * (soonest upcoming) match, expressed relative to the followed team.
- */
-export function extractEntityMatches(
-  matches: readonly Match[],
-  teamId: string,
-): { lastMatch: EntityMatch | null; nextMatch: EntityMatch | null } {
-  const toEntityMatch = (m: Match, completed: boolean): EntityMatch => {
-    const isHome = m.homeTeamId === teamId;
-    const opponentName = isHome ? m.awayTeamName : m.homeTeamName;
-    const match: EntityMatch = {
-      opponentName,
-      date: m.dateUtc,
-      kickoffUtc: m.kickoffUtc,
-      leagueName: m.leagueName,
-    };
-    // Score/result only for completed games, from the followed team's side.
-    if (completed && m.homeScore !== undefined && m.awayScore !== undefined) {
-      const mine = isHome ? m.homeScore : m.awayScore;
-      const theirs = isHome ? m.awayScore : m.homeScore;
-      match.score = `${mine}-${theirs}`;
-      if (mine > theirs) match.result = "W";
-      else if (mine < theirs) match.result = "L";
-    }
-    return match;
-  };
-
-  const sortKey = (m: Match) => m.kickoffUtc ?? `${m.dateUtc}T00:00:00Z`;
-
-  const completed = matches
-    .filter((m) => m.status === "final")
-    .sort((a, b) => sortKey(b).localeCompare(sortKey(a)));
-  const upcoming = matches
-    .filter((m) => m.status === "upcoming")
-    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-
-  return {
-    lastMatch: completed[0] ? toEntityMatch(completed[0], true) : null,
-    nextMatch: upcoming[0] ? toEntityMatch(upcoming[0], false) : null,
-  };
-}
+import type { TeamEntity, TeamsEnvelope } from "@/lib/teams/types";
 
 async function buildEntity(
   fav: FavoriteRow,
@@ -95,15 +58,22 @@ async function buildEntity(
       return playerBase;
     }
     try {
-      const { lastMatch, nextMatch } = await unstable_cache(
-        () => athleteSchedule(leagueKey, fav.externalId),
+      // athleteMatchHistory (not athleteSchedule) because the Teams list now
+      // renders full match cards and needs complete `Match` objects, same as
+      // the entity detail screen.
+      const { recent, upcoming } = await unstable_cache(
+        () => athleteMatchHistory(leagueKey, fav.externalId),
         ["teams-athlete-schedule", leagueKey, fav.externalId],
         { revalidate: 300 },
       )();
-      // athleteSchedule never throws, but a graceful null result for a player
+      // athleteMatchHistory never throws; a graceful empty result for a player
       // ESPN has no data on shouldn't flip source.ok — the card just shows
       // "Match data unavailable".
-      return { ...playerBase, lastMatch, nextMatch };
+      return {
+        ...playerBase,
+        lastMatch: recent[0] ?? null,
+        nextMatch: upcoming[0] ?? null,
+      };
     } catch (e) {
       errors.push(
         e instanceof Error
@@ -147,10 +117,7 @@ async function buildEntity(
         { fetchLeagueSchedule: cachedTeamScheduleForLeague },
       );
     errors.push(...fanoutErrors);
-    const { lastMatch, nextMatch } = extractEntityMatches(
-      matches,
-      fav.externalId,
-    );
+    const { lastMatch, nextMatch } = selectLastAndNext(matches);
     return { ...base, lastMatch, nextMatch };
   } catch (e) {
     errors.push(

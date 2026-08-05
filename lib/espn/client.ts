@@ -29,7 +29,6 @@ import type {
 } from "@/lib/sports/types";
 import { findSupportedLeague } from "@/lib/espn/leagues";
 import { MATCH_HISTORY_CAP } from "@/lib/teams/schedule";
-import type { EntityMatch } from "@/lib/teams/types";
 
 const SITE_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 const CORE_BASE = "https://sports.core.api.espn.com/v2/sports";
@@ -533,33 +532,6 @@ function splitEventName(ev: CoreEvent): { away: string; home: string } | null {
   return { away, home };
 }
 
-/**
- * Derives the opponent name for a team-sport core event relative to the
- * followed athlete's `teamId`, using the inline competitor `homeAway`
- * matched by `teamId`.
- */
-function opponentFromCoreEvent(ev: CoreEvent, teamId: string): string {
-  const split = splitEventName(ev);
-  if (!split) return (ev.name ?? "").trim();
-  const mine = ev.competitions?.[0]?.competitors?.find((c) => c.id === teamId);
-  if (mine?.homeAway === "home") return split.away;
-  if (mine?.homeAway === "away") return split.home;
-  return split.home || split.away;
-}
-
-/** A match resolved from the eventlog, before we pick last/next. */
-interface ResolvedMatch {
-  /** ISO timestamp. */
-  date: string;
-  opponentName: string;
-  /** True once a result is decided. */
-  completed: boolean;
-  /** Whether the followed entity won; `undefined` when the outcome is unknown. */
-  won?: boolean;
-  /** Lazily resolves the formatted score (may need another fetch). */
-  scoreFetcher: () => Promise<string | undefined>;
-}
-
 /** Resolves a competitor's set-by-set linescores into a games-per-set array. */
 async function resolveLinescoreValues(
   ls: CoreLinescores,
@@ -575,152 +547,6 @@ async function resolveLinescoreValues(
     return (data.items ?? []).map((x) => x.value ?? 0);
   }
   return [];
-}
-
-/** Resolves both competitors' set scores into "7-5, 6-4" (athlete first). */
-async function tennisSetScore(
-  mine: CoreCompetitor | undefined,
-  opp: CoreCompetitor | undefined,
-  opts: ClientOptions,
-): Promise<string | undefined> {
-  const [m, o] = await Promise.all([
-    resolveLinescoreValues(mine?.linescores, opts),
-    resolveLinescoreValues(opp?.linescores, opts),
-  ]);
-  if (m.length === 0 || o.length === 0) return undefined;
-  return m.map((v, i) => `${v}-${o[i] ?? 0}`).join(", ");
-}
-
-/**
- * Returns an athlete's most-recent completed and next upcoming match.
- *
- * SPIKE FINDINGS (Task 4.1 + follow-ups): the site-v2 `athletes/{id}/eventlog`
- * and `athletes?search=` endpoints 404. The working source is the core API
- * `.../athletes/{id}/eventlog`, whose `events.items[]` carry a `competition`
- * (individual sports) or `event` + `teamId` (team sports) `$ref` — but NO
- * inline date, and the list is NOT chronological (nor is the `played` flag
- * reliable). So we resolve every item, then pick by date: the latest completed
- * match and the earliest upcoming one.
- *
- * Two eventlog shapes:
- *   - TEAM sports carry `teamId`; the resolved event `name` is "{Away} at
- *     {Home}", from which we derive the opponent.
- *   - INDIVIDUAL sports (tennis) have no `teamId`; the event is the whole
- *     tournament, so we resolve the athlete's specific `competition` and read
- *     the opposing competitor's `name` and set scores directly.
- *
- * Responses are cached (`revalidateSeconds`) so the per-competition fan-out
- * doesn't re-hit ESPN on every poll. Any fetch/parse error returns
- * `{ lastMatch: null, nextMatch: null }` — never throws.
- */
-export async function athleteSchedule(
-  leagueKey: string,
-  athleteId: string,
-  opts: ClientOptions = {},
-): Promise<{ lastMatch: EntityMatch | null; nextMatch: EntityMatch | null }> {
-  const empty = { lastMatch: null, nextMatch: null };
-  try {
-    const [sportPath, leaguePath] = leagueKey.split("/");
-    if (!sportPath || !leaguePath) return empty;
-    const leagueName = findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
-    // Completed results never change and start times rarely do, so cache the
-    // whole fan-out for 5 min unless the caller overrides.
-    const req: ClientOptions = {
-      ...opts,
-      revalidateSeconds: opts.revalidateSeconds ?? 300,
-    };
-    const https = (ref: string) => ref.replace(/^http:/, "https:");
-
-    const url = `${CORE_BASE}/${sportPath}/leagues/${leaguePath}/athletes/${encodeURIComponent(
-      athleteId,
-    )}/eventlog?limit=300&lang=en&region=us`;
-    const log = await fetchJson<CoreEventLogResponse>(url, req);
-    const items = log.events?.items ?? [];
-    if (items.length === 0) return empty;
-
-    const now = Date.now();
-
-    const resolveItem = async (
-      item: (typeof items)[number],
-    ): Promise<ResolvedMatch | null> => {
-      // Team sports: single game; opponent from the event name.
-      if (item.teamId && item.event?.$ref) {
-        const ev = await fetchJson<CoreEvent>(https(item.event.$ref), req);
-        if (!ev.date) return null;
-        const mine = ev.competitions?.[0]?.competitors?.find(
-          (c) => c.id === item.teamId,
-        );
-        return {
-          date: ev.date,
-          opponentName: opponentFromCoreEvent(ev, item.teamId) || "Opponent",
-          completed: Date.parse(ev.date) < now,
-          won: mine?.winner,
-          scoreFetcher: async () => undefined,
-        };
-      }
-      // Individual sports (tennis): the athlete's specific match.
-      if (item.competition?.$ref) {
-        const comp = await fetchJson<CoreCompetition>(
-          https(item.competition.$ref),
-          req,
-        );
-        if (!comp.date) return null;
-        const competitors = comp.competitors ?? [];
-        const idPrefix = (c: CoreCompetitor) => (c.id ?? "").split("-")[0];
-        const mine = competitors.find((c) => idPrefix(c) === athleteId);
-        const opp = competitors.find((c) => idPrefix(c) !== athleteId);
-        return {
-          date: comp.date,
-          opponentName: opp?.name?.trim() || "Opponent",
-          completed: competitors.some((c) => c.winner === true),
-          won: mine?.winner,
-          scoreFetcher: () => tennisSetScore(mine, opp, req),
-        };
-      }
-      return null;
-    };
-
-    const resolved = (await Promise.all(items.map(resolveItem))).filter(
-      (r): r is ResolvedMatch => r !== null,
-    );
-
-    const byDate = (a: ResolvedMatch, b: ResolvedMatch) =>
-      a.date.localeCompare(b.date);
-    const completed = resolved.filter((r) => r.completed).sort(byDate);
-    const upcoming = resolved
-      .filter((r) => !r.completed && Date.parse(r.date) >= now)
-      .sort(byDate);
-
-    const lastR = completed[completed.length - 1];
-    const nextR = upcoming[0];
-
-    const toMatch = async (
-      r: ResolvedMatch | undefined,
-      withScore: boolean,
-    ): Promise<EntityMatch | null> => {
-      if (!r) return null;
-      const match: EntityMatch = {
-        opponentName: r.opponentName,
-        date: r.date.slice(0, 10),
-        kickoffUtc: r.date,
-        leagueName,
-      };
-      if (withScore) {
-        const score = await r.scoreFetcher();
-        if (score) match.score = score;
-        if (r.won !== undefined) match.result = r.won ? "W" : "L";
-      }
-      return match;
-    };
-
-    const [lastMatch, nextMatch] = await Promise.all([
-      toMatch(lastR, true),
-      toMatch(nextR, false),
-    ]);
-    return { lastMatch, nextMatch };
-  } catch {
-    return empty;
-  }
 }
 
 /** A player match resolved from the eventlog, before capping + deep-resolve. */
@@ -739,9 +565,8 @@ function playerMatchStatus(dateIso: string, completed: boolean): MatchStatus {
 /**
  * Returns up to `MATCH_HISTORY_CAP` recent (completed, most-recent-first)
  * and `MATCH_HISTORY_CAP` upcoming (soonest-first) matches for an athlete,
- * as fully-populated `Match` objects — unlike `athleteSchedule`, which
- * reduces to a single last/next `EntityMatch` summary. Powers the entity
- * match-detail screen (Spec 11) so a followed player's history renders with
+ * as fully-populated `Match` objects. Powers the Teams list and the entity
+ * match-detail screen so a followed player's history renders with
  * the same `MatchCard` / `TennisMatchCard` components as Home.
  *
  * Two-phase resolution to bound fan-out: phase 1 resolves every eventlog
@@ -751,8 +576,8 @@ function playerMatchStatus(dateIso: string, completed: boolean): MatchStatus {
  * per-match detail needed for full fidelity (tennis set-by-set linescores)
  * for that capped set — never for the full eventlog.
  *
- * Never throws — returns `{ recent: [], upcoming: [] }` on any failure, same
- * as `athleteSchedule`.
+ * Never throws — returns `{ recent: [], upcoming: [] }` on any failure, so a
+ * player ESPN has no data on degrades to "Match data unavailable".
  */
 export async function athleteMatchHistory(
   leagueKey: string,
