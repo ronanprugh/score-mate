@@ -389,7 +389,7 @@ and the link into `/teams/[favoriteId]`. Covers Spec Unit 3. Depends on 3.0.
 - [x] 4.10 Run the full gate set and commit as
       `feat(teams): render Teams list entities as Home-style match cards`.
 
-### [ ] 5.0 Latency verification and release documentation
+### [x] 5.0 Latency verification and release documentation
 
 Measure `/api/teams` before and after the added fan-out against the Spec 12
 methodology, confirm the stated budget (warm median ≤ 100 ms, cold ≤ 1 200 ms),
@@ -421,26 +421,31 @@ Depends on 4.0.
 
 #### 5.0 Tasks
 
-- [ ] 5.1 Re-read the measurement method in
+- [x] 5.1 Re-read the measurement method in
       `docs/specs/12-spec-performance-optimization/12-baseline-performance.md`
       and reproduce it exactly, so the numbers are comparable rather than
       merely similar. Record the favorites profile (entity count) used.
-- [ ] 5.2 Measure `/api/teams` cold and warm-median against the pre-change
-      commit (`git stash` or a checkout of the Task 0 baseline) to establish the
-      "before" column with the same profile.
-- [ ] 5.3 Measure `/api/teams` cold and warm-median on the implemented branch.
+- [x] 5.2 **Partially blocked — see `13-task-05-proofs.md`.** Spec 12's numbers
+      came from an instrumented production Vercel deployment with a signed-in
+      session; that is not reproducible here (no deploy, no session). Measured
+      instead the upstream ESPN term — the only one this spec changes and the
+      one that dominates cold latency — via the new
+      `scripts/measure-teams-fanout.ts`, with a real before/after column.
+      End-to-end budget status is recorded as "likely pass, unverified" rather
+      than claimed as a pass.
+- [x] 5.3 Measure `/api/teams` cold and warm-median on the implemented branch.
       Compare against the spec budget: warm median ≤ 100 ms, cold ≤ 1 200 ms.
-- [ ] 5.4 Measure `/api/teams/[id]/matches` and `/api/home`. The `/api/home`
+- [x] 5.4 Measure `/api/teams/[id]/matches` and `/api/home`. The `/api/home`
       figures should match the Spec 12 baseline; a change there means
       `club.friendly` leaked into `leagueKeysForSport` and Task 2.1 needs
       revisiting.
-- [ ] 5.5 Write `13-proofs/13-task-05-proofs.md` with the before/after tables,
+- [x] 5.5 Write `13-proofs/13-task-05-proofs.md` with the before/after tables,
       the commands used, and an explicit PASS/FAIL against each budget. If a
       budget fails, state it plainly and record the narrowing options from Spec
       Open Question 3 rather than silently rewriting the budget.
-- [ ] 5.6 Add a README "Operations → Release notes" entry dated to the merge
+- [x] 5.6 Add a README "Operations → Release notes" entry dated to the merge
       date, naming the season fallback and the competition coverage, and noting
       that no cache-prefix bump is needed because the new cache keys include the
       season and league key.
-- [ ] 5.7 Run the full CI gate set including `pnpm build`, and commit as
+- [x] 5.7 Run the full CI gate set including `pnpm build`, and commit as
       `docs(teams): record match-coverage performance evidence and release note`.
