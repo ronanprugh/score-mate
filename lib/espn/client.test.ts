@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import nflScoreboard from "./__fixtures__/nfl-scoreboard.json" with { type: "json" };
 import nbaScoreboard from "./__fixtures__/nba-scoreboard.json" with { type: "json" };
 import eplScoreboard from "./__fixtures__/epl-scoreboard.json" with { type: "json" };
 import emptyScoreboard from "./__fixtures__/empty-scoreboard.json" with { type: "json" };
 import nflTeams from "./__fixtures__/nfl-teams.json" with { type: "json" };
+import liverpoolEmptySchedule from "./__fixtures__/liverpool-eng1-empty-schedule.json" with { type: "json" };
+import liverpoolSchedule2025 from "./__fixtures__/liverpool-eng1-schedule-2025.json" with { type: "json" };
 
 import {
   athleteMatchHistory,
@@ -11,11 +13,13 @@ import {
   buildLeagueTeamsUrl,
   buildScoreboardUrl,
   buildTeamScheduleUrl,
+  currentEspnSeasonYear,
   fetchEventCoreDetail,
   leagueTeams,
   scoreboardForLeague,
   searchAthletes,
   sportFromLeagueKey,
+  teamScheduleForLeague,
 } from "./client";
 
 /** A fetchFn that returns different JSON bodies keyed by a URL substring. */
@@ -57,6 +61,12 @@ describe("ESPN URL builders", () => {
   it("team schedule URL encodes the team id", () => {
     expect(buildTeamScheduleUrl("soccer/eng.1", "359")).toBe(
       "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/359/schedule",
+    );
+  });
+
+  it("team schedule URL appends the season when one is given", () => {
+    expect(buildTeamScheduleUrl("soccer/eng.1", "364", 2025)).toBe(
+      "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/364/schedule?season=2025",
     );
   });
 });
@@ -553,6 +563,129 @@ describe("leagueTeams — parses ESPN site-v2 teams endpoint", () => {
       fetchFn: mockJsonFetch({}),
     });
     expect(teams).toEqual([]);
+  });
+});
+
+describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => {
+  /**
+   * ESPN's `/schedule` endpoint has no documented season contract: it rolls to
+   * the next season as soon as one is registered, and an unpublished season
+   * answers 200 with `events: []`. These fixtures are the real payloads
+   * recorded on 2026-08-05 for Liverpool (team 364).
+   */
+  const routes = {
+    "season=2026": liverpoolEmptySchedule,
+    "season=2025": liverpoolSchedule2025,
+  };
+
+  /** Wraps a fetchFn so the test can assert how many requests were issued. */
+  function recordingFetch(inner: typeof fetch) {
+    const urls: string[] = [];
+    const fn: typeof fetch = (url, init) => {
+      urls.push(String(url));
+      return inner(url, init);
+    };
+    return { fetchFn: fn, urls };
+  }
+
+  beforeEach(() => {
+    // Pin the clock so the derived season is stable, not a function of the
+    // year the suite happens to run in.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-05T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("derives the current season from the clock", () => {
+    expect(currentEspnSeasonYear()).toBe(2026);
+    expect(currentEspnSeasonYear(new Date("2025-01-02T00:00:00Z"))).toBe(2025);
+  });
+
+  it("falls back to the previous season when the current season is empty", async () => {
+    const { fetchFn } = recordingFetch(routedFetch(routes));
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    expect(matches).toHaveLength(4);
+    expect(matches[0]?.homeTeamName).toBe("Liverpool");
+  });
+
+  it("issues exactly two requests when falling back", async () => {
+    const { fetchFn, urls } = recordingFetch(routedFetch(routes));
+    await teamScheduleForLeague("soccer/eng.1", "364", { fetchFn });
+
+    expect(urls).toHaveLength(2);
+    expect(urls[0]).toContain("season=2026");
+    expect(urls[1]).toContain("season=2025");
+  });
+
+  it("issues no fallback request when the current season is populated", async () => {
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({ "season=2026": liverpoolSchedule2025 }),
+    );
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    expect(matches).toHaveLength(4);
+    expect(urls).toHaveLength(1);
+    expect(urls[0]).toContain("season=2026");
+  });
+
+  it("resolves to an empty array (does not throw) when both seasons are empty", async () => {
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({
+        "season=2026": liverpoolEmptySchedule,
+        "season=2025": liverpoolEmptySchedule,
+      }),
+    );
+
+    await expect(
+      teamScheduleForLeague("soccer/eng.1", "364", { fetchFn }),
+    ).resolves.toEqual([]);
+    // Still bounded at one retry — no walking backwards through seasons.
+    expect(urls).toHaveLength(2);
+  });
+
+  it("honors an explicit season and skips the fallback entirely", async () => {
+    const { fetchFn, urls } = recordingFetch(routedFetch(routes));
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+      season: 2025,
+    });
+
+    expect(matches).toHaveLength(4);
+    expect(urls).toEqual([expect.stringContaining("season=2025")]);
+  });
+
+  it("still throws on an upstream HTTP failure rather than reading it as 'no matches'", async () => {
+    const failing: typeof fetch = async () =>
+      new Response("nope", { status: 503, statusText: "Service Unavailable" });
+
+    await expect(
+      teamScheduleForLeague("soccer/eng.1", "364", { fetchFn: failing }),
+    ).rejects.toThrow(/ESPN 503/);
+  });
+
+  it("parses object-shaped scores from the team schedule endpoint", async () => {
+    // The scoreboard endpoint sends `score: "2"`; this endpoint sends
+    // `score: { value: 2, displayValue: "2" }`. Both must yield a number.
+    const { fetchFn } = recordingFetch(routedFetch(routes));
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    const settled = matches.filter((m) => m.status === "final");
+    expect(settled.length).toBeGreaterThan(0);
+    for (const m of settled) {
+      expect(typeof m.homeScore).toBe("number");
+      expect(typeof m.awayScore).toBe("number");
+      expect(Number.isNaN(m.homeScore)).toBe(false);
+    }
   });
 });
 

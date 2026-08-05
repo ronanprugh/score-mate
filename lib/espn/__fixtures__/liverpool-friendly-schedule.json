@@ -1,0 +1,203 @@
+{
+  "season": {
+    "year": 2026,
+    "type": 13818,
+    "name": "2026 Club Friendly",
+    "displayName": "2026 Club Friendly",
+    "half": 1
+  },
+  "events": [
+    {
+      "id": "401863533",
+      "date": "2026-08-02T20:00Z",
+      "name": "Leeds United at Liverpool",
+      "shortName": "LEE @ LIV",
+      "league": {
+        "id": "19834",
+        "name": "Club Friendly",
+        "abbreviation": "Club Friendly"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 2.0,
+                "displayValue": "2",
+                "winner": false
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "357",
+                "displayName": "Leeds United",
+                "shortDisplayName": "Leeds",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/357.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 4.0,
+                "displayValue": "4",
+                "winner": true
+              }
+            }
+          ],
+          "date": "2026-08-02T20:00Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Soldier Field"
+          }
+        }
+      ]
+    },
+    {
+      "id": "401863532",
+      "date": "2026-07-29T23:30Z",
+      "name": "Wrexham at Liverpool",
+      "shortName": "WXM @ LIV",
+      "league": {
+        "id": "19834",
+        "name": "Club Friendly",
+        "abbreviation": "Club Friendly"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 1.0,
+                "displayValue": "1",
+                "winner": true
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "352",
+                "displayName": "Wrexham",
+                "shortDisplayName": "Wrexham",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/352.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 0.0,
+                "displayValue": "0",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-07-29T23:30Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Yankee Stadium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "401869427",
+      "date": "2026-07-25T22:00Z",
+      "name": "Sunderland at Liverpool",
+      "shortName": "SUN @ LIV",
+      "league": {
+        "id": "19834",
+        "name": "Club Friendly",
+        "abbreviation": "Club Friendly"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 4.0,
+                "displayValue": "4",
+                "winner": true
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "366",
+                "displayName": "Sunderland",
+                "shortDisplayName": "Sunderland",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/366.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 2.0,
+                "displayValue": "2",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-07-25T22:00Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "GEODIS Park"
+          }
+        }
+      ]
+    }
+  ]
+}

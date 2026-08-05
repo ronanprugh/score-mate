@@ -47,7 +47,7 @@ Task list for [`13-spec-teams-match-coverage-and-cards.md`](13-spec-teams-match-
 
 ## Tasks
 
-### [ ] 1.0 Season-aware team schedule fetching
+### [x] 1.0 Season-aware team schedule fetching
 
 Fix the root cause of the empty Teams screen: `teamScheduleForLeague` sends no
 `season` parameter, so during a season rollover ESPN resolves to an unpublished
@@ -78,35 +78,41 @@ Teams routes already call. Covers Spec Unit 1.
 
 #### 1.0 Tasks
 
-- [ ] 1.1 Extend `buildTeamScheduleUrl` in `lib/espn/client.ts` to accept an
+- [x] 1.1 Extend `buildTeamScheduleUrl` in `lib/espn/client.ts` to accept an
       optional `season?: number` and append `?season=<year>` when provided.
       Keep the existing no-season signature working so current callers and the
       existing URL-builder test still compile.
-- [ ] 1.2 Add an exported `currentEspnSeasonYear(now = new Date()): number`
+- [x] 1.2 Add an exported `currentEspnSeasonYear(now = new Date()): number`
       helper returning the current calendar year. Document in a comment that
       ESPN's soccer season year is the season's *starting* year
       (`season=2025` → the 2025-26 campaign) and that per-sport calendar
       differences are handled by the empty-result fallback, not by encoding
       calendars — per Spec Technical Considerations.
-- [ ] 1.3 Rework `teamScheduleForLeague` to: request the current season
+- [x] 1.3 Rework `teamScheduleForLeague` to: request the current season
       explicitly; if the parsed result is empty, issue exactly one retry at
       `currentEspnSeasonYear() - 1`; return the first non-empty result, or `[]`
       when both are empty. Never throw on an empty result.
-- [ ] 1.4 Give `teamScheduleForLeague` an optional `season` override in its
+- [x] 1.4 Give `teamScheduleForLeague` an optional `season` override in its
       options so callers (and Task 2.0's fan-out) can pin a season, and so tests
       can assert behaviour without depending on the wall clock.
-- [ ] 1.5 Record two fixtures: `lib/espn/__fixtures__/liverpool-eng1-empty-schedule.json`
+- [x] 1.5 Record two fixtures: `lib/espn/__fixtures__/liverpool-eng1-empty-schedule.json`
       (the live empty current-season payload) and
       `lib/espn/__fixtures__/liverpool-eng1-schedule-2025.json` (the populated
       previous-season payload, trimmed to ~4 events plus the `season` block).
-- [ ] 1.6 Add the four test cases from the proof artifacts to
+- [x] 1.6 Add the four test cases from the proof artifacts to
       `lib/espn/client.test.ts`, using `routedFetch` keyed on the `season=`
       substring, and a request-counting `fetchFn` wrapper for the
       "exactly one retry" assertion.
-- [ ] 1.7 Capture the `curl` before/after transcript into
+- [x] 1.7 Capture the `curl` before/after transcript into
       `13-proofs/13-task-01-proofs.md`.
-- [ ] 1.8 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`
+- [x] 1.8 Run `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:ci`
       and commit as `fix(teams): fall back to previous ESPN season when current is empty`.
+- [x] 1.9 **Added during implementation, not in the original plan.** Fix
+      `parseScore` to handle the object-shaped `score` the team-schedule
+      endpoint returns (`{ value, displayValue }`) alongside the scoreboard's
+      plain string. Found while recording fixtures; without it every completed
+      match from a team schedule loses its score, which would have shipped the
+      redesigned cards with no scores in them. See `13-task-01-proofs.md`.
 
 ### [ ] 2.0 Multi-competition coverage for team schedules
 

@@ -86,8 +86,10 @@ export function buildLeagueTeamsUrl(leagueKey: string): string {
 export function buildTeamScheduleUrl(
   leagueKey: string,
   teamId: string,
+  season?: number,
 ): string {
-  return `${SITE_BASE}/${leagueKey}/teams/${encodeURIComponent(teamId)}/schedule`;
+  const base = `${SITE_BASE}/${leagueKey}/teams/${encodeURIComponent(teamId)}/schedule`;
+  return season === undefined ? base : `${base}?season=${season}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -102,9 +104,15 @@ interface RawCompetitorTeam {
   logos?: { href?: string }[];
 }
 
+/**
+ * A competitor score. The scoreboard endpoint sends a string; the per-team
+ * schedule endpoint sends an object. Both are normalized by `parseScore`.
+ */
+type RawScore = string | number | { value?: number; displayValue?: string };
+
 interface RawCompetitor {
   homeAway?: "home" | "away";
-  score?: string;
+  score?: RawScore;
   team?: RawCompetitorTeam;
 }
 
@@ -208,8 +216,23 @@ function mapStatus(state: RawStatusType["state"] | undefined): MatchStatus {
   return "upcoming";
 }
 
-function parseScore(raw: string | undefined): number | undefined {
+/**
+ * Normalizes a competitor score across the two shapes ESPN uses.
+ *
+ * The scoreboard endpoint returns a plain string (`"2"`). The per-team
+ * schedule endpoint returns an object (`{ value: 2, displayValue: "2" }`).
+ * Handling only the string silently produced `Number({…})` → `NaN` →
+ * `undefined`, so every completed match sourced from a team schedule lost its
+ * score. Found while recording Spec 13's fixtures; see `13-task-01-proofs.md`.
+ */
+function parseScore(raw: RawScore | undefined): number | undefined {
   if (raw == null || raw === "") return undefined;
+  if (typeof raw === "object") {
+    if (typeof raw.value === "number" && Number.isFinite(raw.value)) {
+      return raw.value;
+    }
+    return parseScore(raw.displayValue);
+  }
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
 }
@@ -905,21 +928,84 @@ export async function athleteMatchHistory(
 }
 
 /**
- * Returns the schedule for a single team in a league. ESPN returns up to
- * the next ~25 events; we map them into our `Match` shape with the
- * provided `leagueKey` as the canonical `leagueId`.
+ * The season year to ask ESPN for, given a clock.
+ *
+ * ESPN's season year is the season's *starting* year: `season=2025` returns
+ * the 2025-26 campaign. Sports disagree about when a season rolls over (the
+ * NFL in February, MLB in November, European soccer in June), and ESPN
+ * registers the next season at an unpredictable point — often before any
+ * fixtures exist for it.
+ *
+ * Rather than encode a per-sport calendar that would silently rot, we ask for
+ * the current calendar year and let `teamScheduleForLeague`'s empty-result
+ * fallback handle the rollover window. See Spec 13 Technical Considerations.
  */
-export async function teamScheduleForLeague(
+export function currentEspnSeasonYear(now: Date = new Date()): number {
+  return now.getUTCFullYear();
+}
+
+interface TeamScheduleOptions extends ClientOptions {
+  /**
+   * Pin an explicit season instead of deriving one from the clock. Pinning
+   * also disables the previous-season fallback — the caller has said which
+   * season it wants.
+   */
+  season?: number;
+}
+
+/** One season's worth of a team's schedule, parsed into `Match` objects. */
+async function fetchSeasonSchedule(
   leagueKey: string,
   teamId: string,
-  opts: ClientOptions = {},
+  season: number,
+  opts: ClientOptions,
 ): Promise<Match[]> {
-  const url = buildTeamScheduleUrl(leagueKey, teamId);
+  const url = buildTeamScheduleUrl(leagueKey, teamId, season);
   const data = await fetchJson<{ events?: RawEvent[] | null }>(url, opts);
   if (!data.events) return [];
   return data.events
     .map((e) => parseEvent(e, leagueKey))
     .filter((m): m is Match => m !== null);
+}
+
+/**
+ * Returns the schedule for a single team in a league, as `Match` objects with
+ * `leagueKey` as the canonical `leagueId`.
+ *
+ * Sends an explicit `season`, because ESPN's implicit default resolves to the
+ * *upcoming* season as soon as one is registered — and an unpublished season
+ * returns `events: []`, not an error. Left unhandled, that renders a followed
+ * team as "Match data unavailable" for the whole offseason even though a full
+ * completed season sits one parameter away (Spec 13, Unit 1).
+ *
+ * When the current season yields nothing, retries exactly once at
+ * `currentYear - 1` and returns that instead. Two empty seasons resolve to
+ * `[]` rather than throwing, preserving the graceful degradation both Teams
+ * routes already depend on. HTTP failures still throw, so a genuine upstream
+ * outage is reported rather than silently read as "no matches".
+ */
+export async function teamScheduleForLeague(
+  leagueKey: string,
+  teamId: string,
+  opts: TeamScheduleOptions = {},
+): Promise<Match[]> {
+  const { season, ...fetchOpts } = opts;
+  if (season !== undefined) {
+    return fetchSeasonSchedule(leagueKey, teamId, season, fetchOpts);
+  }
+
+  const currentSeason = currentEspnSeasonYear();
+  const current = await fetchSeasonSchedule(
+    leagueKey,
+    teamId,
+    currentSeason,
+    fetchOpts,
+  );
+  if (current.length > 0) return current;
+
+  // Exactly one retry — a team genuinely without fixtures must not walk
+  // backwards through seasons on every request.
+  return fetchSeasonSchedule(leagueKey, teamId, currentSeason - 1, fetchOpts);
 }
 
 /**

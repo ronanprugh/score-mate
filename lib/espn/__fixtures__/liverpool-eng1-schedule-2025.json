@@ -1,0 +1,267 @@
+{
+  "season": {
+    "year": 2026,
+    "type": 14308,
+    "name": "2026-27 English Premier League",
+    "displayName": "2026-27 English Premier League",
+    "half": 1
+  },
+  "events": [
+    {
+      "id": "740975",
+      "date": "2026-05-24T15:00Z",
+      "name": "Brentford at Liverpool",
+      "shortName": "BRE @ LIV",
+      "league": {
+        "id": "700",
+        "name": "English Premier League",
+        "abbreviation": "Premier League"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 1.0,
+                "displayValue": "1",
+                "winner": false
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "337",
+                "displayName": "Brentford",
+                "shortDisplayName": "Brentford",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 1.0,
+                "displayValue": "1",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-05-24T15:00Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Anfield"
+          }
+        }
+      ]
+    },
+    {
+      "id": "740957",
+      "date": "2026-05-15T19:00Z",
+      "name": "Liverpool at Aston Villa",
+      "shortName": "LIV @ AVL",
+      "league": {
+        "id": "700",
+        "name": "English Premier League",
+        "abbreviation": "Premier League"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "362",
+                "displayName": "Aston Villa",
+                "shortDisplayName": "Aston Villa",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/362.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 4.0,
+                "displayValue": "4",
+                "winner": true
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 2.0,
+                "displayValue": "2",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-05-15T19:00Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Villa Park"
+          }
+        }
+      ]
+    },
+    {
+      "id": "740950",
+      "date": "2026-05-09T11:30Z",
+      "name": "Chelsea at Liverpool",
+      "shortName": "CHE @ LIV",
+      "league": {
+        "id": "700",
+        "name": "English Premier League",
+        "abbreviation": "Premier League"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 1.0,
+                "displayValue": "1",
+                "winner": false
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "363",
+                "displayName": "Chelsea",
+                "shortDisplayName": "Chelsea",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 1.0,
+                "displayValue": "1",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-05-09T11:30Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Anfield"
+          }
+        }
+      ]
+    },
+    {
+      "id": "740943",
+      "date": "2026-05-03T14:30Z",
+      "name": "Liverpool at Manchester United",
+      "shortName": "LIV @ MAN",
+      "league": {
+        "id": "700",
+        "name": "English Premier League",
+        "abbreviation": "Premier League"
+      },
+      "competitions": [
+        {
+          "competitors": [
+            {
+              "homeAway": "home",
+              "team": {
+                "id": "360",
+                "displayName": "Manchester United",
+                "shortDisplayName": "Man United",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 3.0,
+                "displayValue": "3",
+                "winner": true
+              }
+            },
+            {
+              "homeAway": "away",
+              "team": {
+                "id": "364",
+                "displayName": "Liverpool",
+                "shortDisplayName": "Liverpool",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+                  }
+                ]
+              },
+              "score": {
+                "value": 2.0,
+                "displayValue": "2",
+                "winner": false
+              }
+            }
+          ],
+          "date": "2026-05-03T14:30Z",
+          "status": {
+            "type": {
+              "state": "post",
+              "completed": true,
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "fullName": "Old Trafford"
+          }
+        }
+      ]
+    }
+  ]
+}
