@@ -20,11 +20,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
-import { athleteMatchHistory, teamScheduleForLeague } from "@/lib/espn/client";
+import { athleteMatchHistory } from "@/lib/espn/client";
 import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
 import { withServerTiming } from "@/lib/perf/server-timing";
-import { splitAndCapSchedule } from "@/lib/teams/schedule";
+import { cachedTeamScheduleForLeague } from "@/lib/teams/cached-schedule";
+import {
+  splitAndCapSchedule,
+  teamScheduleAcrossCompetitions,
+} from "@/lib/teams/schedule";
 import type { EntityMatchesEnvelope } from "@/lib/teams/types";
 
 interface RouteContext {
@@ -74,12 +78,16 @@ export async function GET(_req: Request, ctx: RouteContext) {
       }
 
       try {
-        const schedule = await teamScheduleForLeague(
-          catalogTeam.leagueKey,
-          favorite.externalId,
-          { revalidateSeconds: 300 },
-        );
-        const { recent, upcoming } = splitAndCapSchedule(schedule);
+        // Same fan-out as /api/teams, so the two Teams screens agree about
+        // which matches exist (Spec 13, Unit 2).
+        const { matches, errors: fanoutErrors } =
+          await teamScheduleAcrossCompetitions(
+            catalogTeam.leagueKey,
+            favorite.externalId,
+            { fetchLeagueSchedule: cachedTeamScheduleForLeague },
+          );
+        errors.push(...fanoutErrors);
+        const { recent, upcoming } = splitAndCapSchedule(matches);
         const envelope: EntityMatchesEnvelope = {
           entity: {
             favoriteId: favorite.id,
@@ -90,7 +98,7 @@ export async function GET(_req: Request, ctx: RouteContext) {
           },
           recent,
           upcoming,
-          source: { ok: true, errors: [] },
+          source: { ok: errors.length === 0, errors },
         };
         return NextResponse.json(envelope, { status: 200 });
       } catch (e) {

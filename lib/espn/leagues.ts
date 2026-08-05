@@ -99,9 +99,63 @@ export const SUPPORTED_LEAGUES: readonly SupportedLeague[] = [
 ] as const;
 
 /**
+ * Leagues we resolve names for but never fan out over.
+ *
+ * These exist so a followed team's *own* schedule can include competitions
+ * outside its primary league (Spec 13, Unit 2) without those competitions
+ * joining the Home feed. The distinction matters: `leagueKeysForSport` drives
+ * the home aggregator's per-date fan-out (`lib/home/aggregator.ts:197`), so an
+ * entry in `SUPPORTED_LEAGUES` costs one scoreboard call per date for every
+ * user following that sport — and puts its fixtures in everyone's Home feed.
+ *
+ * Club friendlies belong on a followed team's card in preseason, but nobody
+ * asked for them in the Home feed (Spec 13, Non-Goal #8).
+ */
+export const COMPANION_ONLY_LEAGUES: readonly SupportedLeague[] = [
+  {
+    leagueKey: "soccer/club.friendly",
+    sport: "Soccer",
+    displayName: "Club Friendly",
+  },
+] as const;
+
+/**
+ * Competitions to check alongside a team's primary league when building that
+ * team's schedule, keyed by primary league key.
+ *
+ * A static map rather than a runtime probe, so the per-team request count is
+ * knowable by inspection: a big-5 soccer team costs 1 + this list's length.
+ * Only England has domestic cups registered in `SUPPORTED_LEAGUES`, so the
+ * other big-5 leagues get friendlies plus the three UEFA competitions.
+ */
+const UEFA_COMPETITIONS = [
+  "soccer/uefa.champions",
+  "soccer/uefa.europa",
+  "soccer/uefa.europa.conf",
+] as const;
+
+export const COMPANION_LEAGUE_KEYS: Readonly<
+  Record<string, readonly string[]>
+> = {
+  "soccer/eng.1": [
+    "soccer/club.friendly",
+    "soccer/eng.fa",
+    "soccer/eng.league_cup",
+    ...UEFA_COMPETITIONS,
+  ],
+  "soccer/esp.1": ["soccer/club.friendly", ...UEFA_COMPETITIONS],
+  "soccer/ita.1": ["soccer/club.friendly", ...UEFA_COMPETITIONS],
+  "soccer/ger.1": ["soccer/club.friendly", ...UEFA_COMPETITIONS],
+  "soccer/fra.1": ["soccer/club.friendly", ...UEFA_COMPETITIONS],
+  "soccer/usa.1": ["soccer/club.friendly", "soccer/concacaf.champions"],
+};
+
+/**
  * Returns every supported league key whose sport matches the argument.
  * Used by the aggregator to expand a Sport favorite (or any favorite that
  * carries a sport) into the set of league scoreboards we need to fetch.
+ *
+ * Deliberately reads `SUPPORTED_LEAGUES` only — see `COMPANION_ONLY_LEAGUES`.
  */
 export function leagueKeysForSport(sport: Sport): string[] {
   return SUPPORTED_LEAGUES.filter((l) => l.sport === sport).map(
@@ -110,10 +164,24 @@ export function leagueKeysForSport(sport: Sport): string[] {
 }
 
 /**
- * Returns the supported-league entry for a key, or `null` if the key
- * isn't in `SUPPORTED_LEAGUES`. Used to translate a favorited league key
- * back into its `Sport` and display name.
+ * Companion competitions for a team whose primary league is `primaryLeagueKey`.
+ * Returns `[]` for single-competition sports (NFL, NBA, MLB) and for any league
+ * with no entry, leaving those teams' request counts unchanged.
+ */
+export function companionLeagueKeys(primaryLeagueKey: string): string[] {
+  return [...(COMPANION_LEAGUE_KEYS[primaryLeagueKey] ?? [])];
+}
+
+/**
+ * Returns the league entry for a key, or `null` if unknown. Used to translate
+ * a favorited or fixture-derived league key back into its `Sport` and display
+ * name. Searches companion-only leagues too, so a friendly resolves
+ * "Club Friendly" rather than falling back to a raw league key.
  */
 export function findSupportedLeague(leagueKey: string): SupportedLeague | null {
-  return SUPPORTED_LEAGUES.find((l) => l.leagueKey === leagueKey) ?? null;
+  return (
+    SUPPORTED_LEAGUES.find((l) => l.leagueKey === leagueKey) ??
+    COMPANION_ONLY_LEAGUES.find((l) => l.leagueKey === leagueKey) ??
+    null
+  );
 }

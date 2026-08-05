@@ -18,14 +18,35 @@ vi.mock("@/lib/espn/catalog", () => ({
     findCatalogTeamByIdMock(id, sport, displayName),
 }));
 
-const teamScheduleMock = vi.fn();
 const athleteMatchHistoryMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
-  teamScheduleForLeague: (leagueKey: string, teamId: string) =>
-    teamScheduleMock(leagueKey, teamId),
   athleteMatchHistory: (leagueKey: string, athleteId: string) =>
     athleteMatchHistoryMock(leagueKey, athleteId),
 }));
+
+/**
+ * As of Spec 13 the route fans out across competitions via
+ * `teamScheduleAcrossCompetitions` rather than calling
+ * `teamScheduleForLeague` directly, so the mock lives here. `teamScheduleMock`
+ * keeps its old name and `(leagueKey, teamId)` signature so existing cases
+ * read unchanged; it now stands for the merged multi-competition result.
+ */
+const teamScheduleMock = vi.fn();
+/** Per-competition failures the fan-out settled with; empty unless a test sets them. */
+const fanoutErrorsMock = vi.fn<() => string[]>(() => []);
+vi.mock("@/lib/teams/schedule", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/teams/schedule")>();
+  return {
+    ...actual,
+    teamScheduleAcrossCompetitions: async (
+      primaryLeagueKey: string,
+      teamId: string,
+    ) => ({
+      matches: await teamScheduleMock(primaryLeagueKey, teamId),
+      errors: fanoutErrorsMock(),
+    }),
+  };
+});
 
 import { GET } from "./route";
 
@@ -87,6 +108,8 @@ describe("GET /api/teams/[favoriteId]/matches", () => {
     findCatalogTeamByIdMock.mockReset();
     teamScheduleMock.mockReset();
     athleteMatchHistoryMock.mockReset();
+    fanoutErrorsMock.mockReset();
+    fanoutErrorsMock.mockReturnValue([]);
   });
 
   it("returns 401 when there is no session", async () => {
@@ -214,6 +237,72 @@ describe("GET /api/teams/[favoriteId]/matches", () => {
     const body = (await res.json()) as EntityMatchesEnvelope;
     expect(body.source.ok).toBe(false);
     expect(body.source.errors).toContain("ESPN 500");
+  });
+
+  it("surfaces a friendly from a companion league, matching /api/teams coverage", async () => {
+    // Spec 13, Unit 2: the two Teams screens must agree about which matches
+    // exist. A preseason friendly is the case that used to be invisible here.
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([
+      teamFavorite({ externalId: "364", displayName: "Liverpool" }),
+    ]);
+    findCatalogTeamByIdMock.mockReturnValue({
+      id: "364",
+      name: "Liverpool",
+      sport: "Soccer",
+      leagueKey: "soccer/eng.1",
+    });
+    teamScheduleMock.mockResolvedValue([
+      makeMatch({
+        id: "league-1",
+        status: "final",
+        kickoffUtc: "2026-05-24T15:00Z",
+        leagueName: "Premier League",
+      }),
+      makeMatch({
+        id: "friendly-leeds",
+        status: "final",
+        kickoffUtc: "2026-08-02T20:00Z",
+        leagueName: "Club Friendly",
+      }),
+    ]);
+
+    const res = await GET(new Request("http://x"), ctx("fav-1"));
+    const body = (await res.json()) as EntityMatchesEnvelope;
+
+    expect(body.recent.map((m) => m.id)).toEqual([
+      "friendly-leeds",
+      "league-1",
+    ]);
+    expect(body.recent[0]?.leagueName).toBe("Club Friendly");
+    expect(body.source.ok).toBe(true);
+  });
+
+  it("reports a partial competition failure without dropping the other competitions", async () => {
+    // The realistic failure shape: the fan-out helper settles rather than
+    // rejecting, so it returns matches AND errors together.
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([teamFavorite()]);
+    findCatalogTeamByIdMock.mockReturnValue({
+      id: "133602",
+      name: "Arsenal",
+      sport: "Soccer",
+      leagueKey: "soccer/eng.1",
+    });
+    fanoutErrorsMock.mockReturnValue([
+      "Schedule fetch failed for soccer/uefa.europa: ESPN 503",
+    ]);
+    teamScheduleMock.mockResolvedValue([
+      makeMatch({ id: "final-1", status: "final" }),
+    ]);
+
+    const res = await GET(new Request("http://x"), ctx("fav-1"));
+    const body = (await res.json()) as EntityMatchesEnvelope;
+
+    expect(res.status).toBe(200);
+    expect(body.recent).toHaveLength(1);
+    expect(body.source.ok).toBe(false);
+    expect(body.source.errors[0]).toContain("uefa.europa");
   });
 
   it("returns full Match[] for a player favorite via athleteMatchHistory, using the stored leagueKey", async () => {

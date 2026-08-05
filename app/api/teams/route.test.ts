@@ -20,14 +20,35 @@ vi.mock("@/lib/espn/catalog", () => ({
     findCatalogTeamByIdMock(id, sport, displayName),
 }));
 
-const teamScheduleMock = vi.fn();
 const athleteScheduleMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
-  teamScheduleForLeague: (leagueKey: string, teamId: string) =>
-    teamScheduleMock(leagueKey, teamId),
   athleteSchedule: (leagueKey: string, athleteId: string) =>
     athleteScheduleMock(leagueKey, athleteId),
 }));
+
+/**
+ * As of Spec 13 the route fans out across competitions rather than calling
+ * `teamScheduleForLeague` directly. `teamScheduleMock` keeps its old name and
+ * signature so existing cases read unchanged; it now stands for the merged
+ * multi-competition result. `fanoutErrorsMock` covers the realistic
+ * partial-failure shape, where the helper settles and returns errors
+ * alongside matches instead of rejecting.
+ */
+const teamScheduleMock = vi.fn();
+const fanoutErrorsMock = vi.fn<() => string[]>(() => []);
+vi.mock("@/lib/teams/schedule", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/teams/schedule")>();
+  return {
+    ...actual,
+    teamScheduleAcrossCompetitions: async (
+      primaryLeagueKey: string,
+      teamId: string,
+    ) => ({
+      matches: await teamScheduleMock(primaryLeagueKey, teamId),
+      errors: fanoutErrorsMock(),
+    }),
+  };
+});
 
 // unstable_cache requires the Next.js incremental cache context which is
 // absent in the Vitest jsdom environment. Stub it as a transparent passthrough
@@ -92,6 +113,8 @@ describe("GET /api/teams", () => {
     findCatalogTeamByIdMock.mockReset();
     teamScheduleMock.mockReset();
     athleteScheduleMock.mockReset();
+    fanoutErrorsMock.mockReset();
+    fanoutErrorsMock.mockReturnValue([]);
   });
 
   it("returns 401 when there is no session", async () => {
@@ -204,6 +227,67 @@ describe("GET /api/teams", () => {
     });
     expect(body.source.ok).toBe(false);
     expect(body.source.errors).toContain("ESPN 500");
+  });
+
+  it("selects a friendly as the last match when it is the most recent fixture", async () => {
+    // Spec 13, Unit 2 / Q6 (A): chronology wins — no preference for
+    // competitive matches. In preseason the friendly is the news.
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([
+      teamFavorite({ externalId: "364", displayName: "Liverpool" }),
+    ]);
+    findCatalogTeamByIdMock.mockReturnValue({
+      id: "364",
+      name: "Liverpool",
+      sport: "Soccer",
+      leagueKey: "soccer/eng.1",
+    });
+    teamScheduleMock.mockResolvedValue([
+      makeMatch({
+        id: "league-final",
+        status: "final",
+        kickoffUtc: "2026-05-24T15:00Z",
+        leagueName: "Premier League",
+      }),
+      makeMatch({
+        id: "friendly-leeds",
+        status: "final",
+        kickoffUtc: "2026-08-02T20:00Z",
+        leagueName: "Club Friendly",
+      }),
+    ]);
+
+    const res = await GET();
+    const body = (await res.json()) as TeamsEnvelope;
+
+    expect(body.entities[0]?.lastMatch).toMatchObject({
+      leagueName: "Club Friendly",
+    });
+    expect(body.source.ok).toBe(true);
+  });
+
+  it("reports a partial competition failure while keeping the matches that resolved", async () => {
+    authMock.mockResolvedValue(SESSION);
+    listFavoritesMock.mockResolvedValue([teamFavorite()]);
+    findCatalogTeamByIdMock.mockReturnValue({
+      id: "133602",
+      name: "Arsenal",
+      sport: "Soccer",
+      leagueKey: "soccer/eng.1",
+    });
+    fanoutErrorsMock.mockReturnValue([
+      "Schedule fetch failed for soccer/uefa.champions: ESPN 503",
+    ]);
+    teamScheduleMock.mockResolvedValue([
+      makeMatch({ id: "league-final", status: "final" }),
+    ]);
+
+    const res = await GET();
+    const body = (await res.json()) as TeamsEnvelope;
+
+    expect(body.entities[0]?.lastMatch).not.toBeNull();
+    expect(body.source.ok).toBe(false);
+    expect(body.source.errors[0]).toContain("uefa.champions");
   });
 
   it("returns last/next matches for a player favorite when athleteSchedule resolves", async () => {

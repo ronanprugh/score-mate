@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  COMPANION_LEAGUE_KEYS,
+  companionLeagueKeys,
   findSupportedLeague,
   leagueKeysForSport,
   SUPPORTED_LEAGUES,
@@ -88,5 +90,61 @@ describe("findSupportedLeague", () => {
 
   it("returns null for an unknown key", () => {
     expect(findSupportedLeague("hockey/nhl")).toBeNull();
+  });
+
+  it("resolves a companion-only league so friendlies get a display name", () => {
+    expect(findSupportedLeague("soccer/club.friendly")).toEqual({
+      leagueKey: "soccer/club.friendly",
+      sport: "Soccer",
+      displayName: "Club Friendly",
+    });
+  });
+});
+
+describe("companion leagues (Spec 13, Unit 2)", () => {
+  it("keeps club.friendly out of the Home aggregator's fan-out", () => {
+    // leagueKeysForSport drives lib/home/aggregator.ts:197. A friendly on a
+    // followed team's card is wanted; friendlies in everyone's Home feed —
+    // plus one extra scoreboard call per date — are not (Non-Goal #8).
+    expect(leagueKeysForSport("Soccer")).not.toContain("soccer/club.friendly");
+    expect(leagueKeysForSport("Soccer")).toHaveLength(14);
+    expect(SUPPORTED_LEAGUES.map((l) => l.leagueKey)).not.toContain(
+      "soccer/club.friendly",
+    );
+  });
+
+  it("gives a Premier League team friendlies, both domestic cups, and the three UEFA competitions", () => {
+    expect(companionLeagueKeys("soccer/eng.1")).toEqual([
+      "soccer/club.friendly",
+      "soccer/eng.fa",
+      "soccer/eng.league_cup",
+      "soccer/uefa.champions",
+      "soccer/uefa.europa",
+      "soccer/uefa.europa.conf",
+    ]);
+  });
+
+  it("returns no companions for single-competition sports", () => {
+    expect(companionLeagueKeys("football/nfl")).toEqual([]);
+    expect(companionLeagueKeys("basketball/nba")).toEqual([]);
+    expect(companionLeagueKeys("baseball/mlb")).toEqual([]);
+  });
+
+  it("returns no companions for an unknown league key", () => {
+    expect(companionLeagueKeys("hockey/nhl")).toEqual([]);
+  });
+
+  it("returns a fresh array so callers cannot mutate the shared map", () => {
+    const first = companionLeagueKeys("soccer/eng.1");
+    first.push("soccer/made.up");
+    expect(companionLeagueKeys("soccer/eng.1")).toHaveLength(6);
+  });
+
+  it("every companion key resolves to a known league", () => {
+    for (const companions of Object.values(COMPANION_LEAGUE_KEYS)) {
+      for (const key of companions) {
+        expect(findSupportedLeague(key)).not.toBeNull();
+      }
+    }
   });
 });

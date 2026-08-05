@@ -20,9 +20,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { withServerTiming } from "@/lib/perf/server-timing";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
-import { athleteSchedule, teamScheduleForLeague } from "@/lib/espn/client";
+import { athleteSchedule } from "@/lib/espn/client";
 import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
+import { cachedTeamScheduleForLeague } from "@/lib/teams/cached-schedule";
+import { teamScheduleAcrossCompetitions } from "@/lib/teams/schedule";
 import type { FavoriteRow } from "@/db/schema/favorites";
 import type { Match } from "@/lib/sports/types";
 import type { EntityMatch, TeamEntity, TeamsEnvelope } from "@/lib/teams/types";
@@ -134,13 +136,19 @@ async function buildEntity(
   if (catalogTeam.badgeUrl) base.badgeUrl = catalogTeam.badgeUrl;
 
   try {
-    const schedule = await unstable_cache(
-      () => teamScheduleForLeague(catalogTeam.leagueKey, fav.externalId),
-      ["teams-team-schedule", catalogTeam.leagueKey, fav.externalId],
-      { revalidate: 300 },
-    )();
+    // Fans out across the team's cups, continental competitions, and
+    // friendlies — not just their primary league. Each competition is cached
+    // independently; an empty one (team isn't in that cup) is normal and
+    // contributes no error.
+    const { matches, errors: fanoutErrors } =
+      await teamScheduleAcrossCompetitions(
+        catalogTeam.leagueKey,
+        fav.externalId,
+        { fetchLeagueSchedule: cachedTeamScheduleForLeague },
+      );
+    errors.push(...fanoutErrors);
     const { lastMatch, nextMatch } = extractEntityMatches(
-      schedule,
+      matches,
       fav.externalId,
     );
     return { ...base, lastMatch, nextMatch };

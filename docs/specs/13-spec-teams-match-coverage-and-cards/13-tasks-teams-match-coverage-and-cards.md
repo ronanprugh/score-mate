@@ -114,7 +114,7 @@ Teams routes already call. Covers Spec Unit 1.
       match from a team schedule loses its score, which would have shipped the
       redesigned cards with no scores in them. See `13-task-01-proofs.md`.
 
-### [ ] 2.0 Multi-competition coverage for team schedules
+### [x] 2.0 Multi-competition coverage for team schedules
 
 Add a curated companion-league map so a followed team's matches are gathered from
 cups, continental competitions, and friendlies — not just their primary domestic
@@ -175,7 +175,7 @@ id. Covers Spec Unit 2 except the latency measurement (Task 5.0). Depends on 1.0
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Add a `COMPANION_ONLY_LEAGUES: readonly SupportedLeague[]` list to
+- [x] 2.1 Add a `COMPANION_ONLY_LEAGUES: readonly SupportedLeague[]` list to
       `lib/espn/leagues.ts` holding
       `{ leagueKey: "soccer/club.friendly", sport: "Soccer", displayName: "Club Friendly" }`.
       Make `findSupportedLeague` search `SUPPORTED_LEAGUES` **then**
@@ -184,54 +184,57 @@ id. Covers Spec Unit 2 except the latency measurement (Task 5.0). Depends on 1.0
       comment that this split exists because `leagueKeysForSport` drives the
       Home aggregator's fan-out at `lib/home/aggregator.ts:197`, and Home must
       not gain friendly fixtures (Spec Non-Goal #8).
-- [ ] 2.2 Add `COMPANION_LEAGUE_KEYS: Record<string, readonly string[]>` and a
+- [x] 2.2 Add `COMPANION_LEAGUE_KEYS: Record<string, readonly string[]>` and a
       `companionLeagueKeys(primaryLeagueKey: string): string[]` helper. Map
       `soccer/eng.1` → `club.friendly`, `eng.fa`, `eng.league_cup`,
       `uefa.champions`, `uefa.europa`, `uefa.europa.conf`. Give the other big-5
       soccer leagues their applicable companions (friendlies + the three UEFA
       competitions; no domestic cups are registered for them). Return `[]` for
       any key with no entry.
-- [ ] 2.3 Add `lib/espn/leagues.test.ts` cases for `club.friendly` resolution via
+- [x] 2.3 Add `lib/espn/leagues.test.ts` cases for `club.friendly` resolution via
       `findSupportedLeague`, for `companionLeagueKeys` on a soccer league and on
       `football/nfl`, and for `leagueKeysForSport("Soccer")` **excluding**
       `soccer/club.friendly` (the Non-Goal #8 guard).
-- [ ] 2.4 Add `teamScheduleAcrossCompetitions(primaryLeagueKey, teamId, opts)` to
+- [x] 2.4 Add `teamScheduleAcrossCompetitions(primaryLeagueKey, teamId, opts)` to
       `lib/teams/schedule.ts`. It resolves the companion list, issues all
       schedule requests with `Promise.allSettled`, merges the fulfilled results,
       dedupes by `Match.id`, and returns `{ matches, errors }`. A rejected
       request contributes its message to `errors`; a fulfilled-but-empty result
       contributes nothing.
-- [ ] 2.5 Record `lib/espn/__fixtures__/liverpool-friendly-schedule.json` from
+- [x] 2.5 Record `lib/espn/__fixtures__/liverpool-friendly-schedule.json` from
       the live `soccer/club.friendly/teams/364/schedule` response, trimmed to the
       3 events.
-- [ ] 2.6 Create `lib/teams/schedule.test.ts` with the merge, dedupe,
+- [x] 2.6 Create `lib/teams/schedule.test.ts` with the merge, dedupe,
       friendly-selection, partial-failure, empty-companion, and concurrency cases
       from the proof artifacts.
-- [ ] 2.7 Wire `app/api/teams/route.ts` to call
+- [x] 2.7 Wire `app/api/teams/route.ts` to call
       `teamScheduleAcrossCompetitions` instead of `teamScheduleForLeague`,
       pushing the returned `errors` into the route's existing `errors` array.
       Keep the per-league `unstable_cache` wrapper with `revalidate: 300` and
       include the league key **and season** in the cache key, per Spec
       Technical Considerations.
-- [ ] 2.8 Wire `app/api/teams/[favoriteId]/matches/route.ts` to the same helper
+- [x] 2.8 Wire `app/api/teams/[favoriteId]/matches/route.ts` to the same helper
       (see the scope note above), keeping `splitAndCapSchedule` for the 10-per-side cap.
-- [ ] 2.9 Retarget the mocks in
+- [x] 2.9 Retarget the mocks in
       `app/api/teams/[favoriteId]/matches/route.test.ts`. All 12 existing cases
       mock `teamScheduleForLeague` from `@/lib/espn/client`; after 2.8 that
       export is no longer on the route's call path, so the mocks must move to
       `teamScheduleAcrossCompetitions` from `@/lib/teams/schedule`. Verify each
       case still fails when the route is deliberately broken — a suite that
       passes against a mock nothing calls is worse than no suite.
-- [ ] 2.10 Add a case to that suite asserting a friendly returned by a companion
+- [x] 2.10 Add a case to that suite asserting a friendly returned by a companion
       league appears in the route's `recent` array, proving coverage parity
       between the two Teams screens.
-- [ ] 2.11 Update `app/api/teams/route.test.ts` mocks for the new helper so the
+- [x] 2.11 Update `app/api/teams/route.test.ts` mocks for the new helper so the
       existing catalog-miss and fetch-throws cases still assert the same
       envelope behaviour.
-- [ ] 2.12 Add the cache-key composition test: assert the key array passed to the
-      mocked `unstable_cache` contains the league key and the resolved season,
-      and that two seasons yield distinct keys.
-- [ ] 2.13 Capture the `COMPANION_LEAGUE_KEYS` diff into
+- [x] 2.12 Add the cache-key composition test. Implemented as a pure
+      `scheduleCacheKey` helper in the new `lib/teams/cached-schedule.ts` and
+      tested directly, rather than by inspecting the mocked `unstable_cache`
+      call — the caching wrapper was extracted into its own module so
+      `lib/teams/schedule.ts` stays free of Next.js internals and unit-testable
+      without mocking `next/cache`.
+- [x] 2.13 Capture the `COMPANION_LEAGUE_KEYS` diff into
       `13-proofs/13-task-02-proofs.md`, and run the full gate set. Commit as
       `feat(teams): include cup, continental, and friendly fixtures in team schedules`.
 
