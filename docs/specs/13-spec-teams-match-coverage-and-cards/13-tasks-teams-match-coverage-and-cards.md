@@ -20,6 +20,12 @@ Task list for [`13-spec-teams-match-coverage-and-cards.md`](13-spec-teams-match-
 | `app/api/teams/[favoriteId]/matches/route.test.ts` | 12 existing cases that mock `teamScheduleForLeague`; their mocks must be retargeted to the new helper in Task 2.0 or they will stop testing the real path. |
 | `components/teams-client.test.tsx` | Gains a case asserting no `sm:`/`lg:grid-cols-*` classes survive the single-column change (Task 4.0). |
 | `components/entity-card.tsx` | Rewritten to a header + stacked `MatchCard` / `TennisMatchCard` layout (Task 4.0). |
+| `components/entity-match-card.tsx` | **New (added during implementation).** The shared per-sport card selector extracted by sub-task 4.4, imported by both `entity-card.tsx` and `entity-matches-client.tsx` instead of the ternary being duplicated. |
+| `components/entity-matches-client.tsx` | Loses its private copy of the card selector and imports the shared `EntityMatchCard` (sub-task 4.4). |
+| `lib/teams/cached-schedule.ts` + `.test.ts` | **New (added during implementation).** `unstable_cache` wrapper and the season-scoped `scheduleCacheKey`, split out so `lib/teams/schedule.ts` stays free of Next.js internals (sub-task 2.12). |
+| `app/dev-fixture/nav/page.tsx` | Fixture data and container updated to mirror `TeamsClient` and carry Liverpool's real ESPN state; source of the Task 4.0 screenshots (sub-task 4.12). |
+| `scripts/measure-teams-fanout.ts` | **New (added during implementation).** Measures the upstream fan-out cost for Task 5.0 (sub-task 5.2). |
+| `.claude/launch.json` | Tooling only, no runtime effect: `autoPort: true` so the dev server can start alongside an already-running server on port 3000 while capturing the Task 4.0 screenshots. |
 | `components/entity-card.test.tsx` | Existing card tests; rewritten for the new markup, card selection, and preserved empty states. |
 | `components/teams-client.tsx` | Grid at line 101 collapses to a single column (Task 4.0). |
 | `components/match-card.tsx` | Reused unchanged, except for the competition-name fallback in the footer when `round` is absent (Task 4.0). |

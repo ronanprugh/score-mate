@@ -88,17 +88,29 @@ dead export invites a future caller to resurrect the old contract.
 **Command:**
 
 ```bash
-grep -rn "\bEntityMatch\b" app components lib | grep -v EntityMatches
-grep -rn "athleteSchedule\b" app components lib | grep -v athleteMatchHistory
+grep -rnE "\bEntityMatch\b" app components lib --include='*.ts' --include='*.tsx'
+grep -rnE "export (async )?function athleteSchedule|athleteSchedule\(" app components lib scripts
 ```
 
-**Result summary:** Both return nothing. Note `EntityMatchesEnvelope` is a
-different, still-live type for the detail route and is deliberately retained.
+**Result summary:** Both return nothing — no declaration and no call site.
+`EntityMatchesEnvelope` is a different, still-live type for the detail route and
+is deliberately retained; the `\b` word boundary excludes it.
 
 ```text
-EntityMatch: gone
-athleteSchedule: gone
+EntityMatch:     no matches
+athleteSchedule: no declaration, no call sites
 ```
+
+> **Corrected during validation.** This section originally used
+> `grep -rn "athleteSchedule\b" … | grep -v athleteMatchHistory`. That pipeline
+> is unsound: it discards any line mentioning both names, so a surviving call
+> site sitting next to an `athleteMatchHistory` reference would have been
+> filtered out and reported as "gone". The conclusion was correct — validation
+> re-checked with the declaration/call-site pattern above and confirmed the
+> export and every call site are removed — but the original evidence did not
+> establish it. Validation also removed a now-stale comment in
+> `app/api/teams/route.ts` that named `athleteSchedule`, a function that no
+> longer exists.
 
 Removed in full:
 

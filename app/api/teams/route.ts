@@ -58,9 +58,8 @@ async function buildEntity(
       return playerBase;
     }
     try {
-      // athleteMatchHistory (not athleteSchedule) because the Teams list now
-      // renders full match cards and needs complete `Match` objects, same as
-      // the entity detail screen.
+      // Returns full `Match` objects, which the Teams list's score cards need
+      // — same source the entity detail screen uses.
       const { recent, upcoming } = await unstable_cache(
         () => athleteMatchHistory(leagueKey, fav.externalId),
         ["teams-athlete-schedule", leagueKey, fav.externalId],
