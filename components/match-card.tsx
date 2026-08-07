@@ -2,6 +2,16 @@ import type { Match } from "@/lib/sports/types";
 
 interface Props {
   match: Match;
+  /**
+   * Falls back to `leagueName` in the footer when ESPN gives no `round`.
+   *
+   * Off by default because Home already groups cards under a league heading
+   * (`home-client.tsx`), and ESPN omits `week.text` for every sport except the
+   * NFL — so defaulting this on would print "ENGLISH PREMIER LEAGUE" on every
+   * card sitting under an "English Premier League" header. The Teams surfaces
+   * have no such heading and do mix competitions, so they opt in.
+   */
+  showLeagueName?: boolean;
 }
 
 function formatKickoffLocal(iso: string | null): string {
@@ -146,7 +156,7 @@ function TeamSide({
   );
 }
 
-export function MatchCard({ match }: Props) {
+export function MatchCard({ match, showLeagueName = false }: Props) {
   const {
     status,
     homeTeamName,
@@ -158,6 +168,7 @@ export function MatchCard({ match }: Props) {
     homeScore,
     awayScore,
     round,
+    leagueName,
     venue,
     broadcast,
     liveProgress,
@@ -186,10 +197,16 @@ export function MatchCard({ match }: Props) {
         : "loser"
       : "neutral";
 
+  // Competition context, so a friendly is visibly a friendly. `round` wins
+  // when ESPN provides it ("Matchweek 3" is more specific than "Premier
+  // League"); friendlies and cup ties often have no round, which is why
+  // `showLeagueName` callers fall back to the competition name.
+  const competition = round || (showLeagueName ? leagueName : undefined);
+
   const showFooter =
     status === "final" ||
     status === "live" ||
-    Boolean(round) ||
+    Boolean(competition) ||
     Boolean(venue) ||
     (status === "upcoming" && Boolean(broadcast));
 
@@ -290,9 +307,13 @@ export function MatchCard({ match }: Props) {
                 {liveProgress}
               </span>
             )}
-            {round && (
-              <span className="truncate uppercase tracking-wide" title={round}>
-                {round}
+            {competition && (
+              <span
+                data-testid="competition"
+                className="truncate uppercase tracking-wide"
+                title={competition}
+              >
+                {competition}
               </span>
             )}
             {venue && (

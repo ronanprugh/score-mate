@@ -9,10 +9,14 @@
  * and the affected entity carrying null matches — the UI degrades gracefully
  * rather than failing the whole page.
  *
- * Team schedules come from the site-v2 per-team endpoint; player schedules
- * come from the core-API athlete eventlog (best-effort — see `athleteSchedule`)
- * and fall back to null matches ("Match data unavailable") when ESPN has no
- * usable data for the athlete.
+ * Both matches are fully-populated `Match` objects, because the Teams list
+ * renders the same score cards as Home (Spec 13).
+ *
+ * Team schedules come from the site-v2 per-team endpoint, fanned out across
+ * every competition the team plays (`teamScheduleAcrossCompetitions`); player
+ * schedules come from the core-API athlete eventlog (best-effort — see
+ * `athleteMatchHistory`) and fall back to null matches ("Match data
+ * unavailable") when ESPN has no usable data for the athlete.
  */
 
 import { unstable_cache } from "next/cache";
@@ -20,55 +24,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { withServerTiming } from "@/lib/perf/server-timing";
 import { findCatalogTeamById } from "@/lib/espn/catalog";
-import { athleteSchedule, teamScheduleForLeague } from "@/lib/espn/client";
+import { athleteMatchHistory } from "@/lib/espn/client";
 import { leagueKeysForSport } from "@/lib/espn/leagues";
 import { listFavoritesForUser } from "@/lib/favorites/queries";
+import { cachedTeamScheduleForLeague } from "@/lib/teams/cached-schedule";
+import {
+  selectLastAndNext,
+  teamScheduleAcrossCompetitions,
+} from "@/lib/teams/schedule";
 import type { FavoriteRow } from "@/db/schema/favorites";
-import type { Match } from "@/lib/sports/types";
-import type { EntityMatch, TeamEntity, TeamsEnvelope } from "@/lib/teams/types";
-
-/**
- * Reduces a team's full schedule to a last (most recent completed) and next
- * (soonest upcoming) match, expressed relative to the followed team.
- */
-export function extractEntityMatches(
-  matches: readonly Match[],
-  teamId: string,
-): { lastMatch: EntityMatch | null; nextMatch: EntityMatch | null } {
-  const toEntityMatch = (m: Match, completed: boolean): EntityMatch => {
-    const isHome = m.homeTeamId === teamId;
-    const opponentName = isHome ? m.awayTeamName : m.homeTeamName;
-    const match: EntityMatch = {
-      opponentName,
-      date: m.dateUtc,
-      kickoffUtc: m.kickoffUtc,
-      leagueName: m.leagueName,
-    };
-    // Score/result only for completed games, from the followed team's side.
-    if (completed && m.homeScore !== undefined && m.awayScore !== undefined) {
-      const mine = isHome ? m.homeScore : m.awayScore;
-      const theirs = isHome ? m.awayScore : m.homeScore;
-      match.score = `${mine}-${theirs}`;
-      if (mine > theirs) match.result = "W";
-      else if (mine < theirs) match.result = "L";
-    }
-    return match;
-  };
-
-  const sortKey = (m: Match) => m.kickoffUtc ?? `${m.dateUtc}T00:00:00Z`;
-
-  const completed = matches
-    .filter((m) => m.status === "final")
-    .sort((a, b) => sortKey(b).localeCompare(sortKey(a)));
-  const upcoming = matches
-    .filter((m) => m.status === "upcoming")
-    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-
-  return {
-    lastMatch: completed[0] ? toEntityMatch(completed[0], true) : null,
-    nextMatch: upcoming[0] ? toEntityMatch(upcoming[0], false) : null,
-  };
-}
+import type { TeamEntity, TeamsEnvelope } from "@/lib/teams/types";
 
 async function buildEntity(
   fav: FavoriteRow,
@@ -93,15 +58,28 @@ async function buildEntity(
       return playerBase;
     }
     try {
-      const { lastMatch, nextMatch } = await unstable_cache(
-        () => athleteSchedule(leagueKey, fav.externalId),
-        ["teams-athlete-schedule", leagueKey, fav.externalId],
+      // Returns full `Match` objects, which the Teams list's score cards need
+      // — same source the entity detail screen uses, but capped at one per
+      // side: this screen shows a last/next pair, and resolving the detail
+      // screen's 10 would cost ~20 discarded linescore fetches per tennis
+      // player.
+      //
+      // Key is distinct from Spec 11's `teams-athlete-schedule`: that entry
+      // cached a `{ lastMatch, nextMatch }` summary, and reusing the key would
+      // let a surviving entry deserialize into `recent === undefined`.
+      const { recent, upcoming } = await unstable_cache(
+        () => athleteMatchHistory(leagueKey, fav.externalId, { cap: 1 }),
+        ["teams-athlete-last-next", leagueKey, fav.externalId],
         { revalidate: 300 },
       )();
-      // athleteSchedule never throws, but a graceful null result for a player
+      // athleteMatchHistory never throws; a graceful empty result for a player
       // ESPN has no data on shouldn't flip source.ok — the card just shows
       // "Match data unavailable".
-      return { ...playerBase, lastMatch, nextMatch };
+      return {
+        ...playerBase,
+        lastMatch: recent[0] ?? null,
+        nextMatch: upcoming[0] ?? null,
+      };
     } catch (e) {
       errors.push(
         e instanceof Error
@@ -134,15 +112,22 @@ async function buildEntity(
   if (catalogTeam.badgeUrl) base.badgeUrl = catalogTeam.badgeUrl;
 
   try {
-    const schedule = await unstable_cache(
-      () => teamScheduleForLeague(catalogTeam.leagueKey, fav.externalId),
-      ["teams-team-schedule", catalogTeam.leagueKey, fav.externalId],
-      { revalidate: 300 },
-    )();
-    const { lastMatch, nextMatch } = extractEntityMatches(
-      schedule,
-      fav.externalId,
-    );
+    // Fans out across the team's cups, continental competitions, and
+    // friendlies — not just their primary league. Each competition is cached
+    // independently; an empty one (team isn't in that cup) is normal and
+    // contributes no error.
+    //
+    // Only the primary league's failure lands in `errors`. A flaky companion
+    // competition costs at most a cup tie, and with 7 competitions per team
+    // it would otherwise be the common case for the error banner.
+    const { matches, errors: fanoutErrors } =
+      await teamScheduleAcrossCompetitions(
+        catalogTeam.leagueKey,
+        fav.externalId,
+        { fetchLeagueSchedule: cachedTeamScheduleForLeague },
+      );
+    errors.push(...fanoutErrors);
+    const { lastMatch, nextMatch } = selectLastAndNext(matches);
     return { ...base, lastMatch, nextMatch };
   } catch (e) {
     errors.push(

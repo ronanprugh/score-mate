@@ -17,6 +17,7 @@ import { FavoritesList } from "@/components/favorites-list";
 import { AccountMenu } from "@/components/account-menu";
 import { BottomNav } from "@/components/bottom-nav";
 import { EntityCard } from "@/components/entity-card";
+import type { Match } from "@/lib/sports/types";
 import type { TeamEntity } from "@/lib/teams/types";
 
 const row = (
@@ -110,38 +111,102 @@ function TeamsEmptyView() {
   );
 }
 
+/** Builds a fixture `Match` with only the fields the cards read. */
+function fixtureMatch(over: Partial<Match> & Pick<Match, "id">): Match {
+  const base: Match = {
+    sport: "Soccer",
+    homeTeamId: "364",
+    homeTeamName: "Liverpool",
+    homeTeamShortName: "Liverpool",
+    homeTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+    awayTeamId: "357",
+    awayTeamName: "Leeds United",
+    awayTeamShortName: "Leeds",
+    awayTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
+    leagueId: "soccer/eng.1",
+    leagueName: "Premier League",
+    dateUtc: "2026-08-02",
+    kickoffUtc: "2026-08-02T20:00:00Z",
+    status: "final",
+    id: over.id,
+  };
+  // Spread onto a typed base rather than casting the literal: an `as Match`
+  // here would silence exactly the mistakes this fixture exists to catch.
+  return { ...base, ...over };
+}
+
+/**
+ * Liverpool's real August 2026 state, recorded from ESPN on 2026-08-05 — the
+ * exact case Spec 13 was raised for. Before the fix this entity rendered
+ * "Match data unavailable": the implicit-season schedule call returned zero
+ * events, and friendlies were never queried at all.
+ */
 const FIXTURE_ENTITIES: TeamEntity[] = [
   {
     favoriteId: "e1",
-    displayName: "Arsenal",
+    displayName: "Liverpool",
     type: "team",
     sport: "Soccer",
-    lastMatch: {
-      opponentName: "Chelsea",
-      date: "2026-06-20",
-      score: "2-1",
-      kickoffUtc: "2026-06-20T15:00:00Z",
-      leagueName: "English Premier League",
-    },
-    nextMatch: {
-      opponentName: "Tottenham",
-      date: "2026-06-28",
-      kickoffUtc: "2026-06-28T14:00:00Z",
-      leagueName: "English Premier League",
-    },
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+    // A friendly, surfaced only because of the companion-league fan-out, and
+    // the most recent fixture chronologically — so it wins over the league
+    // season finale (Unit 2: no preference for competitive matches).
+    lastMatch: fixtureMatch({
+      id: "401863533",
+      homeScore: 2,
+      awayScore: 4,
+      leagueName: "Club Friendly",
+      venue: "Soldier Field",
+    }),
+    nextMatch: fixtureMatch({
+      id: "401879319",
+      status: "upcoming",
+      awayTeamId: "359",
+      awayTeamName: "Arsenal",
+      awayTeamShortName: "Arsenal",
+      awayTeamLogo: "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+      dateUtc: "2026-08-15",
+      kickoffUtc: "2026-08-15T19:00:00Z",
+      round: "Matchweek 1",
+      broadcast: "USA Network",
+    }),
   },
   {
     favoriteId: "e2",
     displayName: "Kansas City Chiefs",
     type: "team",
     sport: "American Football",
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+    // Only one side populated — exercises the per-side empty state.
     lastMatch: null,
-    nextMatch: {
-      opponentName: "Denver Broncos",
-      date: "2026-09-14",
-      kickoffUtc: "2026-09-14T20:20:00Z",
+    nextMatch: fixtureMatch({
+      id: "nfl-1",
+      sport: "American Football",
+      status: "upcoming",
+      homeTeamId: "12",
+      homeTeamName: "Kansas City Chiefs",
+      homeTeamShortName: "Chiefs",
+      homeTeamLogo: "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+      awayTeamId: "7",
+      awayTeamName: "Denver Broncos",
+      awayTeamShortName: "Broncos",
+      awayTeamLogo: "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+      leagueId: "football/nfl",
       leagueName: "NFL",
-    },
+      dateUtc: "2026-09-14",
+      kickoffUtc: "2026-09-14T20:20:00Z",
+      round: "Week 2",
+    }),
+  },
+  {
+    // Both sides null — the graceful "Match data unavailable" collapse.
+    favoriteId: "e3",
+    displayName: "Wrexham",
+    type: "team",
+    sport: "Soccer",
+    badgeUrl: "https://a.espncdn.com/i/teamlogos/soccer/500/352.png",
+    lastMatch: null,
+    nextMatch: null,
   },
 ];
 
@@ -151,18 +216,33 @@ const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
     displayName: "LeBron James",
     type: "player",
     sport: "Basketball",
-    lastMatch: {
-      opponentName: "Houston Rockets",
-      date: "2026-03-17",
+    lastMatch: fixtureMatch({
+      id: "m4",
+      sport: "Basketball",
+      homeTeamName: "Los Angeles Lakers",
+      homeTeamShortName: "Lakers",
+      awayTeamName: "Houston Rockets",
+      awayTeamShortName: "Rockets",
+      leagueId: "basketball/nba",
+      leagueName: "NBA",
+      dateUtc: "2026-03-17",
       kickoffUtc: "2026-03-17T01:30:00Z",
+      homeScore: 118,
+      awayScore: 104,
+    }),
+    nextMatch: fixtureMatch({
+      id: "m5",
+      sport: "Basketball",
+      status: "upcoming",
+      homeTeamName: "Los Angeles Lakers",
+      homeTeamShortName: "Lakers",
+      awayTeamName: "Boston Celtics",
+      awayTeamShortName: "Celtics",
+      leagueId: "basketball/nba",
       leagueName: "NBA",
-    },
-    nextMatch: {
-      opponentName: "Boston Celtics",
-      date: "2026-03-20",
+      dateUtc: "2026-03-20",
       kickoffUtc: "2026-03-20T00:00:00Z",
-      leagueName: "NBA",
-    },
+    }),
   },
   {
     // A player ESPN has no usable schedule data for → graceful fallback.
@@ -176,8 +256,11 @@ const FIXTURE_PLAYER_ENTITIES: TeamEntity[] = [
 ];
 
 function CardsGrid({ entities }: { entities: TeamEntity[] }) {
+  // Mirrors the real `TeamsClient` container: single column at every width
+  // (Spec 13, Unit 3). Keep these in sync — this fixture is what the Teams
+  // layout screenshots are captured from.
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-6">
       {entities.map((entity) => (
         <EntityCard key={entity.favoriteId} entity={entity} />
       ))}

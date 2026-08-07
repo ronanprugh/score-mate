@@ -9,27 +9,14 @@
 
 import type { Match, Sport } from "@/lib/sports/types";
 
-/** One match row (last or next) on an entity card. */
-export interface EntityMatch {
-  /** The other side of the fixture, relative to the followed entity. */
-  opponentName: string;
-  /** YYYY-MM-DD (UTC) of the match. */
-  date: string;
-  /**
-   * Formatted score for completed matches — team sports "2-1", tennis by set
-   * "7-5, 7-6, 6-3" (always from the followed entity's perspective). Omitted
-   * for upcoming matches.
-   */
-  score?: string;
-  /** Result of a completed match from the followed entity's perspective. */
-  result?: "W" | "L";
-  /** ISO 8601 kickoff timestamp; null when TBD. */
-  kickoffUtc?: string | null;
-  /** Human-readable league/competition name. */
-  leagueName: string;
-}
-
-/** A followed team or player with their most recent and next match. */
+/**
+ * A followed team or player with their most recent and next match.
+ *
+ * Carries full `Match` objects rather than a reduced summary: as of Spec 13
+ * the Teams list renders the same `MatchCard` / `TennisMatchCard` components
+ * as Home and the entity detail screen, and those need crests, both sides'
+ * names, and numeric scores.
+ */
 export interface TeamEntity {
   /** The `favorites.id` this entity was built from. */
   favoriteId: string;
@@ -38,8 +25,8 @@ export interface TeamEntity {
   sport: Sport;
   /** Optional crest/badge image URL. */
   badgeUrl?: string;
-  lastMatch: EntityMatch | null;
-  nextMatch: EntityMatch | null;
+  lastMatch: Match | null;
+  nextMatch: Match | null;
 }
 
 /** Response envelope for `GET /api/teams`. */
@@ -55,8 +42,8 @@ export interface TeamsEnvelope {
 
 /**
  * Response envelope for `GET /api/teams/[favoriteId]/matches` (Spec 11).
- * Carries the fully-populated `Match` objects a Home-style card needs —
- * unlike `TeamEntity`'s lightweight `EntityMatch` last/next summary.
+ * Carries up to 10 matches per side, where `TeamEntity` carries just the
+ * single last/next pair.
  */
 export interface EntityMatchesEnvelope {
   entity: {
