@@ -526,6 +526,53 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     expect(urls).toHaveLength(2);
   });
 
+  it("reaches back and merges when the current season has fixtures but no results", async () => {
+    // The failure mode a bare `length === 0` check misses: ESPN registers a
+    // single next-season fixture mid-season, the current-season response is
+    // non-empty, and a whole season of results silently disappears.
+    const oneFutureFixture = {
+      events: [
+        {
+          ...liverpoolSchedule2025.events[0],
+          id: "next-season-opener",
+          date: "2026-08-15T19:00Z",
+          competitions: [
+            {
+              ...liverpoolSchedule2025.events[0].competitions[0],
+              status: { type: { state: "pre" } },
+            },
+          ],
+        },
+      ],
+    };
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({
+        "season=2026": oneFutureFixture,
+        "season=2025": liverpoolSchedule2025,
+      }),
+    );
+
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    expect(urls).toHaveLength(2);
+    // Both seasons, deduped — last season's finale is still reachable as
+    // "Last" while the new opener is "Next".
+    expect(matches).toHaveLength(5);
+    expect(matches.map((m) => m.id)).toContain("next-season-opener");
+    expect(matches.filter((m) => m.status === "final")).toHaveLength(4);
+  });
+
+  it("issues no fallback once the current season has a completed match", async () => {
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({ "season=2026": liverpoolSchedule2025 }),
+    );
+    await teamScheduleForLeague("soccer/eng.1", "364", { fetchFn });
+
+    expect(urls).toHaveLength(1);
+  });
+
   it("honors an explicit season and skips the fallback entirely", async () => {
     const { fetchFn, urls } = recordingFetch(routedFetch(routes));
     const matches = await teamScheduleForLeague("soccer/eng.1", "364", {

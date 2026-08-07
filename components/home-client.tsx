@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   computeDateWindow,
@@ -398,12 +399,12 @@ function TeamsOnlyPrompt() {
         Your team matches live in the Teams tab now. Favorite a league, sport,
         or tournament to build your home feed.
       </p>
-      <a
+      <Link
         href="/teams"
         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
       >
         Go to Teams
-      </a>
+      </Link>
     </section>
   );
 }

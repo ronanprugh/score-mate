@@ -126,12 +126,13 @@ describe("MatchCard", () => {
   });
 
   describe("competition label (Spec 13, Unit 3)", () => {
-    it("falls back to leagueName when the match has no round", () => {
+    it("falls back to leagueName when showLeagueName is set and there is no round", () => {
       // Friendlies and cup ties usually carry no `round`. Before Spec 13 those
       // cards showed no competition at all, so a preseason friendly was
       // indistinguishable from a league fixture.
       render(
         <MatchCard
+          showLeagueName
           match={{
             ...base,
             status: "final",
@@ -146,10 +147,29 @@ describe("MatchCard", () => {
       );
     });
 
+    it("omits the leagueName fallback by default", () => {
+      // Home groups cards under a league heading, so the default must not
+      // repeat it on every card beneath that heading.
+      render(
+        <MatchCard
+          match={{
+            ...base,
+            status: "final",
+            homeScore: 2,
+            awayScore: 4,
+            round: undefined,
+            leagueName: "Club Friendly",
+          }}
+        />,
+      );
+      expect(screen.queryByTestId("competition")).not.toBeInTheDocument();
+    });
+
     it("prefers round over leagueName when ESPN provides both", () => {
       // "Matchweek 3" is more specific than "Premier League".
       render(
         <MatchCard
+          showLeagueName
           match={{
             ...base,
             round: "Matchweek 3",
@@ -165,6 +185,7 @@ describe("MatchCard", () => {
     it("renders a footer for an upcoming match that only has a competition", () => {
       render(
         <MatchCard
+          showLeagueName
           match={{
             ...base,
             round: undefined,

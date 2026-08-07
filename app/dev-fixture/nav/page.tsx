@@ -113,7 +113,7 @@ function TeamsEmptyView() {
 
 /** Builds a fixture `Match` with only the fields the cards read. */
 function fixtureMatch(over: Partial<Match> & Pick<Match, "id">): Match {
-  return {
+  const base: Match = {
     sport: "Soccer",
     homeTeamId: "364",
     homeTeamName: "Liverpool",
@@ -128,8 +128,11 @@ function fixtureMatch(over: Partial<Match> & Pick<Match, "id">): Match {
     dateUtc: "2026-08-02",
     kickoffUtc: "2026-08-02T20:00:00Z",
     status: "final",
-    ...over,
-  } as Match;
+    id: over.id,
+  };
+  // Spread onto a typed base rather than casting the literal: an `as Match`
+  // here would silence exactly the mistakes this fixture exists to catch.
+  return { ...base, ...over };
 }
 
 /**

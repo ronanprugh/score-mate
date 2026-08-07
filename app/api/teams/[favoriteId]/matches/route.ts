@@ -79,7 +79,9 @@ export async function GET(_req: Request, ctx: RouteContext) {
 
       try {
         // Same fan-out as /api/teams, so the two Teams screens agree about
-        // which matches exist (Spec 13, Unit 2).
+        // which matches exist (Spec 13, Unit 2) — including which failures
+        // are worth a banner: only a primary-league failure lands in
+        // `errors`, companion competitions degrade quietly.
         const { matches, errors: fanoutErrors } =
           await teamScheduleAcrossCompetitions(
             catalogTeam.leagueKey,

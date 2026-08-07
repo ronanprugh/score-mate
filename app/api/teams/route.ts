@@ -59,10 +59,17 @@ async function buildEntity(
     }
     try {
       // Returns full `Match` objects, which the Teams list's score cards need
-      // — same source the entity detail screen uses.
+      // — same source the entity detail screen uses, but capped at one per
+      // side: this screen shows a last/next pair, and resolving the detail
+      // screen's 10 would cost ~20 discarded linescore fetches per tennis
+      // player.
+      //
+      // Key is distinct from Spec 11's `teams-athlete-schedule`: that entry
+      // cached a `{ lastMatch, nextMatch }` summary, and reusing the key would
+      // let a surviving entry deserialize into `recent === undefined`.
       const { recent, upcoming } = await unstable_cache(
-        () => athleteMatchHistory(leagueKey, fav.externalId),
-        ["teams-athlete-schedule", leagueKey, fav.externalId],
+        () => athleteMatchHistory(leagueKey, fav.externalId, { cap: 1 }),
+        ["teams-athlete-last-next", leagueKey, fav.externalId],
         { revalidate: 300 },
       )();
       // athleteMatchHistory never throws; a graceful empty result for a player
@@ -109,6 +116,10 @@ async function buildEntity(
     // friendlies — not just their primary league. Each competition is cached
     // independently; an empty one (team isn't in that cup) is normal and
     // contributes no error.
+    //
+    // Only the primary league's failure lands in `errors`. A flaky companion
+    // competition costs at most a cup tie, and with 7 competitions per team
+    // it would otherwise be the common case for the error banner.
     const { matches, errors: fanoutErrors } =
       await teamScheduleAcrossCompetitions(
         catalogTeam.leagueKey,

@@ -111,8 +111,11 @@ describe("teamScheduleAcrossCompetitions — fan-out (Spec 13, Unit 2)", () => {
     expect(maxInFlight).toBe(7);
   });
 
-  it("records an error but keeps the other competitions when one league fails", async () => {
-    const { matches, errors } = await teamScheduleAcrossCompetitions(
+  it("warns but does not error when a companion league fails", async () => {
+    // A cup the team may not even be in went down. The primary schedule still
+    // rendered, so this must not flip source.ok and raise the error banner —
+    // with 7 competitions per team that would be the common case.
+    const { matches, errors, warnings } = await teamScheduleAcrossCompetitions(
       "soccer/eng.1",
       LIVERPOOL,
       {
@@ -126,15 +129,36 @@ describe("teamScheduleAcrossCompetitions — fan-out (Spec 13, Unit 2)", () => {
     );
 
     expect(matches.map((m) => m.id)).toEqual(["league-1"]);
+    expect(errors).toEqual([]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain("soccer/uefa.europa");
+    expect(warnings[0]).toContain("503");
+  });
+
+  it("errors when the primary league fails, even if companions succeed", async () => {
+    // The fixtures the user actually came for are missing — that is worth a
+    // banner.
+    const { matches, errors, warnings } = await teamScheduleAcrossCompetitions(
+      "soccer/eng.1",
+      LIVERPOOL,
+      {
+        fetchLeagueSchedule: async (key) => {
+          if (key === "soccer/eng.1") throw new Error("ESPN 500");
+          return key === "soccer/eng.fa" ? [match({ id: "cup-1" })] : [];
+        },
+      },
+    );
+
+    expect(matches.map((m) => m.id)).toEqual(["cup-1"]);
     expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain("soccer/uefa.europa");
-    expect(errors[0]).toContain("503");
+    expect(errors[0]).toContain("soccer/eng.1");
+    expect(warnings).toEqual([]);
   });
 
   it("treats an empty companion league as normal, not an error", async () => {
     // A team not competing in the Europa League returns zero events. That
     // must not flip source.ok or raise an error banner.
-    const { matches, errors } = await teamScheduleAcrossCompetitions(
+    const { matches, errors, warnings } = await teamScheduleAcrossCompetitions(
       "soccer/eng.1",
       LIVERPOOL,
       {
@@ -145,10 +169,11 @@ describe("teamScheduleAcrossCompetitions — fan-out (Spec 13, Unit 2)", () => {
 
     expect(matches).toHaveLength(1);
     expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
   });
 
-  it("returns no matches and every error when all leagues fail", async () => {
-    const { matches, errors } = await teamScheduleAcrossCompetitions(
+  it("returns no matches and reports every league when all fail", async () => {
+    const { matches, errors, warnings } = await teamScheduleAcrossCompetitions(
       "soccer/eng.1",
       LIVERPOOL,
       {
@@ -159,7 +184,9 @@ describe("teamScheduleAcrossCompetitions — fan-out (Spec 13, Unit 2)", () => {
     );
 
     expect(matches).toEqual([]);
-    expect(errors).toHaveLength(7);
+    // 1 primary + 6 companions, partitioned by which one failed.
+    expect(errors).toHaveLength(1);
+    expect(warnings).toHaveLength(6);
   });
 });
 
@@ -216,13 +243,31 @@ describe("selectLastAndNext — cross-competition selection", () => {
     });
   });
 
-  it("ignores live matches for both sides", () => {
+  it("puts a live match in the next slot rather than dropping it", () => {
+    // A live match is neither final nor upcoming. Filtering on those two
+    // statuses made a team's in-progress game — the most interesting thing on
+    // the card — the one fixture the Teams list could not show.
     const { lastMatch, nextMatch } = selectLastAndNext([
       match({ id: "live", status: "live" }),
     ]);
 
     expect(lastMatch).toBeNull();
-    expect(nextMatch).toBeNull();
+    expect(nextMatch?.id).toBe("live");
+  });
+
+  it("prefers a live match over a later upcoming fixture", () => {
+    // The live game kicked off in the past, so the shared sort key already
+    // orders it ahead of anything still to come.
+    const { nextMatch } = selectLastAndNext([
+      match({
+        id: "upcoming",
+        status: "upcoming",
+        kickoffUtc: "2026-08-15T19:00Z",
+      }),
+      match({ id: "live", status: "live", kickoffUtc: "2026-08-07T19:00Z" }),
+    ]);
+
+    expect(nextMatch?.id).toBe("live");
   });
 
   it("falls back to dateUtc when kickoffUtc is unknown", () => {

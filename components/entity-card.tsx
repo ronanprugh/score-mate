@@ -90,8 +90,13 @@ export function EntityCard({ entity }: Props) {
             match={lastMatch}
             emptyText="No recent match"
           />
+          {/*
+            A live match occupies the "next" slot (see `selectLastAndNext`),
+            so the label has to follow the match rather than the slot —
+            "NEXT" over an in-progress scoreline would read as wrong.
+          */}
           <MatchSlot
-            label="Next"
+            label={nextMatch?.status === "live" ? "Now" : "Next"}
             match={nextMatch}
             emptyText="No upcoming match"
           />

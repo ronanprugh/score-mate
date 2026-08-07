@@ -22,8 +22,11 @@ vi.mock("@/lib/espn/catalog", () => ({
 
 const athleteMatchHistoryMock = vi.fn();
 vi.mock("@/lib/espn/client", () => ({
-  athleteMatchHistory: (leagueKey: string, athleteId: string) =>
-    athleteMatchHistoryMock(leagueKey, athleteId),
+  athleteMatchHistory: (
+    leagueKey: string,
+    athleteId: string,
+    opts?: { cap?: number },
+  ) => athleteMatchHistoryMock(leagueKey, athleteId, opts),
 }));
 
 /**
@@ -357,6 +360,7 @@ describe("GET /api/teams", () => {
     expect(athleteMatchHistoryMock).toHaveBeenCalledWith(
       "basketball/nba",
       "1966",
+      { cap: 1 },
     );
   });
 
@@ -396,6 +400,7 @@ describe("GET /api/teams", () => {
     expect(athleteMatchHistoryMock).toHaveBeenCalledWith(
       "soccer/usa.1",
       "45843",
+      { cap: 1 },
     );
   });
 

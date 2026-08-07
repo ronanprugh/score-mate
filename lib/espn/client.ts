@@ -562,19 +562,32 @@ function playerMatchStatus(dateIso: string, completed: boolean): MatchStatus {
   return completed || Date.parse(dateIso) < Date.now() ? "final" : "upcoming";
 }
 
+interface AthleteMatchHistoryOptions extends ClientOptions {
+  /**
+   * Matches to resolve per side. Defaults to `MATCH_HISTORY_CAP` (the detail
+   * screen's page size); the Teams list passes 1, since it renders only a
+   * last/next pair.
+   *
+   * This is not cosmetic — the cap bounds phase 2, and for tennis each
+   * surviving match costs two more linescore fetches. Asking for 10 to use 1
+   * would spend ~20 upstream requests per followed player per cache miss.
+   */
+  cap?: number;
+}
+
 /**
- * Returns up to `MATCH_HISTORY_CAP` recent (completed, most-recent-first)
- * and `MATCH_HISTORY_CAP` upcoming (soonest-first) matches for an athlete,
- * as fully-populated `Match` objects. Powers the Teams list and the entity
- * match-detail screen so a followed player's history renders with
- * the same `MatchCard` / `TennisMatchCard` components as Home.
+ * Returns up to `cap` recent (completed, most-recent-first) and `cap` upcoming
+ * (soonest-first) matches for an athlete, as fully-populated `Match` objects.
+ * Powers the Teams list and the entity match-detail screen so a followed
+ * player's history renders with the same `MatchCard` / `TennisMatchCard`
+ * components as Home.
  *
  * Two-phase resolution to bound fan-out: phase 1 resolves every eventlog
  * item's `event`/`competition` $ref (unavoidable — the eventlog carries no
- * inline date) to get date + identity, then sorts and caps to
- * `MATCH_HISTORY_CAP` per side; phase 2 only fetches the additional,
- * per-match detail needed for full fidelity (tennis set-by-set linescores)
- * for that capped set — never for the full eventlog.
+ * inline date) to get date + identity, then sorts and caps to `cap` per side;
+ * phase 2 only fetches the additional, per-match detail needed for full
+ * fidelity (tennis set-by-set linescores) for that capped set — never for the
+ * full eventlog.
  *
  * Never throws — returns `{ recent: [], upcoming: [] }` on any failure, so a
  * player ESPN has no data on degrades to "Match data unavailable".
@@ -582,16 +595,17 @@ function playerMatchStatus(dateIso: string, completed: boolean): MatchStatus {
 export async function athleteMatchHistory(
   leagueKey: string,
   athleteId: string,
-  opts: ClientOptions = {},
+  opts: AthleteMatchHistoryOptions = {},
 ): Promise<{ recent: Match[]; upcoming: Match[] }> {
   const empty = { recent: [], upcoming: [] };
+  const { cap = MATCH_HISTORY_CAP, ...fetchOpts } = opts;
   try {
     const sport = sportFromLeagueKey(leagueKey);
     if (!sport) return empty;
     const leagueName = findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
     const req: ClientOptions = {
-      ...opts,
-      revalidateSeconds: opts.revalidateSeconds ?? 300,
+      ...fetchOpts,
+      revalidateSeconds: fetchOpts.revalidateSeconds ?? 300,
     };
     const https = (ref: string) => ref.replace(/^http:/, "https:");
 
@@ -732,11 +746,11 @@ export async function athleteMatchHistory(
     const completedCapped = resolved
       .filter((r) => r.completed)
       .sort((a, b) => byDateAsc(b, a)) // most-recent-first
-      .slice(0, MATCH_HISTORY_CAP);
+      .slice(0, cap);
     const upcomingCapped = resolved
       .filter((r) => !r.completed && Date.parse(r.date) >= now)
       .sort(byDateAsc) // soonest-first
-      .slice(0, MATCH_HISTORY_CAP);
+      .slice(0, cap);
 
     const [recent, upcoming] = await Promise.all([
       Promise.all(completedCapped.map((r) => r.build())),
@@ -788,8 +802,13 @@ async function fetchSeasonSchedule(
   const url = buildTeamScheduleUrl(leagueKey, teamId, season);
   const data = await fetchJson<{ events?: RawEvent[] | null }>(url, opts);
   if (!data.events) return [];
+  // ESPN populates `event.league` on this endpoint, but pass our own display
+  // name as the fallback anyway: without it a missing `league` yields
+  // `leagueName: ""`, which reads as a card with no competition at all.
+  const fallbackLeagueName =
+    findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
   return data.events
-    .map((e) => parseEvent(e, leagueKey))
+    .map((e) => parseEvent(e, leagueKey, fallbackLeagueName))
     .filter((m): m is Match => m !== null);
 }
 
@@ -803,11 +822,22 @@ async function fetchSeasonSchedule(
  * team as "Match data unavailable" for the whole offseason even though a full
  * completed season sits one parameter away (Spec 13, Unit 1).
  *
- * When the current season yields nothing, retries exactly once at
- * `currentYear - 1` and returns that instead. Two empty seasons resolve to
- * `[]` rather than throwing, preserving the graceful degradation both Teams
- * routes already depend on. HTTP failures still throw, so a genuine upstream
- * outage is reported rather than silently read as "no matches".
+ * Reaches back to `currentYear - 1` and merges when the current season carries
+ * no completed matches. Testing only for `length === 0` is not enough: ESPN
+ * registers a handful of next-season fixtures well before the in-progress
+ * season ends, and any one of them makes the current-season response non-empty
+ * — which would hide an entire season of results behind a single future
+ * friendly. "No results yet" is the honest signal that the current season has
+ * not started, and it holds in the empty case too.
+ *
+ * Merging rather than replacing means the rollover window shows last season's
+ * finale as "Last" alongside the new season's opener as "Next", instead of
+ * flipping between the two. Exactly one extra request — a team genuinely
+ * without fixtures must not walk backwards through seasons — and none at all
+ * once the current season has a result. Two empty seasons resolve to `[]`
+ * rather than throwing, preserving the graceful degradation both Teams routes
+ * depend on. HTTP failures still throw, so a genuine upstream outage is
+ * reported rather than silently read as "no matches".
  */
 export async function teamScheduleForLeague(
   leagueKey: string,
@@ -826,11 +856,20 @@ export async function teamScheduleForLeague(
     currentSeason,
     fetchOpts,
   );
-  if (current.length > 0) return current;
+  if (current.some((m) => m.status === "final")) return current;
 
-  // Exactly one retry — a team genuinely without fixtures must not walk
-  // backwards through seasons on every request.
-  return fetchSeasonSchedule(leagueKey, teamId, currentSeason - 1, fetchOpts);
+  const previous = await fetchSeasonSchedule(
+    leagueKey,
+    teamId,
+    currentSeason - 1,
+    fetchOpts,
+  );
+  if (previous.length === 0) return current;
+
+  // Dedupe: a fixture straddling the rollover can be listed under both.
+  const byId = new Map(previous.map((m) => [m.id, m]));
+  for (const m of current) byId.set(m.id, m);
+  return [...byId.values()];
 }
 
 /**
