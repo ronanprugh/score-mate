@@ -45,9 +45,13 @@ export type CompetitionFanoutOptions =
  * never an error.
  *
  * Failures are split by how much they cost the user, because this fan-out is
- * wide — 7 competitions per Premier League team, 47 upstream calls across a
- * 7-entity favorites profile — and a single flaky companion call must not
- * light up the data-source banner on an otherwise complete screen:
+ * wide — 7 competitions per Premier League team, and each soccer competition
+ * costs two requests per season, since ESPN returns completed and upcoming
+ * fixtures in separate responses (see `splitsCompletedFromUpcoming` in
+ * `lib/espn/client.ts`). A Premier League team measured 26 upstream calls in
+ * the preseason rollover window, when the previous-season fallback is also
+ * active. A single flaky companion call must not light up the data-source
+ * banner on an otherwise complete screen:
  *
  *   - `errors` — the primary league failed. The card is probably missing the
  *     fixtures the user actually came for, so this flips `source.ok`.

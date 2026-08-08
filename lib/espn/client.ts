@@ -82,13 +82,22 @@ export function buildLeagueTeamsUrl(leagueKey: string): string {
   return `${SITE_BASE}/${leagueKey}/teams?limit=1000`;
 }
 
+/**
+ * @param fixture Request the *upcoming* half of the schedule. Only meaningful
+ *   for soccer — see `splitsCompletedFromUpcoming`.
+ */
 export function buildTeamScheduleUrl(
   leagueKey: string,
   teamId: string,
   season?: number,
+  fixture = false,
 ): string {
   const base = `${SITE_BASE}/${leagueKey}/teams/${encodeURIComponent(teamId)}/schedule`;
-  return season === undefined ? base : `${base}?season=${season}`;
+  const params = new URLSearchParams();
+  if (season !== undefined) params.set("season", String(season));
+  if (fixture) params.set("fixture", "true");
+  const query = params.toString();
+  return query === "" ? base : `${base}?${query}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -792,6 +801,23 @@ interface TeamScheduleOptions extends ClientOptions {
   season?: number;
 }
 
+/**
+ * Whether this league's team-schedule endpoint returns a season in two halves.
+ *
+ * ESPN's soccer team schedule answers with *completed* fixtures only; the
+ * upcoming ones live behind `?fixture=true` and appear in no other team-scoped
+ * response. Every other sport we ship returns the whole season either way —
+ * verified against MLB, where the flag changes nothing — so only soccer pays
+ * for the second request.
+ *
+ * Left unhandled, this empties "Next" for every followed soccer team all
+ * season long: Liverpool's 38 registered 2026-27 league fixtures, and their
+ * preseason friendlies, are invisible without the flag.
+ */
+function splitsCompletedFromUpcoming(leagueKey: string): boolean {
+  return sportFromLeagueKey(leagueKey) === "Soccer";
+}
+
 /** One season's worth of a team's schedule, parsed into `Match` objects. */
 async function fetchSeasonSchedule(
   leagueKey: string,
@@ -799,17 +825,38 @@ async function fetchSeasonSchedule(
   season: number,
   opts: ClientOptions,
 ): Promise<Match[]> {
-  const url = buildTeamScheduleUrl(leagueKey, teamId, season);
-  const data = await fetchJson<{ events?: RawEvent[] | null }>(url, opts);
-  if (!data.events) return [];
   // ESPN populates `event.league` on this endpoint, but pass our own display
   // name as the fallback anyway: without it a missing `league` yields
   // `leagueName: ""`, which reads as a card with no competition at all.
   const fallbackLeagueName =
     findSupportedLeague(leagueKey)?.displayName ?? leagueKey;
-  return data.events
-    .map((e) => parseEvent(e, leagueKey, fallbackLeagueName))
-    .filter((m): m is Match => m !== null);
+
+  const fetchHalf = async (fixture: boolean): Promise<Match[]> => {
+    const url = buildTeamScheduleUrl(leagueKey, teamId, season, fixture);
+    const data = await fetchJson<{ events?: RawEvent[] | null }>(url, opts);
+    if (!data.events) return [];
+    return data.events
+      .map((e) => parseEvent(e, leagueKey, fallbackLeagueName))
+      .filter((m): m is Match => m !== null);
+  };
+
+  if (!splitsCompletedFromUpcoming(leagueKey)) return fetchHalf(false);
+
+  // Both halves, concurrently. A half that fails still fails the whole call:
+  // silently returning "completed only" would reintroduce the empty "Next"
+  // this split exists to fix, and the companion fan-out in
+  // `teamScheduleAcrossCompetitions` already degrades a failed competition
+  // into a warning rather than a broken screen.
+  const [completed, upcoming] = await Promise.all([
+    fetchHalf(false),
+    fetchHalf(true),
+  ]);
+
+  // Dedupe by id: a match that goes final between the two responses can
+  // legitimately appear in both. Completed wins — it carries the score.
+  const byId = new Map(upcoming.map((m) => [m.id, m]));
+  for (const m of completed) byId.set(m.id, m);
+  return [...byId.values()];
 }
 
 /**
