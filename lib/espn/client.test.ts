@@ -453,6 +453,16 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     "season=2025": liverpoolSchedule2025,
   };
 
+  /**
+   * Soccer schedules arrive in two halves (`?fixture=true` for upcoming), so
+   * every soccer season costs two requests. `routedFetch` matches by substring
+   * and `fixture=true` is appended last, so a bare `season=YYYY` key serves
+   * both halves — fine wherever the test only counts requests. Tests that need
+   * the halves to differ list the `&fixture=true` key first, since
+   * `routedFetch` takes the first matching key.
+   */
+  const HALVES_PER_SEASON = 2;
+
   /** Wraps a fetchFn so the test can assert how many requests were issued. */
   function recordingFetch(inner: typeof fetch) {
     const urls: string[] = [];
@@ -489,13 +499,20 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     expect(matches[0]?.homeTeamName).toBe("Liverpool");
   });
 
-  it("issues exactly two requests when falling back", async () => {
+  it("issues exactly two seasons' worth of requests when falling back", async () => {
     const { fetchFn, urls } = recordingFetch(routedFetch(routes));
     await teamScheduleForLeague("soccer/eng.1", "364", { fetchFn });
 
-    expect(urls).toHaveLength(2);
+    expect(urls).toHaveLength(2 * HALVES_PER_SEASON);
+    expect(urls.filter((u) => u.includes("season=2026"))).toHaveLength(
+      HALVES_PER_SEASON,
+    );
+    expect(urls.filter((u) => u.includes("season=2025"))).toHaveLength(
+      HALVES_PER_SEASON,
+    );
+    // Current season first, then the fallback.
     expect(urls[0]).toContain("season=2026");
-    expect(urls[1]).toContain("season=2025");
+    expect(urls.at(-1)).toContain("season=2025");
   });
 
   it("issues no fallback request when the current season is populated", async () => {
@@ -507,8 +524,8 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     });
 
     expect(matches).toHaveLength(4);
-    expect(urls).toHaveLength(1);
-    expect(urls[0]).toContain("season=2026");
+    expect(urls).toHaveLength(HALVES_PER_SEASON);
+    for (const u of urls) expect(u).toContain("season=2026");
   });
 
   it("resolves to an empty array (does not throw) when both seasons are empty", async () => {
@@ -523,7 +540,7 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
       teamScheduleForLeague("soccer/eng.1", "364", { fetchFn }),
     ).resolves.toEqual([]);
     // Still bounded at one retry — no walking backwards through seasons.
-    expect(urls).toHaveLength(2);
+    expect(urls).toHaveLength(2 * HALVES_PER_SEASON);
   });
 
   it("reaches back and merges when the current season has fixtures but no results", async () => {
@@ -556,7 +573,7 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
       fetchFn,
     });
 
-    expect(urls).toHaveLength(2);
+    expect(urls).toHaveLength(2 * HALVES_PER_SEASON);
     // Both seasons, deduped — last season's finale is still reachable as
     // "Last" while the new opener is "Next".
     expect(matches).toHaveLength(5);
@@ -570,7 +587,7 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     );
     await teamScheduleForLeague("soccer/eng.1", "364", { fetchFn });
 
-    expect(urls).toHaveLength(1);
+    expect(urls).toHaveLength(HALVES_PER_SEASON);
   });
 
   it("honors an explicit season and skips the fallback entirely", async () => {
@@ -581,7 +598,95 @@ describe("teamScheduleForLeague — season resolution (Spec 13, Unit 1)", () => 
     });
 
     expect(matches).toHaveLength(4);
-    expect(urls).toEqual([expect.stringContaining("season=2025")]);
+    expect(urls).toHaveLength(HALVES_PER_SEASON);
+    for (const u of urls) expect(u).toContain("season=2025");
+  });
+
+  it("fetches the upcoming half — ESPN lists future soccer fixtures nowhere else", async () => {
+    // The Liverpool-vs-Monaco bug: ESPN's soccer team schedule answers with
+    // completed fixtures only. The Aug 9 friendly is in the `fixture=true`
+    // response and in no other team-scoped one, so without that request every
+    // followed soccer team has an empty "Next" — all season, not just
+    // preseason.
+    const monacoFriendly = {
+      events: [
+        {
+          ...liverpoolSchedule2025.events[0],
+          id: "401886533",
+          date: "2026-08-09T13:30Z",
+          competitions: [
+            {
+              ...liverpoolSchedule2025.events[0].competitions[0],
+              status: { type: { state: "pre" } },
+            },
+          ],
+        },
+      ],
+    };
+    // Specific key first: `routedFetch` takes the first matching substring.
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({
+        "season=2026&fixture=true": monacoFriendly,
+        "season=2026": liverpoolEmptySchedule,
+        "season=2025": liverpoolSchedule2025,
+      }),
+    );
+
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    expect(urls).toContain(
+      "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/364/schedule?season=2026&fixture=true",
+    );
+    expect(matches.map((m) => m.id)).toContain("401886533");
+    // And it is the one a card would show as "Next".
+    const upcoming = matches.filter((m) => m.status !== "final");
+    expect(upcoming).toHaveLength(1);
+    expect(upcoming[0]?.id).toBe("401886533");
+  });
+
+  it("issues one request per season for non-soccer leagues", async () => {
+    // MLB returns the whole season either way; `fixture=true` changes nothing
+    // there, so only soccer pays for the second request.
+    const { fetchFn, urls } = recordingFetch(
+      routedFetch({ "season=2026": liverpoolSchedule2025 }),
+    );
+    await teamScheduleForLeague("baseball/mlb", "16", { fetchFn });
+
+    expect(urls).toHaveLength(1);
+    expect(urls[0]).not.toContain("fixture=true");
+  });
+
+  it("prefers the completed copy of a fixture present in both halves", async () => {
+    // A match can go final between the two concurrent responses. The
+    // completed copy carries the score, so it must win the dedupe.
+    const asUpcoming = {
+      events: [
+        {
+          ...liverpoolSchedule2025.events[0],
+          competitions: [
+            {
+              ...liverpoolSchedule2025.events[0].competitions[0],
+              status: { type: { state: "pre" } },
+            },
+          ],
+        },
+      ],
+    };
+    const { fetchFn } = recordingFetch(
+      routedFetch({
+        "season=2026&fixture=true": asUpcoming,
+        "season=2026": { events: [liverpoolSchedule2025.events[0]] },
+      }),
+    );
+
+    const matches = await teamScheduleForLeague("soccer/eng.1", "364", {
+      fetchFn,
+    });
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.status).toBe("final");
   });
 
   it("still throws on an upstream HTTP failure rather than reading it as 'no matches'", async () => {
