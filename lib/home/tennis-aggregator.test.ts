@@ -153,6 +153,77 @@ describe("getActiveTennisTournaments", () => {
     expect(active[0]?.endDate).toBe("2025-06-02");
   });
 
+  it("merges the ATP + WTA registry entries of a combined event into one card", async () => {
+    // ESPN returns the same combined event (men's + women's draws) from both
+    // tour endpoints, so both registry entries yield matches.
+    const shared = [
+      makeMatch({ id: "cin-m1", status: "live" }),
+      makeMatch({ id: "cin-w1", status: "upcoming" }),
+    ];
+    const fetcher: TennisScoreboardFetcher = async (id) => {
+      if (id === "tennis/atp/cincinnati" || id === "tennis/wta/cincinnati") {
+        return result(shared, { start: "2025-08-05", end: "2025-08-18" });
+      }
+      return result([]);
+    };
+
+    const active = await getActiveTennisTournaments(TODAY, fetcher);
+    expect(active).toHaveLength(1);
+    const t = active[0]!;
+    expect(t.id).toBe("tennis/atp/cincinnati");
+    expect(t.displayName).toBe("Cincinnati Open");
+    expect(t.matches.map((m) => m.id)).toEqual(["cin-m1", "cin-w1"]);
+    expect(t.liveCount).toBe(1);
+    expect(t.upcomingCount).toBe(1);
+    expect(t.startDate).toBe("2025-08-05");
+    expect(t.endDate).toBe("2025-08-18");
+  });
+
+  it("unions matches when the two tour endpoints return different draws", async () => {
+    const fetcher: TennisScoreboardFetcher = async (id) => {
+      if (id === "tennis/atp/canada") {
+        return result([makeMatch({ id: "can-m1", status: "live" })], {
+          start: "2025-07-28",
+          end: "2025-08-07",
+        });
+      }
+      if (id === "tennis/wta/canada") {
+        return result([makeMatch({ id: "can-w1", status: "final" })], {
+          start: "2025-07-27",
+          end: "2025-08-08",
+        });
+      }
+      return result([]);
+    };
+
+    const active = await getActiveTennisTournaments(TODAY, fetcher);
+    expect(active).toHaveLength(1);
+    const t = active[0]!;
+    expect(t.matches.map((m) => m.id)).toEqual(["can-m1", "can-w1"]);
+    expect(t.liveCount).toBe(1);
+    expect(t.doneCount).toBe(1);
+    // Widest span across both entries.
+    expect(t.startDate).toBe("2025-07-27");
+    expect(t.endDate).toBe("2025-08-08");
+  });
+
+  it("keeps same-named tournaments on different weeks separate", async () => {
+    // Indian Wells and Miami share no ESPN event name, so they stay distinct
+    // even though both are combined ATP/WTA events.
+    const fetcher: TennisScoreboardFetcher = async (id) => {
+      if (id.endsWith("/indian-wells") || id.endsWith("/miami")) {
+        return result([makeMatch({ id: `${id}-m1`, status: "upcoming" })]);
+      }
+      return result([]);
+    };
+
+    const active = await getActiveTennisTournaments(TODAY, fetcher);
+    expect(active.map((t) => t.id)).toEqual([
+      "tennis/atp/indian-wells",
+      "tennis/atp/miami",
+    ]);
+  });
+
   it("drops tournaments whose fetcher call rejects", async () => {
     const fetcher: TennisScoreboardFetcher = async (id) => {
       if (id === "tennis/slam/australian-open") {
