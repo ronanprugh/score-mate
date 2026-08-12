@@ -8,7 +8,11 @@
  */
 
 import { MARQUEE_TENNIS_TOURNAMENTS } from "@/lib/espn/tennis";
-import type { TennisTour, TennisScoreboardResult } from "@/lib/espn/tennis";
+import type {
+  MarqueeTournament,
+  TennisTour,
+  TennisScoreboardResult,
+} from "@/lib/espn/tennis";
 import type { Match } from "@/lib/sports/types";
 
 /**
@@ -37,11 +41,28 @@ export interface ActiveTournament {
   matches: Match[];
 }
 
+/** Accumulator for one ESPN event, merged across its registry entries. */
+interface EventAccumulator {
+  tournament: MarqueeTournament;
+  matches: Match[];
+  seenMatchIds: Set<string>;
+  eventStartDate: string | undefined;
+  eventEndDate: string | undefined;
+}
+
 /**
  * Returns every marquee tournament that is in-session on `today`.
  * Tournaments whose fetcher call rejects or returns `[]` are silently
  * dropped — the caller decides how to handle partial failures (the
  * cache wrapper logs via `source.errors`).
+ *
+ * Combined ATP/WTA events (Indian Wells, Miami, Madrid, Rome, Canada,
+ * Cincinnati) have one registry entry per tour but are a SINGLE ESPN event:
+ * both tour endpoints return the same `event.name` carrying the men's and
+ * women's draws together. Entries are therefore merged by `espnEventName`,
+ * so each real-world tournament yields exactly one card instead of two
+ * identical ones. The first registry entry for an event supplies the card's
+ * id/displayName/tour.
  */
 export async function getActiveTennisTournaments(
   today: string,
@@ -54,20 +75,53 @@ export async function getActiveTennisTournaments(
     })),
   );
 
-  const active: ActiveTournament[] = [];
+  const byEvent = new Map<string, EventAccumulator>();
   for (const r of settled) {
     if (r.status === "rejected") continue;
     const { tournament, result } = r.value;
-    const { matches } = result;
-    if (matches.length === 0) continue;
+    if (result.matches.length === 0) continue;
+
+    let acc = byEvent.get(tournament.espnEventName);
+    if (!acc) {
+      acc = {
+        tournament,
+        matches: [],
+        seenMatchIds: new Set(),
+        eventStartDate: undefined,
+        eventEndDate: undefined,
+      };
+      byEvent.set(tournament.espnEventName, acc);
+    }
+    for (const m of result.matches) {
+      if (acc.seenMatchIds.has(m.id)) continue;
+      acc.seenMatchIds.add(m.id);
+      acc.matches.push(m);
+    }
+    if (
+      result.eventStartDate &&
+      (!acc.eventStartDate || result.eventStartDate < acc.eventStartDate)
+    ) {
+      acc.eventStartDate = result.eventStartDate;
+    }
+    if (
+      result.eventEndDate &&
+      (!acc.eventEndDate || result.eventEndDate > acc.eventEndDate)
+    ) {
+      acc.eventEndDate = result.eventEndDate;
+    }
+  }
+
+  const active: ActiveTournament[] = [];
+  for (const acc of byEvent.values()) {
+    const { tournament, matches } = acc;
 
     // Date range = the tournament's overall draw span (not this single day);
     // fall back to the day's matches if the fetcher didn't surface a span.
     const dayDates = matches.map((m) => m.dateUtc);
     const startDate =
-      result.eventStartDate ?? dayDates.reduce((a, b) => (a < b ? a : b));
+      acc.eventStartDate ?? dayDates.reduce((a, b) => (a < b ? a : b));
     const endDate =
-      result.eventEndDate ?? dayDates.reduce((a, b) => (a > b ? a : b));
+      acc.eventEndDate ?? dayDates.reduce((a, b) => (a > b ? a : b));
 
     active.push({
       id: tournament.id,
